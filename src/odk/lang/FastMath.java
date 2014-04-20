@@ -83,7 +83,7 @@ public strictfp final class FastMath {
      *   so that they call the fast normalization treatments instead of the accurate ones.
      *   NB: If an angle is huge (like PI*1e20), in double precision format its last digits
      *       are zeros, which most likely is not the case for the intended value, and doing
-     *       an accurate reduction on a very unaccurate value is most likely pointless.
+     *       an accurate reduction on a very inaccurate value is most likely pointless.
      *       But it gives some sort of coherence that could be needed in some cases.
      * 
      * Multiplication on double appears to be about as fast (or not much slower) than call
@@ -338,12 +338,6 @@ public strictfp final class FastMath {
     private static final double ATAN_AT10 = Double.longBitsToDouble(0x3f90ad3ae322da11L); // 1.62858201153657823623e-02 
 
     //--------------------------------------------------------------------------
-    // TABLE FOR POWERS OF TWO
-    //--------------------------------------------------------------------------
-
-    private static final double[] twoPowTab = new double[(MAX_DOUBLE_EXPONENT-MIN_DOUBLE_EXPONENT)+1];
-
-    //--------------------------------------------------------------------------
     // CONSTANTS AND TABLES FOR EXP AND EXPM1
     //--------------------------------------------------------------------------
 
@@ -363,6 +357,14 @@ public strictfp final class FastMath {
     private static final double[] expLoNegTab = new double[EXP_LO_TAB_SIZE];
 
     //--------------------------------------------------------------------------
+    // CONSTANTS FOR QUICK EXP
+    //--------------------------------------------------------------------------
+
+    private static final double EXP_QUICK_A = TWO_POW_52/LOG_2;
+    private static final double EXP_QUICK_B = MAX_DOUBLE_EXPONENT * TWO_POW_52;
+    private static final double EXP_QUICK_C = Math.ceil((Math.log(LOG_2+2/Math.E) - LOG_2 - Math.log(LOG_2)) * EXP_QUICK_A);
+
+    //--------------------------------------------------------------------------
     // CONSTANTS AND TABLES FOR LOG AND LOG1P
     //--------------------------------------------------------------------------
 
@@ -371,6 +373,12 @@ public strictfp final class FastMath {
     private static final double[] logXLogTab = new double[LOG_TAB_SIZE];
     private static final double[] logXTab = new double[LOG_TAB_SIZE];
     private static final double[] logXInvTab = new double[LOG_TAB_SIZE];
+
+    //--------------------------------------------------------------------------
+    // TABLE FOR POWERS OF TWO
+    //--------------------------------------------------------------------------
+
+    private static final double[] twoPowTab = new double[(MAX_DOUBLE_EXPONENT-MIN_DOUBLE_EXPONENT)+1];
 
     //--------------------------------------------------------------------------
     // CONSTANTS AND TABLES FOR SQRT
@@ -599,7 +607,7 @@ public strictfp final class FastMath {
             double result = asinTab[index] + delta * (asinDer1DivF1Tab[index] + delta * (asinDer2DivF2Tab[index] + delta * (asinDer3DivF3Tab[index] + delta * asinDer4DivF4Tab[index])));
             return (negateResult) ? -result : result;
         } else if (USE_POWTABS_FOR_ASIN && (value <= ASIN_MAX_VALUE_FOR_POWTABS)) {
-            int index = (int)(FastMath.pow(value * ASIN_POWTABS_ONE_DIV_MAX_VALUE, ASIN_POWTABS_POWER) * ASIN_POWTABS_SIZE_MINUS_ONE + 0.5);
+            int index = (int)(FastMath.powFast(value * ASIN_POWTABS_ONE_DIV_MAX_VALUE, ASIN_POWTABS_POWER) * ASIN_POWTABS_SIZE_MINUS_ONE + 0.5);
             double delta = value - asinParamPowTab[index];
             double result = asinPowTab[index] + delta * (asinDer1DivF1PowTab[index] + delta * (asinDer2DivF2PowTab[index] + delta * (asinDer3DivF3PowTab[index] + delta * asinDer4DivF4PowTab[index])));
             return (negateResult) ? -result : result;
@@ -889,232 +897,6 @@ public strictfp final class FastMath {
     }
 
     /**
-     * 1e-13ish accuracy (or better) on whole double range.
-     * 
-     * @param value A double value.
-     * @param power A power.
-     * @return value^power.
-     */
-    public static double pow(double value, double power) {
-        if (power == 0.0) {
-            return 1.0;
-        } else if (power == 1.0) {
-            return value;
-        }
-        if (value <= 0.0) {
-            // powerInfo: 0 if not integer, 1 if even integer, -1 if odd integer
-            int powerInfo;
-            if (Math.abs(power) >= (TWO_POW_52*2)) {
-                // The binary digit just before coma is outside mantissa,
-                // thus it is always 0: power is an even integer.
-                powerInfo = 1;
-            } else {
-                // If power's magnitude permits, we cast into int instead of into long,
-                // as it is faster (TODO check it on 64 bits machines...).
-                if (Math.abs(power) <= (double)Integer.MAX_VALUE) {
-                    int powerAsInt = (int)power;
-                    if (power == (double)powerAsInt) {
-                        powerInfo = ((powerAsInt & 1) == 0) ? 1 : -1;
-                    } else { // power is not an integer (and not NaN, due to test against Integer.MAX_VALUE)
-                        powerInfo = 0;
-                    }
-                } else {
-                    long powerAsLong = (long)power;
-                    if (power == (double)powerAsLong) {
-                        powerInfo = ((powerAsLong & 1) == 0) ? 1 : -1;
-                    } else { // power is not an integer, or is NaN
-                        if (power != power) {
-                            return Double.NaN;
-                        }
-                        powerInfo = 0;
-                    }
-                }
-            }
-
-            if (value == 0.0) {
-                if (power < 0.0) {
-                    return (powerInfo < 0) ? 1/value : Double.POSITIVE_INFINITY;
-                } else { // power > 0.0 (0 and NaN cases already treated)
-                    return (powerInfo < 0) ? value : 0.0;
-                }
-            } else { // value < 0.0
-                if (value == Double.NEGATIVE_INFINITY) {
-                    if (powerInfo < 0) { // power odd integer
-                        return (power < 0.0) ? -0.0 : Double.NEGATIVE_INFINITY;
-                    } else { // power even integer, or not an integer
-                        return (power < 0.0) ? 0.0 : Double.POSITIVE_INFINITY;
-                    }
-                } else {
-                    return (powerInfo != 0) ? powerInfo * FastMath.exp(power*FastMath.log(-value)) : Double.NaN;
-                }
-            }
-        } else { // a > 0.0, or a is NaN
-            return FastMath.exp(power*FastMath.log(value));
-        }
-    }
-
-    /**
-     * This treatment is somehow accurate for low values of |power|.
-     * 
-     * @param value A double value.
-     * @param power A power.
-     * @return value^power.
-     */
-    public static double powFast(double value, int power) {
-        if (power > 5) { // Most common case first.
-            double oddRemains = 1.0;
-            do {
-                // Test if power is odd.
-                if ((power & 1) != 0) {
-                    oddRemains *= value;
-                }
-                value *= value;
-                power >>= 1; // power = power / 2
-            } while (power > 5);
-            // Here, power is in [3,5]: faster to finish outside the loop.
-            if (power == 3) {
-                return oddRemains * value * value * value;
-            } else {
-                double v2 = value * value;
-                if (power == 4) {
-                    return oddRemains * v2 * v2;
-                } else { // power == 5
-                    return oddRemains * v2 * v2 * value;
-                }
-            }
-        } else if (power >= 0) { // power in [0,5]
-            if (power < 3) { // power in [0,2]
-                if (power == 2) { // Most common case first.
-                    return value * value;
-                } else if (power != 0) { // faster than == 1
-                    return value;
-                } else { // power == 0
-                    return 1.0;
-                }
-            } else { // power in [3,5]
-                if (power == 3) {
-                    return value * value * value;
-                } else { // power in [4,5]
-                    double v2 = value * value;
-                    if (power == 4) {
-                        return v2 * v2;
-                    } else { // power == 5
-                        return v2 * v2 * value;
-                    }
-                }
-            }
-        } else { // power < 0
-            // Opposite of Integer.MIN_VALUE does not exist as int.
-            if (power == Integer.MIN_VALUE) {
-                return 1.0/(FastMath.powFast(value,-(power+1)) * value);
-            } else {
-                return 1.0/FastMath.powFast(value,-power);
-            }
-        }
-    }
-
-    /**
-     * Returns the exact result, provided it's in double range.
-     * 
-     * @param power A power.
-     * @return 2^power.
-     */
-    public static double twoPow(int power) {
-        if (power >= 0) {
-            if (power <= MAX_DOUBLE_EXPONENT) {
-                return twoPowTab[power-MIN_DOUBLE_EXPONENT];
-            } else {
-                // Overflow.
-                return Double.POSITIVE_INFINITY;
-            }
-        } else {
-            if (power >= MIN_DOUBLE_EXPONENT) {
-                return twoPowTab[power-MIN_DOUBLE_EXPONENT];
-            } else {
-                // Underflow.
-                return 0.0;
-            }
-        }
-        /* Version without table.
-        if (power <= -MAX_DOUBLE_EXPONENT) { // Not normal.
-            if (power >= MIN_DOUBLE_EXPONENT) { // Subnormal.
-                return Double.longBitsToDouble(0x0008000000000000L>>(-(power+MAX_DOUBLE_EXPONENT)));
-            } else { // Underflow.
-                return 0.0;
-            }
-        } else if (power > MAX_DOUBLE_EXPONENT) { // Overflow.
-            return Double.POSITIVE_INFINITY;
-        } else { // Normal.
-            return Double.longBitsToDouble(((long)(power+MAX_DOUBLE_EXPONENT))<<52);
-        }
-         */        
-    }
-
-    /**
-     * @param value An int value.
-     * @return value*value.
-     */
-    public static int pow2(int value) {
-        return value*value;
-    }
-
-    /**
-     * @param value A long value.
-     * @return value*value.
-     */
-    public static long pow2(long value) {
-        return value*value;
-    }
-
-    /**
-     * @param value A float value.
-     * @return value*value.
-     */
-    public static float pow2(float value) {
-        return value*value;
-    }
-
-    /**
-     * @param value A double value.
-     * @return value*value.
-     */
-    public static double pow2(double value) {
-        return value*value;
-    }
-
-    /**
-     * @param value An int value.
-     * @return value*value*value.
-     */
-    public static int pow3(int value) {
-        return value*value*value;
-    }
-
-    /**
-     * @param value A long value.
-     * @return value*value*value.
-     */
-    public static long pow3(long value) {
-        return value*value*value;
-    }
-
-    /**
-     * @param value A float value.
-     * @return value*value*value.
-     */
-    public static float pow3(float value) {
-        return value*value*value;
-    }
-
-    /**
-     * @param value A double value.
-     * @return value*value*value.
-     */
-    public static double pow3(double value) {
-        return value*value*value;
-    }
-
-    /**
      * @param value A double value.
      * @return e^value.
      */
@@ -1161,6 +943,28 @@ public strictfp final class FastMath {
             // We took care not to compute with subnormal values.
             return (valueInt >= EXP_MIN_INT_LIMIT) ? tmp : tmp * TWO_POW_N54;
         }
+    }
+
+    /**
+     * Quick exp, with a max relative error of about 3e-2 for |value| < 700.0 or so,
+     * and no accuracy at all outside this range.
+     * Derived from a note by Nicol N. Schraudolph, IDSIA, 1998.
+     * 
+     * @param value A double value.
+     * @return e^value.
+     */
+    public static double expQuick(double value) {
+        if (false) {
+            // Schraudolph's original method.
+            return Double.longBitsToDouble((long)(EXP_QUICK_A * value + (EXP_QUICK_B - EXP_QUICK_C)));
+        }
+        /*
+         * Cast of double values, even in long range, into long, is (TODO at least on 32 bit machines)
+         * slower than from double to int for values in int range, and then from int to long.
+         * For that reason, we only work with integer values in int range (corresponding to the 32 first bits of the long,
+         * containing sign, exponent, and highest significant bits of double's mantissa), and cast twice.
+         */
+        return Double.longBitsToDouble(((long)(int)(EXP_QUICK_A/(1L<<32) * value + (EXP_QUICK_B - EXP_QUICK_C)/(1L<<32)))<<32);
     }
 
     /**
@@ -1261,6 +1065,42 @@ public strictfp final class FastMath {
     }
 
     /**
+     * Quick log, with a max relative error of about 2e-3
+     * for values in ]0,+infinity[, and no accuracy at all
+     * outside this range.
+     */
+    public static double logQuick(double value) {
+        /*
+         * Inverse of Schraudolph's method for exp, is very inaccurate near 1,
+         * and not that fast (even using floats), especially with added if's
+         * to deal with values near 1, so we don't use it, and use a simplified
+         * version of our log's redefined algorithm.
+         */
+
+        // Simplified version of log's redefined algorithm:
+        // log(value) ~= exponent * log(2) + log(1.mantissaApprox)
+
+        double h;
+        if (value > 0.87) {
+            if (value < 1.16) {
+                return 2.0 * (value-1.0)/(value+1.0);
+            }
+            h = 0.0;
+        } else if (value < MIN_DOUBLE_NORMAL) {
+            value *= TWO_POW_52;
+            h = -52*LOG_2;
+        } else {
+            h = 0.0;
+        }
+
+        int valueBitsHi = (int)(Double.doubleToRawLongBits(value)>>32);
+        int valueExp = (valueBitsHi>>20)-MAX_DOUBLE_EXPONENT;
+        int xIndex = ((valueBitsHi<<12)>>>(32-LOG_BITS));
+
+        return h + valueExp * LOG_2 + logXLogTab[xIndex];
+    }
+
+    /**
      * Much more accurate than log(1+value), for values close to zero.
      * 
      * @param value A double value.
@@ -1326,6 +1166,251 @@ public strictfp final class FastMath {
         } else { // value < -1.0, or value is NaN
             return Double.NaN;
         }
+    }
+
+    /**
+     * 1e-13ish accuracy (or better) on whole double range.
+     * 
+     * @param value A double value.
+     * @param power A power.
+     * @return value^power.
+     */
+    public static double pow(double value, double power) {
+        if (power == 0.0) {
+            return 1.0;
+        } else if (power == 1.0) {
+            return value;
+        }
+        if (value <= 0.0) {
+            // powerInfo: 0 if not integer, 1 if even integer, -1 if odd integer
+            int powerInfo;
+            if (Math.abs(power) >= (TWO_POW_52*2)) {
+                // The binary digit just before coma is outside mantissa,
+                // thus it is always 0: power is an even integer.
+                powerInfo = 1;
+            } else {
+                // If power's magnitude permits, we cast into int instead of into long,
+                // as it is faster (TODO check it on 64 bits machines...).
+                if (Math.abs(power) <= (double)Integer.MAX_VALUE) {
+                    int powerAsInt = (int)power;
+                    if (power == (double)powerAsInt) {
+                        powerInfo = ((powerAsInt & 1) == 0) ? 1 : -1;
+                    } else { // power is not an integer (and not NaN, due to test against Integer.MAX_VALUE)
+                        powerInfo = 0;
+                    }
+                } else {
+                    long powerAsLong = (long)power;
+                    if (power == (double)powerAsLong) {
+                        powerInfo = ((powerAsLong & 1) == 0) ? 1 : -1;
+                    } else { // power is not an integer, or is NaN
+                        if (power != power) {
+                            return Double.NaN;
+                        }
+                        powerInfo = 0;
+                    }
+                }
+            }
+
+            if (value == 0.0) {
+                if (power < 0.0) {
+                    return (powerInfo < 0) ? 1/value : Double.POSITIVE_INFINITY;
+                } else { // power > 0.0 (0 and NaN cases already treated)
+                    return (powerInfo < 0) ? value : 0.0;
+                }
+            } else { // value < 0.0
+                if (value == Double.NEGATIVE_INFINITY) {
+                    if (powerInfo < 0) { // power odd integer
+                        return (power < 0.0) ? -0.0 : Double.NEGATIVE_INFINITY;
+                    } else { // power even integer, or not an integer
+                        return (power < 0.0) ? 0.0 : Double.POSITIVE_INFINITY;
+                    }
+                } else {
+                    return (powerInfo != 0) ? powerInfo * FastMath.exp(power*FastMath.log(-value)) : Double.NaN;
+                }
+            }
+        } else { // value > 0.0, or value is NaN
+            return FastMath.exp(power*FastMath.log(value));
+        }
+    }
+
+    /**
+     * Quick pow, with a max relative error of about 2.6e-2
+     * for values in ]0,+infinity[, and no accuracy at all
+     * outside this range.
+     * 
+     * @param value A double value, in ]0,+infinity[ (strictly positive and finite).
+     * @param power A double value.
+     * @return value^power.
+     */
+    public static double powQuick(double value, double power) {
+        return FastMath.exp(power*FastMath.logQuick(value));
+    }
+
+    /**
+     * This treatment is somehow accurate for low values of |power|,
+     * and for |power*getExponent(value)| < 1023 or so (to stay away
+     * from double extreme magnitudes (large and small)).
+     * 
+     * @param value A double value.
+     * @param power A power.
+     * @return value^power.
+     */
+    public static double powFast(double value, int power) {
+        if (power > 5) { // Most common case first.
+            double oddRemains = 1.0;
+            do {
+                // Test if power is odd.
+                if ((power & 1) != 0) {
+                    oddRemains *= value;
+                }
+                value *= value;
+                power >>= 1; // power = power / 2
+            } while (power > 5);
+            // Here, power is in [3,5]: faster to finish outside the loop.
+            if (power == 3) {
+                return oddRemains * value * value * value;
+            } else {
+                double v2 = value * value;
+                if (power == 4) {
+                    return oddRemains * v2 * v2;
+                } else { // power == 5
+                    return oddRemains * v2 * v2 * value;
+                }
+            }
+        } else if (power >= 0) { // power in [0,5]
+            if (power < 3) { // power in [0,2]
+                if (power == 2) { // Most common case first.
+                    return value * value;
+                } else if (power != 0) { // faster than == 1
+                    return value;
+                } else { // power == 0
+                    return 1.0;
+                }
+            } else { // power in [3,5]
+                if (power == 3) {
+                    return value * value * value;
+                } else { // power in [4,5]
+                    double v2 = value * value;
+                    if (power == 4) {
+                        return v2 * v2;
+                    } else { // power == 5
+                        return v2 * v2 * value;
+                    }
+                }
+            }
+        } else { // power < 0
+            // Opposite of Integer.MIN_VALUE does not exist as int.
+            if (power == Integer.MIN_VALUE) {
+                // Integer.MAX_VALUE = -(power+1)
+                return 1.0/(FastMath.powFast(value,Integer.MAX_VALUE) * value);
+            } else {
+                return 1.0/FastMath.powFast(value,-power);
+            }
+        }
+    }
+
+    /**
+     * Returns the exact result, provided it's in double range.
+     * 
+     * @param power A power.
+     * @return 2^power.
+     */
+    public static double twoPow(int power) {
+        if (false) {
+            /*
+             * Version without table.
+             */
+            if (power <= -MAX_DOUBLE_EXPONENT) { // Not normal.
+                if (power >= MIN_DOUBLE_EXPONENT) { // Subnormal.
+                    return Double.longBitsToDouble(0x0008000000000000L>>(-(power+MAX_DOUBLE_EXPONENT)));
+                } else { // Underflow.
+                    return 0.0;
+                }
+            } else if (power > MAX_DOUBLE_EXPONENT) { // Overflow.
+                return Double.POSITIVE_INFINITY;
+            } else { // Normal.
+                return Double.longBitsToDouble(((long)(power+MAX_DOUBLE_EXPONENT))<<52);
+            }
+        }
+        if (power >= 0) {
+            if (power <= MAX_DOUBLE_EXPONENT) {
+                return twoPowTab[power-MIN_DOUBLE_EXPONENT];
+            } else {
+                // Overflow.
+                return Double.POSITIVE_INFINITY;
+            }
+        } else {
+            if (power >= MIN_DOUBLE_EXPONENT) {
+                return twoPowTab[power-MIN_DOUBLE_EXPONENT];
+            } else {
+                // Underflow.
+                return 0.0;
+            }
+        }
+    }
+
+    /**
+     * @param value An int value.
+     * @return value*value.
+     */
+    public static int pow2(int value) {
+        return value*value;
+    }
+
+    /**
+     * @param value A long value.
+     * @return value*value.
+     */
+    public static long pow2(long value) {
+        return value*value;
+    }
+
+    /**
+     * @param value A float value.
+     * @return value*value.
+     */
+    public static float pow2(float value) {
+        return value*value;
+    }
+
+    /**
+     * @param value A double value.
+     * @return value*value.
+     */
+    public static double pow2(double value) {
+        return value*value;
+    }
+
+    /**
+     * @param value An int value.
+     * @return value*value*value.
+     */
+    public static int pow3(int value) {
+        return value*value*value;
+    }
+
+    /**
+     * @param value A long value.
+     * @return value*value*value.
+     */
+    public static long pow3(long value) {
+        return value*value*value;
+    }
+
+    /**
+     * @param value A float value.
+     * @return value*value*value.
+     */
+    public static float pow3(float value) {
+        return value*value*value;
+    }
+
+    /**
+     * @param value A double value.
+     * @return value*value*value.
+     */
+    public static double pow3(double value) {
+        return value*value*value;
     }
 
     /**
@@ -2760,12 +2845,6 @@ public strictfp final class FastMath {
             atanDer4DivF4Tab[i] = ((24*x*(1-x*x))*onePlusXSqInv4) * ONE_DIV_F4;
         }
 
-        // twoPow
-
-        for (int i=MIN_DOUBLE_EXPONENT;i<=MAX_DOUBLE_EXPONENT;i++) {
-            twoPowTab[i-MIN_DOUBLE_EXPONENT] = Math.pow(2.0,i);
-        }
-
         // exp
 
         for (int i=0;i<EXP_LO_TAB_SIZE;i++) {
@@ -2796,6 +2875,12 @@ public strictfp final class FastMath {
             logXLogTab[i] = Math.log(x);
             logXTab[i] = x;
             logXInvTab[i] = 1/x;
+        }
+
+        // twoPow
+
+        for (int i=MIN_DOUBLE_EXPONENT;i<=MAX_DOUBLE_EXPONENT;i++) {
+            twoPowTab[i-MIN_DOUBLE_EXPONENT] = Math.pow(2.0,i);
         }
 
         // sqrt

@@ -1,7 +1,15 @@
+################################################################################
+Jafama 1.1, 2009/12/05, oma
 
-2009/07/25, oma
+Changes since version 1.0:
+- for asin pow tabs, use of powFast(double,int) instead of pow(double,double),
+- added expQuick(double), logQuick(double), powQuick(double),
+- changed random numbers computation for tests.
 
-- JavaFastMath 1.0, placed under the GNU Lesser General Public License, version 3.
+################################################################################
+Jafama 1.0, 2009/07/25, oma
+
+- Placed under the GNU Lesser General Public License, version 3.
 
 - Requires Java 1.6 or later.
 
@@ -14,7 +22,7 @@
   open source).
 
 - Copy/paste of FastMath class comments:
-################################################################################
+
  * Class providing math treatments that:
  * - are meant to be faster than those of java.lang.Math class (depending on
  *   JVM or JVM options, they might be slower),
@@ -28,4 +36,5 @@
  * 
  * Non-redefined methods of java.lang.Math class are also available,
  * for easy replacement.
+ 
 ################################################################################

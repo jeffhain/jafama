@@ -1,5 +1,8 @@
 package odk.lang;
 
+import java.lang.management.ManagementFactory;
+import java.util.Random;
+
 /*
  * =============================================================================
  * Copyright (C) 2009 oma
@@ -16,6 +19,7 @@ package odk.lang;
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * =============================================================================
  */
 
 /**
@@ -26,6 +30,8 @@ public strictfp class TestFastMath {
     //--------------------------------------------------------------------------
     // CONSTANTS
     //--------------------------------------------------------------------------
+
+    private final long seed = System.currentTimeMillis();;
 
     private static final int NBR_OF_ROUNDS = 10000000;
     private static final int NBR_OF_VALUES = 100000;
@@ -66,7 +72,8 @@ public strictfp class TestFastMath {
     private final long[] valuesLongAllMagnitudes;
     private final double[] values1ForExp;
     private final double[] values2ForExp;
-    private final double[] valuesForLog;
+    private final double[] values1ForLog;
+    private final double[] values2ForLog;
     private final double[] valuesForLog1p;
     private final double[] valuesXForHypot;
     private final double[] valuesYForHypot;
@@ -79,9 +86,11 @@ public strictfp class TestFastMath {
     // VARIABLES
     //--------------------------------------------------------------------------
 
-    private static boolean settingMode = false;
+    private boolean settingMode = false;
 
-    private static long timerRef;
+    private long timerRef;
+
+    private Random random = new Random(seed);
 
     //--------------------------------------------------------------------------
     // MAIN METHODS
@@ -111,7 +120,8 @@ public strictfp class TestFastMath {
         valuesLongAllMagnitudes = new long[NBR_OF_VALUES];
         values1ForExp = new double[NBR_OF_VALUES];
         values2ForExp = new double[NBR_OF_VALUES];
-        valuesForLog = new double[NBR_OF_VALUES];
+        values1ForLog = new double[NBR_OF_VALUES];
+        values2ForLog = new double[NBR_OF_VALUES];
         valuesForLog1p = new double[NBR_OF_VALUES];
         valuesXForHypot = new double[NBR_OF_VALUES];
         valuesYForHypot = new double[NBR_OF_VALUES];
@@ -119,18 +129,18 @@ public strictfp class TestFastMath {
         valuesA2ForPow = new double[NBR_OF_VALUES];
         valuesFloatNearIntegers = new float[NBR_OF_VALUES];
         valuesDoubleNearIntegers = new double[NBR_OF_VALUES];
-        
+
         this.init();
     }
-    
+
     private void init() {
         for (int i=0;i<NBR_OF_VALUES;i++) {
-            anglesMinusPiPi[i] = (2.0*Math.random()-1.0) * Math.PI;
-            anglesZeroTwoPi[i] = Math.random() * (2*Math.PI);
-            anglesMinusHalfPiHalfPi[i] = randomMinusOneOne() * (Math.PI/2);
-            int valueZeroFour = (int)(Math.random() * 5.0); // might be 5
-            int valueMinutTenTen = (int)(randomMinusOneOne() * 11.0); // might be +-11
-            double direction = (Math.random() > 0.5) ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+            anglesMinusPiPi[i] = randomMinusOneOneDouble() * Math.PI;
+            anglesZeroTwoPi[i] = randomZeroOneDouble() * (2*Math.PI);
+            anglesMinusHalfPiHalfPi[i] = randomMinusOneOneDouble() * (Math.PI/2);
+            int valueZeroFour = (int)(randomZeroOneDouble() * 5.0); // might be 5
+            int valueMinutTenTen = (int)(randomMinusOneOneDouble() * 11.0); // might be +-11
+            double direction = (randomZeroOneDouble() > 0.5) ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
             anglesNearPiModTwoPi[i] = Math.PI + (2*Math.PI) * valueMinutTenTen;
             anglesNearTwoPiModTwoPi[i] = (2*Math.PI) + (2*Math.PI) * valueMinutTenTen;
             anglesNearHalfPiModPi[i] = (Math.PI/2) + (Math.PI) * valueMinutTenTen;
@@ -139,43 +149,44 @@ public strictfp class TestFastMath {
                 anglesNearTwoPiModTwoPi[i] = Math.nextAfter(anglesNearTwoPiModTwoPi[i], direction);
                 anglesNearHalfPiModPi[i] = Math.nextAfter(anglesNearHalfPiModPi[i], direction);
             }
-            valuesMinusALittleLotALittleLot[i] = randomMinusOneOne() * A_LITTLE_LOT;
-            valuesMinusABigLotABigLot[i] = randomMinusOneOne() * A_BIG_LOT;
-            valuesFloatComaLimit[i] = randomMinusOneOne() * FLOAT_COMA_LIMIT;
-            valuesDoubleComaLimit[i] = randomMinusOneOne() * DOUBLE_COMA_LIMIT;
-            valuesForAsinAcos[i] = Math.cos(Math.random() * Math.PI * 2.0);
-            valuesForAtan[i] = Math.tan((Math.random() - 0.5) * Math.PI);
-            valuesMinusOneOne[i] = randomMinusOneOne();
-            valuesMinusTenTen[i] = randomMinusOneOne() * 10.0;
-            valuesMinusHundredHundred[i] = randomMinusOneOne() * 100.0;
-            valuesIntMinusTenTen[i] = (int)Math.round(randomMinusOneOne() * 10.0);
-            valuesIntMinusHundredHundred[i] = (int)Math.round(randomMinusOneOne() * 100.0);
-            valuesDoubleAllMagnitudes[i] = Double.longBitsToDouble(randomUniform());
-            valuesFloatAllMagnitudes[i] = Float.intBitsToFloat((int)(Math.random() * 2.0 * Integer.MAX_VALUE));
-            valuesIntAllMagnitudes[i] = (int)(randomMinusOneOne() * Math.pow(2.0, randomMinusOneOne() * 32));
-            valuesLongAllMagnitudes[i] = (long)(randomMinusOneOne() * Math.pow(2.0, randomMinusOneOne() * 64));
-            values1ForExp[i] = Math.random() * (700.0+700.0) - 700.0;
-            values2ForExp[i] = Math.random() * (720.0+750.0) - 750.0;
-            valuesForLog[i] = 0.1 + Math.random() * 9.9; // values around 1, such as log(x) goes around -1 and 0
-            valuesForLog1p[i] = (0.1 + Math.random() * 9.9)-1.0;  // values around 0, such as log1p(x) goes around -1 and 0
-            valuesXForHypot[i] = randomMinusOneOne() * Math.pow(10, randomMinusOneOne() * 290);
-            valuesYForHypot[i] = valuesXForHypot[i] * (randomMinusOneOne() * Math.pow(10, randomMinusOneOne() * 18));
-            valuesA1ForPow[i] = Math.pow(2.0, randomMinusOneOne() * 10.0) * ((Math.random() > 0.5) ? 1.0 : -1.0);
-            valuesA2ForPow[i] = Math.pow(2.0, randomMinusOneOne() * 100.0) * ((Math.random() > 0.5) ? 1.0 : -1.0);
-            valuesFloatNearIntegers[i] = Math.nextAfter((float)Math.round(1e10f * Math.pow(randomMinusOneOne(),3)), (Math.random() > 0.5) ? Float.MAX_VALUE : Float.MIN_VALUE);
-            valuesDoubleNearIntegers[i] = Math.nextAfter((double)Math.round(1e18 * Math.pow(randomMinusOneOne(),3)), (Math.random() > 0.5) ? Double.MAX_VALUE : Double.MIN_VALUE);
+            valuesMinusALittleLotALittleLot[i] = randomMinusOneOneDouble() * A_LITTLE_LOT;
+            valuesMinusABigLotABigLot[i] = randomMinusOneOneDouble() * A_BIG_LOT;
+            valuesFloatComaLimit[i] = randomMinusOneOneDouble() * FLOAT_COMA_LIMIT;
+            valuesDoubleComaLimit[i] = randomMinusOneOneDouble() * DOUBLE_COMA_LIMIT;
+            valuesForAsinAcos[i] = Math.cos(randomZeroOneDouble() * Math.PI * 2.0);
+            valuesForAtan[i] = Math.tan((randomZeroOneDouble() - 0.5) * Math.PI);
+            valuesMinusOneOne[i] = randomMinusOneOneDouble();
+            valuesMinusTenTen[i] = randomMinusOneOneDouble() * 10.0;
+            valuesMinusHundredHundred[i] = randomMinusOneOneDouble() * 100.0;
+            valuesIntMinusTenTen[i] = (int)Math.round(randomMinusOneOneDouble() * 10.0);
+            valuesIntMinusHundredHundred[i] = (int)Math.round(randomMinusOneOneDouble() * 100.0);
+            valuesDoubleAllMagnitudes[i] = randomAllMagnitudesDouble();
+            valuesFloatAllMagnitudes[i] = randomAllMagnitudesFloat();
+            valuesIntAllMagnitudes[i] = randomAllMagnitudesInt();
+            valuesLongAllMagnitudes[i] = randomAllMagnitudesLong();
+            values1ForExp[i] = randomZeroOneDouble() * (700.0+700.0) - 700.0;
+            values2ForExp[i] = randomZeroOneDouble() * (720.0+750.0) - 750.0;
+            values1ForLog[i] = 0.1 + randomZeroOneDouble() * 9.9; // values around 1, such as log(x) goes around -1 and 0
+            values2ForLog[i] = Double.MIN_VALUE + Math.abs(randomAllMagnitudesDouble());
+            valuesForLog1p[i] = (0.1 + randomZeroOneDouble() * 9.9)-1.0;  // values around 0, such as log1p(x) goes around -1 and 0
+            valuesXForHypot[i] = randomMinusOneOneDouble() * Math.pow(10, randomMinusOneOneDouble() * 290);
+            valuesYForHypot[i] = valuesXForHypot[i] * (randomMinusOneOneDouble() * Math.pow(10, randomMinusOneOneDouble() * 18));
+            valuesA1ForPow[i] = Math.pow(2.0, randomMinusOneOneDouble() * 10.0) * ((randomZeroOneDouble() > 0.5) ? 1.0 : -1.0);
+            valuesA2ForPow[i] = Math.pow(2.0, randomMinusOneOneDouble() * 100.0) * ((randomZeroOneDouble() > 0.5) ? 1.0 : -1.0);
+            valuesFloatNearIntegers[i] = Math.nextAfter((float)Math.round(1e10f * Math.pow(randomMinusOneOneDouble(),3)), (randomZeroOneDouble() > 0.5) ? Float.MAX_VALUE : Float.MIN_VALUE);
+            valuesDoubleNearIntegers[i] = Math.nextAfter((double)Math.round(1e18 * Math.pow(randomMinusOneOneDouble(),3)), (randomZeroOneDouble() > 0.5) ? Double.MAX_VALUE : Double.MIN_VALUE);
         }
     }
-    
+
     public void launchTests() {
 
-//      settingMode = true;
+        //      settingMode = true;
 
         testClassLoad();
         separate();
-        
+
         // trigonometry
-        
+
         testCos_double();
         separate();
         testCosQuick_double();
@@ -200,7 +211,7 @@ public strictfp class TestFastMath {
         separate();
 
         // hyperbolic trigonometry
-        
+
         testCosh_double();
         separate();
         testSinh_double();
@@ -209,42 +220,48 @@ public strictfp class TestFastMath {
         separate();
         testTanh_double();
         separate();
-        
-        // powers
-        
-        testPow_double_double();
-        separate();
-        testPowFast_double_int();
-        separate();
-        testTwoPow_int();
-        separate();
-        
+
         // exponentials
-        
+
         testExp_double();
+        separate();
+        testExpQuick_double();
         separate();
         testExpm1_double();
         separate();
 
         // logarithms
-        
+
         testLog_double();
+        separate();
+        testLogQuick_double();
         separate();
         testLog1p_double();
         separate();
 
+        // powers
+
+        testPow_double_double();
+        separate();
+        testPowQuick_double_double();
+        separate();
+        testPowFast_double_int();
+        separate();
+        testTwoPow_int();
+        separate();
+
         // roots
-        
+
         testSqrt_double();
         separate();
         testCbrt_double();
         separate();
-        
+
         // reduction
-        
+
         testRemainder_double_double();
         separate();
-        
+
         testNormalizeMinusPiPi();
         separate();
         testNormalizeMinusPiPiFast();
@@ -259,7 +276,7 @@ public strictfp class TestFastMath {
         separate();
 
         // basics
-        
+
         testAbs_int();
         separate();
         testCeil_double();
@@ -274,12 +291,12 @@ public strictfp class TestFastMath {
         separate();
         testRound_float();
         separate();
-        
+
         // others
-        
+
         testHypot_double_double();
         separate();
-        
+
         testPlusNoModulo_int_int();
         separate();
         testPlusNoModuloSafe_int_int();
@@ -320,13 +337,16 @@ public strictfp class TestFastMath {
                 "java.class.version",
                 "os.name",
                 "os.arch",
-        "os.version"};
+                "os.version",
+        "sun.arch.data.model"};
         for (int i=0;i<SYSTEM_PROPERTIES.length;i++) {
             System.out.println(SYSTEM_PROPERTIES[i]+"="+System.getProperty(SYSTEM_PROPERTIES[i]));
         }
+        System.out.println("JVM input arguments: "+ManagementFactory.getRuntimeMXBean().getInputArguments());
         System.out.println("");
 
         tester.printLoopOverhead();
+        System.out.println("random seed: "+tester.seed);
         System.out.println("");
 
         tester.launchTests();
@@ -340,20 +360,20 @@ public strictfp class TestFastMath {
 
     private void testClassLoad() {
         int dummy = 0;
-        
+
         System.out.println("--- testing FastMath class load ---");
 
         startTimer();
         dummy += FastMath.abs(0);
         System.out.println("FastMath class load took "+getElapsedSeconds()+" s");
     }
-    
+
     private void testCos_double() {
         double maxDelta;
         int i;
         int j;
         double dummy = 0.0;
-        
+
         System.out.println("--- testing cos(double) ---");
 
         // [0,2*PI]
@@ -899,7 +919,7 @@ public strictfp class TestFastMath {
         System.out.println("max cos delta: "+maxCosDelta);
 
         // [-100,100]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -927,7 +947,7 @@ public strictfp class TestFastMath {
         System.out.println("max cos delta: "+maxCosDelta);
 
         // [-A_LITTLE_LOT,A_LITTLE_LOT]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -955,7 +975,7 @@ public strictfp class TestFastMath {
         System.out.println("max cos delta: "+maxCosDelta);
 
         // [-A_BIG_LOT,A_BIG_LOT]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -983,7 +1003,7 @@ public strictfp class TestFastMath {
         System.out.println("max cos delta: "+maxCosDelta);
 
         // all magnitudes
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -1496,9 +1516,9 @@ public strictfp class TestFastMath {
         double dummy = 0.0;
 
         System.out.println("--- testing cosh(double) ---");
-        
+
         // [-1,1]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -1527,7 +1547,7 @@ public strictfp class TestFastMath {
         System.out.println("max delta (relative): "+maxDelta);
 
         // [-10,10]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -1556,7 +1576,7 @@ public strictfp class TestFastMath {
         System.out.println("max delta (relative): "+maxDelta);
 
         // [-700,700]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -1671,9 +1691,9 @@ public strictfp class TestFastMath {
         double dummy = 0.0;
 
         System.out.println("--- testing sinh(double) ---");
-        
+
         // [-1,1]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -1702,7 +1722,7 @@ public strictfp class TestFastMath {
         System.out.println("max delta (relative): "+maxDelta);
 
         // [-10,10]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -1731,7 +1751,7 @@ public strictfp class TestFastMath {
         System.out.println("max delta (relative): "+maxDelta);
 
         // [-700,700]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -1848,9 +1868,9 @@ public strictfp class TestFastMath {
         DoubleWrapper hcosine = new DoubleWrapper();
 
         System.out.println("--- testing sinhAndCosh(double,DoubleWrapper,DoubleWrapper) ---");
-        
+
         // [-1,1]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -1906,7 +1926,7 @@ public strictfp class TestFastMath {
         System.out.println("max cosh delta (relative): "+maxCoshDelta);
 
         // [-700,700]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -2029,9 +2049,9 @@ public strictfp class TestFastMath {
         double dummy = 0.0;
 
         System.out.println("--- testing tanh(double) ---");
-        
+
         // [-1,1]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -2060,7 +2080,7 @@ public strictfp class TestFastMath {
         System.out.println("max delta (relative): "+maxDelta);
 
         // [-10,10]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -2089,7 +2109,7 @@ public strictfp class TestFastMath {
         System.out.println("max delta (relative): "+maxDelta);
 
         // [-700,700]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -2197,310 +2217,6 @@ public strictfp class TestFastMath {
         }
     }
 
-    private void testPow_double_double() {
-        double maxDelta;
-        int i;
-        int j;
-        double dummy = 0.0;
-
-        System.out.println("--- testing pow(double,double) ---");
-        
-        // {[-2^10,-2^-10],[2^-10,2^10]},[-10,10]
-
-        j=0;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += Math.pow(valuesMinusTenTen[j],valuesMinusTenTen[(NBR_OF_VALUES-1)-j]);
-            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
-        }
-        System.out.println("Loop on     Math.pow(double,double), values in {[-10,10],[-10,10]}, took "+getElapsedSeconds()+" s");
-
-        j=0;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += FastMath.pow(valuesMinusTenTen[j],valuesMinusTenTen[(NBR_OF_VALUES-1)-j]);
-            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
-        }
-        System.out.print("Loop on FastMath.pow(double,double), values in {[-10,10],[-10,10]}, took "+getElapsedSeconds()+" s... ");
-
-        maxDelta = 0.0;
-        for (i=0;i<NBR_OF_VALUES;i++) {
-            double refResult = Math.pow(valuesMinusTenTen[i],valuesMinusTenTen[(NBR_OF_VALUES-1)-i]);
-            double fastResult = FastMath.pow(valuesMinusTenTen[i],valuesMinusTenTen[(NBR_OF_VALUES-1)-i]);
-            double delta = relDelta(fastResult,refResult);
-            if (delta > maxDelta) {
-                maxDelta = delta;
-            }
-        }
-        System.out.println("max delta (relative): "+maxDelta);
-        
-        // {[-2^10,-2^-10],[2^-10,2^10]},[-10,10]
-
-        j=0;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += Math.pow(valuesA1ForPow[j],valuesMinusTenTen[j]);
-            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
-        }
-        System.out.println("Loop on     Math.pow(double,double), values in {[-2^10,2^10],[-10,10]}, took "+getElapsedSeconds()+" s");
-
-        j=0;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += FastMath.pow(valuesA1ForPow[j],valuesMinusTenTen[j]);
-            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
-        }
-        System.out.print("Loop on FastMath.pow(double,double), values in {[-2^10,2^10],[-10,10]}, took "+getElapsedSeconds()+" s... ");
-
-        maxDelta = 0.0;
-        for (i=0;i<NBR_OF_VALUES;i++) {
-            double refResult = Math.pow(valuesA1ForPow[i],valuesMinusTenTen[i]);
-            double fastResult = FastMath.pow(valuesA1ForPow[i],valuesMinusTenTen[i]);
-            double delta = relDelta(fastResult,refResult);
-            if (delta > maxDelta) {
-                maxDelta = delta;
-            }
-        }
-        System.out.println("max delta (relative): "+maxDelta);
-
-        // [-10,10],{[-2^10,-2^-10],[2^-10,2^10]}
-
-        j=0;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += Math.pow(valuesMinusTenTen[j],valuesA1ForPow[j]);
-            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
-        }
-        System.out.println("Loop on     Math.pow(double,double), values in {[-10,10],[-2^10,2^10]}, took "+getElapsedSeconds()+" s");
-
-        j=0;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += FastMath.pow(valuesMinusTenTen[j],valuesA1ForPow[j]);
-            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
-        }
-        System.out.print("Loop on FastMath.pow(double,double), values in {[-10,10],[-2^10,2^10]}, took "+getElapsedSeconds()+" s... ");
-
-        maxDelta = 0.0;
-        for (i=0;i<NBR_OF_VALUES;i++) {
-            double refResult = Math.pow(valuesMinusTenTen[i],valuesA1ForPow[i]);
-            double fastResult = FastMath.pow(valuesMinusTenTen[i],valuesA1ForPow[i]);
-            double delta = relDelta(fastResult,refResult);
-            if (delta > maxDelta) {
-                maxDelta = delta;
-            }
-        }
-        System.out.println("max delta (relative): "+maxDelta);
-        
-        // all magnitudes
-
-        j=0;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += Math.pow(valuesDoubleAllMagnitudes[j],valuesDoubleAllMagnitudes[(NBR_OF_VALUES-1)-j]);
-            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
-        }
-        System.out.println("Loop on     Math.pow(double,double), values of all magnitudes, took "+getElapsedSeconds()+" s");
-
-        j=0;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += FastMath.pow(valuesDoubleAllMagnitudes[j],valuesDoubleAllMagnitudes[(NBR_OF_VALUES-1)-j]);
-            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
-        }
-        System.out.print("Loop on FastMath.pow(double,double), values of all magnitudes, took "+getElapsedSeconds()+" s... ");
-
-        maxDelta = 0.0;
-        for (i=0;i<NBR_OF_VALUES;i++) {
-            double refResult = Math.pow(valuesDoubleAllMagnitudes[i],valuesDoubleAllMagnitudes[(NBR_OF_VALUES-1)-i]);
-            double fastResult = FastMath.pow(valuesDoubleAllMagnitudes[i],valuesDoubleAllMagnitudes[(NBR_OF_VALUES-1)-i]);
-            double delta = relDelta(fastResult,refResult);
-            if (delta > maxDelta) {
-                maxDelta = delta;
-            }
-        }
-        System.out.println("max delta (relative): "+maxDelta);                
-
-        // special values
-
-        double[] specialValues = new double[] { Double.NaN, -3.0, -2.0, -1.1, -1.0, -0.9, -0.0, 0.0, 0.9, 1.0, 1.1, 2.0, 3.0, -Double.MIN_VALUE, Double.MIN_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY };
-        boolean foundDifferences = false;
-        System.out.print("Result differences for special values:... ");
-        for (i=0;i<specialValues.length;i++) {
-            for (j=0;j<specialValues.length;j++) {
-                double refResult = Math.pow(specialValues[i],specialValues[j]);
-                double fastResult = FastMath.pow(specialValues[i],specialValues[j]);
-                if (!Double.toString(refResult).equals(Double.toString(fastResult))) {
-                    if (!foundDifferences) {
-                        System.out.println("");
-                        foundDifferences = true;
-                    }
-                    System.out.println("    Math.pow("+specialValues[i]+","+specialValues[j]+")="+refResult);
-                    System.out.println("FastMath.pow("+specialValues[i]+","+specialValues[j]+")="+fastResult);
-                }
-            }
-        }
-        if (!foundDifferences) {
-            System.out.println("none.");
-        }
-    }
-
-    private void testPowFast_double_int() {
-        double maxDelta;
-        int i;
-        int j;
-        double dummy = 0.0;
-
-        System.out.println("--- testing powFast(double,int) ---");
-
-        // {[-2^100,-2^-100],[2^-100,2^100]},[-10,10]
-
-        j=0;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += Math.pow(valuesA2ForPow[j],(double)valuesIntMinusTenTen[j]);
-            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
-        }
-        System.out.println("Loop on      Math.pow(double,double), values in ({[-2^100,-2^-100],[2^-100,2^100]},[-10,10]), took "+getElapsedSeconds()+" s");
-
-        j=0;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += FastMath.powFast(valuesA2ForPow[j],valuesIntMinusTenTen[j]);
-            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
-        }
-        System.out.print("Loop on FastMath.powFast(double,int), values in ({[-2^100,-2^-100],[2^-100,2^100]},[-10,10]), took "+getElapsedSeconds()+" s... ");
-
-        maxDelta = 0.0;
-        for (i=0;i<NBR_OF_VALUES;i++) {
-            double refResult = Math.pow(valuesA2ForPow[i],(double)valuesIntMinusTenTen[i]);
-            double fastResult = FastMath.powFast(valuesA2ForPow[i],valuesIntMinusTenTen[i]);
-            double delta = relDelta(fastResult,refResult);
-            if (delta > maxDelta) {
-                maxDelta = delta;
-            }
-        }
-        System.out.println("max delta (relative): "+maxDelta);
-
-        // {[-2^10,-2^-10],[2^-10,2^10]},[-100,100]
-
-        j=0;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += Math.pow(valuesA1ForPow[j],(double)valuesIntMinusHundredHundred[j]);
-            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
-        }
-        System.out.println("Loop on      Math.pow(double,double), values in ({[-2^10,-2^-10],[2^-10,2^10]},[-100,100]), took "+getElapsedSeconds()+" s");
-
-        j=0;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += FastMath.powFast(valuesA1ForPow[j],valuesIntMinusHundredHundred[j]);
-            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
-        }
-        System.out.print("Loop on FastMath.powFast(double,int), values in ({[-2^10,-2^-10],[2^-10,2^10]},[-100,100]), took "+getElapsedSeconds()+" s... ");
-
-        maxDelta = 0.0;
-        for (i=0;i<NBR_OF_VALUES;i++) {
-            double refResult = Math.pow(valuesA1ForPow[i],(double)valuesIntMinusHundredHundred[i]);
-            double fastResult = FastMath.powFast(valuesA1ForPow[i],valuesIntMinusHundredHundred[i]);
-            double delta = relDelta(fastResult,refResult);
-            if (delta > maxDelta) {
-                maxDelta = delta;
-            }
-        }
-        System.out.println("max delta (relative): "+maxDelta);
-
-        // special values
-
-        double[] specialValues = new double[] { Double.NaN, -1.0, 0.0, 1.0, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY };
-        int[] specialValuesInt = new int[] { -1, 0, 1, Integer.MIN_VALUE, Integer.MAX_VALUE };
-        boolean foundDifferences = false;
-        System.out.print("Result differences for special values:... ");
-        for (i=0;i<specialValues.length;i++) {
-            for (j=0;j<specialValuesInt.length;j++) {
-                double refResult = Math.pow(specialValues[i],(double)specialValuesInt[j]);
-                double fastResult = FastMath.powFast(specialValues[i],specialValuesInt[j]);
-                if (!Double.toString(refResult).equals(Double.toString(fastResult))) {
-                    if (!foundDifferences) {
-                        System.out.println("");
-                        foundDifferences = true;
-                    }
-                    System.out.println("    Math.pow("+specialValues[i]+","+specialValuesInt[j]+")="+refResult);
-                    System.out.println("FastMath.pow("+specialValues[i]+","+specialValuesInt[j]+")="+fastResult);
-                }
-            }
-        }
-        if (!foundDifferences) {
-            System.out.println("none.");
-        }
-    }
-
-    private void testTwoPow_int() {
-        int i;
-        int j;
-        double dummy = 0.0;
-
-        System.out.println("--- testing twoPow(int) ---");
-
-        // [-1074,1023]
-        
-        j=-1074;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += Math.pow(2.0,(double)j);
-            j = (j<1023) ? j+1 : -1074;
-        }
-        System.out.println("Loop on Math.pow(2.0,double), values in [-1074,1023], took "+getElapsedSeconds()+" s");
-
-        j=-1074;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += FastMath.twoPow(j);
-            j = (j<1023) ? j+1 : -1074;
-        }
-        System.out.println("Loop on FastMath.twoPow(int), values in [-1074,1023], took "+getElapsedSeconds()+" s");
-
-        // all magnitudes
-
-        j=0;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += Math.pow(2.0,(double)valuesIntAllMagnitudes[j]);
-            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
-        }
-        System.out.println("Loop on Math.pow(2.0,double), values of all magnitudes, took "+getElapsedSeconds()+" s");
-
-        j=0;
-        startTimer();
-        for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += FastMath.twoPow(valuesIntAllMagnitudes[j]);
-            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
-        }
-        System.out.println("Loop on FastMath.twoPow(int), values of all magnitudes, took "+getElapsedSeconds()+" s");
-
-        // special values
-
-        int[] specialValues = new int[] { -1075, -1074, -1023, -1022, -1, 0, 1, 1023, 1024, Integer.MIN_VALUE, Integer.MAX_VALUE };
-        boolean foundDifferences = false;
-        System.out.print("Result differences for special values:... ");
-        for (i=0;i<specialValues.length;i++) {
-            double refResult = Math.pow(2.0,(double)specialValues[i]);
-            double fastResult = FastMath.twoPow(specialValues[i]);
-            if (!Double.toString(refResult).equals(Double.toString(fastResult))) {
-                if (!foundDifferences) {
-                    System.out.println("");
-                    foundDifferences = true;
-                }
-                System.out.println("Math.pow(2.0,(double)"+specialValues[i]+")="+refResult);
-                System.out.println("     FastMath.twoPow("+specialValues[i]+")="+fastResult);
-            }
-        }
-        if (!foundDifferences) {
-            System.out.println("none.");
-        }
-    }
-    
     private void testExp_double() {
         double maxDelta;
         int i;
@@ -2674,6 +2390,102 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+    }
+
+    private void testExpQuick_double() {
+        double maxDelta;
+        int i;
+        int j;
+        double dummy = 0.0;
+
+        System.out.println("--- testing expQuick(double) ---");
+
+        // [-1,1]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += Math.exp(valuesMinusOneOne[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on          Math.exp(double), values in [-1,1], took "+getElapsedSeconds()+" s");
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.expQuick(valuesMinusOneOne[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.expQuick(double), values in [-1,1], took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = Math.exp(valuesMinusOneOne[i]);
+            double fastResult = FastMath.expQuick(valuesMinusOneOne[i]);
+            double delta = relDelta(fastResult,refResult);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta (relative): "+maxDelta);
+
+        // [-10,10]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += Math.exp(valuesMinusTenTen[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on          Math.exp(double), values in [-10,10], took "+getElapsedSeconds()+" s");
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.expQuick(valuesMinusTenTen[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.expQuick(double), values in [-10,10], took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = Math.exp(valuesMinusTenTen[i]);
+            double fastResult = FastMath.expQuick(valuesMinusTenTen[i]);
+            double delta = relDelta(fastResult,refResult);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta (relative): "+maxDelta);
+
+        // [-700,700]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += Math.exp(values1ForExp[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on          Math.exp(double), values in [-700,700], took "+getElapsedSeconds()+" s");
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.expQuick(values1ForExp[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.expQuick(double), values in [-700,700], took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = Math.exp(values1ForExp[i]);
+            double fastResult = FastMath.expQuick(values1ForExp[i]);
+            double delta = relDelta(fastResult,refResult);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta (relative): "+maxDelta);
     }
 
     private void testExpm1_double() {
@@ -2864,7 +2676,7 @@ public strictfp class TestFastMath {
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += Math.log(valuesForLog[j]);
+            dummy += Math.log(values1ForLog[j]);
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on     Math.log(double), values in [0.1,10.0], took "+getElapsedSeconds()+" s");
@@ -2872,15 +2684,15 @@ public strictfp class TestFastMath {
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
-            dummy += FastMath.log(valuesForLog[j]);
+            dummy += FastMath.log(values1ForLog[j]);
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.print("Loop on FastMath.log(double), values in [0.1,10.0], took "+getElapsedSeconds()+" s... ");
 
         maxDelta = 0.0;
         for (i=0;i<NBR_OF_VALUES;i++) {
-            double refResult = Math.log(valuesForLog[i]);
-            double fastResult = FastMath.log(valuesForLog[i]);
+            double refResult = Math.log(values1ForLog[i]);
+            double fastResult = FastMath.log(values1ForLog[i]);
             double delta = relDelta(fastResult,refResult);
             if (delta > maxDelta) {
                 maxDelta = delta;
@@ -2939,12 +2751,79 @@ public strictfp class TestFastMath {
         }
     }
 
+    private void testLogQuick_double() {
+        double maxDelta;
+        int i;
+        int j;
+        double dummy = 0.0;
+
+        System.out.println("--- testing logQuick(double) ---");
+
+        // [0.1,10.0]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += Math.log(values1ForLog[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on          Math.log(double), values in [0.1,10.0], took "+getElapsedSeconds()+" s");
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.logQuick(values1ForLog[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.logQuick(double), values in [0.1,10.0], took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = Math.log(values1ForLog[i]);
+            double fastResult = FastMath.logQuick(values1ForLog[i]);
+            double delta = relDelta(fastResult,refResult);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta (relative): "+maxDelta);
+
+        // all magnitudes (positive)
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += Math.log(values2ForLog[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on          Math.log(double), values of all magnitudes (positive), took "+getElapsedSeconds()+" s");
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.logQuick(values2ForLog[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.logQuick(double), values of all magnitudes (positive), took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = Math.log(values2ForLog[i]);
+            double fastResult = FastMath.logQuick(values2ForLog[i]);
+            double delta = relDelta(fastResult,refResult);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta (relative): "+maxDelta);
+    }
+
     private void testLog1p_double() {
         double maxDelta;
         int i;
         int j;
         double dummy = 0.0;
-        
+
         System.out.println("--- testing log1p(double) ---");
 
         // [-0.9,9.0]
@@ -3020,6 +2899,401 @@ public strictfp class TestFastMath {
                 }
                 System.out.println("    Math.log1p("+specialValues[i]+")="+refResult);
                 System.out.println("FastMath.log1p("+specialValues[i]+")="+fastResult);
+            }
+        }
+        if (!foundDifferences) {
+            System.out.println("none.");
+        }
+    }
+
+    private void testPow_double_double() {
+        double maxDelta;
+        int i;
+        int j;
+        double dummy = 0.0;
+
+        System.out.println("--- testing pow(double,double) ---");
+
+        // [-10,10],[-10,10]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += Math.pow(valuesMinusTenTen[j],valuesMinusTenTen[(NBR_OF_VALUES-1)-j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on     Math.pow(double,double), values in {[-10,10],[-10,10]}, took "+getElapsedSeconds()+" s");
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.pow(valuesMinusTenTen[j],valuesMinusTenTen[(NBR_OF_VALUES-1)-j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.pow(double,double), values in {[-10,10],[-10,10]}, took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = Math.pow(valuesMinusTenTen[i],valuesMinusTenTen[(NBR_OF_VALUES-1)-i]);
+            double fastResult = FastMath.pow(valuesMinusTenTen[i],valuesMinusTenTen[(NBR_OF_VALUES-1)-i]);
+            double delta = relDelta(fastResult,refResult);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta (relative): "+maxDelta);
+
+        // {[-2^10,-2^-10],[2^-10,2^10]},[-10,10]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += Math.pow(valuesA1ForPow[j],valuesMinusTenTen[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on     Math.pow(double,double), values in {[-2^10,2^10],[-10,10]}, took "+getElapsedSeconds()+" s");
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.pow(valuesA1ForPow[j],valuesMinusTenTen[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.pow(double,double), values in {[-2^10,2^10],[-10,10]}, took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = Math.pow(valuesA1ForPow[i],valuesMinusTenTen[i]);
+            double fastResult = FastMath.pow(valuesA1ForPow[i],valuesMinusTenTen[i]);
+            double delta = relDelta(fastResult,refResult);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta (relative): "+maxDelta);
+
+        // [-10,10],{[-2^10,-2^-10],[2^-10,2^10]}
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += Math.pow(valuesMinusTenTen[j],valuesA1ForPow[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on     Math.pow(double,double), values in {[-10,10],[-2^10,2^10]}, took "+getElapsedSeconds()+" s");
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.pow(valuesMinusTenTen[j],valuesA1ForPow[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.pow(double,double), values in {[-10,10],[-2^10,2^10]}, took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = Math.pow(valuesMinusTenTen[i],valuesA1ForPow[i]);
+            double fastResult = FastMath.pow(valuesMinusTenTen[i],valuesA1ForPow[i]);
+            double delta = relDelta(fastResult,refResult);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta (relative): "+maxDelta);
+
+        // all magnitudes
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += Math.pow(valuesDoubleAllMagnitudes[j],valuesDoubleAllMagnitudes[(NBR_OF_VALUES-1)-j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on     Math.pow(double,double), values of all magnitudes, took "+getElapsedSeconds()+" s");
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.pow(valuesDoubleAllMagnitudes[j],valuesDoubleAllMagnitudes[(NBR_OF_VALUES-1)-j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.pow(double,double), values of all magnitudes, took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = Math.pow(valuesDoubleAllMagnitudes[i],valuesDoubleAllMagnitudes[(NBR_OF_VALUES-1)-i]);
+            double fastResult = FastMath.pow(valuesDoubleAllMagnitudes[i],valuesDoubleAllMagnitudes[(NBR_OF_VALUES-1)-i]);
+            double delta = relDelta(fastResult,refResult);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta (relative): "+maxDelta);
+
+        // special values
+
+        double[] specialValues = new double[] { Double.NaN, -3.0, -2.0, -1.1, -1.0, -0.9, -0.0, 0.0, 0.9, 1.0, 1.1, 2.0, 3.0, -Double.MIN_VALUE, Double.MIN_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY };
+        boolean foundDifferences = false;
+        System.out.print("Result differences for special values:... ");
+        for (i=0;i<specialValues.length;i++) {
+            for (j=0;j<specialValues.length;j++) {
+                double refResult = Math.pow(specialValues[i],specialValues[j]);
+                double fastResult = FastMath.pow(specialValues[i],specialValues[j]);
+                if (!Double.toString(refResult).equals(Double.toString(fastResult))) {
+                    if (!foundDifferences) {
+                        System.out.println("");
+                        foundDifferences = true;
+                    }
+                    System.out.println("    Math.pow("+specialValues[i]+","+specialValues[j]+")="+refResult);
+                    System.out.println("FastMath.pow("+specialValues[i]+","+specialValues[j]+")="+fastResult);
+                }
+            }
+        }
+        if (!foundDifferences) {
+            System.out.println("none.");
+        }
+    }
+
+    private void testPowQuick_double_double() {
+        double maxDelta;
+        int i;
+        int j;
+        double dummy = 0.0;
+
+        System.out.println("--- testing powQuick(double,double) ---");
+
+        // [0.1,10],[-100,100]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += Math.pow(values1ForLog[j],valuesMinusHundredHundred[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on          Math.pow(double,double), values in {[0.1,10],[-100,100]}, took "+getElapsedSeconds()+" s");
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.powQuick(values1ForLog[j],valuesMinusHundredHundred[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.powQuick(double,double), values in {[0.1,10],[-100,100]}, took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = Math.pow(values1ForLog[i],valuesMinusHundredHundred[i]);
+            double fastResult = FastMath.powQuick(values1ForLog[i],valuesMinusHundredHundred[i]);
+            double delta = relDelta(fastResult,refResult);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta (relative): "+maxDelta);
+
+        // ]0,+infinity[,all magnitudes
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += Math.pow(values2ForLog[j],valuesDoubleAllMagnitudes[(NBR_OF_VALUES-1)-j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on          Math.pow(double,double), values in {]0,+infinity[,all magnitudes}, took "+getElapsedSeconds()+" s");
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.powQuick(values2ForLog[j],valuesDoubleAllMagnitudes[(NBR_OF_VALUES-1)-j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.powQuick(double,double), values in {]0,+infinity[,all magnitudes}, took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = Math.pow(values2ForLog[i],valuesDoubleAllMagnitudes[(NBR_OF_VALUES-1)-i]);
+            double fastResult = FastMath.powQuick(values2ForLog[i],valuesDoubleAllMagnitudes[(NBR_OF_VALUES-1)-i]);
+            double delta = relDelta(fastResult,refResult);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta (relative): "+maxDelta);
+
+        // special values
+
+        double[] specialValues = new double[] { 0.9, 1.0, 1.1, Double.MIN_VALUE, Double.MAX_VALUE };
+        double[] specialPowers = new double[] { -1.0, 0.0, 1.0, -Double.MIN_VALUE, Double.MIN_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY };
+        boolean foundDifferences = false;
+        System.out.print("Result differences for special values:... ");
+        for (i=0;i<specialValues.length;i++) {
+            for (j=0;j<specialPowers.length;j++) {
+                double refResult = Math.pow(specialValues[i],specialPowers[j]);
+                double fastResult = FastMath.powQuick(specialValues[i],specialPowers[j]);
+                if (!Double.toString(refResult).equals(Double.toString(fastResult))) {
+                    if (!foundDifferences) {
+                        System.out.println("");
+                        foundDifferences = true;
+                    }
+                    System.out.println("         Math.pow("+specialValues[i]+","+specialPowers[j]+")="+refResult);
+                    System.out.println("FastMath.powQuick("+specialValues[i]+","+specialPowers[j]+")="+fastResult);
+                }
+            }
+        }
+        if (!foundDifferences) {
+            System.out.println("none.");
+        }
+    }
+
+    private void testPowFast_double_int() {
+        double maxDelta;
+        int i;
+        int j;
+        double dummy = 0.0;
+
+        System.out.println("--- testing powFast(double,int) ---");
+
+        // {[-2^100,-2^-100],[2^-100,2^100]},[-10,10]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += Math.pow(valuesA2ForPow[j],(double)valuesIntMinusTenTen[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on      Math.pow(double,double), values in ({[-2^100,-2^-100],[2^-100,2^100]},[-10,10]), took "+getElapsedSeconds()+" s");
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.powFast(valuesA2ForPow[j],valuesIntMinusTenTen[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.powFast(double,int), values in ({[-2^100,-2^-100],[2^-100,2^100]},[-10,10]), took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = Math.pow(valuesA2ForPow[i],(double)valuesIntMinusTenTen[i]);
+            double fastResult = FastMath.powFast(valuesA2ForPow[i],valuesIntMinusTenTen[i]);
+            double delta = relDelta(fastResult,refResult);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta (relative): "+maxDelta);
+
+        // {[-2^10,-2^-10],[2^-10,2^10]},[-100,100]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += Math.pow(valuesA1ForPow[j],(double)valuesIntMinusHundredHundred[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on      Math.pow(double,double), values in ({[-2^10,-2^-10],[2^-10,2^10]},[-100,100]), took "+getElapsedSeconds()+" s");
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.powFast(valuesA1ForPow[j],valuesIntMinusHundredHundred[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.powFast(double,int), values in ({[-2^10,-2^-10],[2^-10,2^10]},[-100,100]), took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = Math.pow(valuesA1ForPow[i],(double)valuesIntMinusHundredHundred[i]);
+            double fastResult = FastMath.powFast(valuesA1ForPow[i],valuesIntMinusHundredHundred[i]);
+            double delta = relDelta(fastResult,refResult);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta (relative): "+maxDelta);
+
+        // special values
+
+        double[] specialValues = new double[] { Double.NaN, -1.0, 0.0, 1.0, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY };
+        int[] specialValuesInt = new int[] { -1, 0, 1, Integer.MIN_VALUE, Integer.MAX_VALUE };
+        boolean foundDifferences = false;
+        System.out.print("Result differences for special values:... ");
+        for (i=0;i<specialValues.length;i++) {
+            for (j=0;j<specialValuesInt.length;j++) {
+                double refResult = Math.pow(specialValues[i],(double)specialValuesInt[j]);
+                double fastResult = FastMath.powFast(specialValues[i],specialValuesInt[j]);
+                if (!Double.toString(refResult).equals(Double.toString(fastResult))) {
+                    if (!foundDifferences) {
+                        System.out.println("");
+                        foundDifferences = true;
+                    }
+                    System.out.println("        Math.pow("+specialValues[i]+","+specialValuesInt[j]+")="+refResult);
+                    System.out.println("FastMath.powFast("+specialValues[i]+","+specialValuesInt[j]+")="+fastResult);
+                }
+            }
+        }
+        if (!foundDifferences) {
+            System.out.println("none.");
+        }
+    }
+
+    private void testTwoPow_int() {
+        int i;
+        int j;
+        double dummy = 0.0;
+
+        System.out.println("--- testing twoPow(int) ---");
+
+        // [-1074,1023]
+
+        j=-1074;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += Math.pow(2.0,(double)j);
+            j = (j<1023) ? j+1 : -1074;
+        }
+        System.out.println("Loop on Math.pow(2.0,double), values in [-1074,1023], took "+getElapsedSeconds()+" s");
+
+        j=-1074;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.twoPow(j);
+            j = (j<1023) ? j+1 : -1074;
+        }
+        System.out.println("Loop on FastMath.twoPow(int), values in [-1074,1023], took "+getElapsedSeconds()+" s");
+
+        // all magnitudes
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += Math.pow(2.0,(double)valuesIntAllMagnitudes[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on Math.pow(2.0,double), values of all magnitudes, took "+getElapsedSeconds()+" s");
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.twoPow(valuesIntAllMagnitudes[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on FastMath.twoPow(int), values of all magnitudes, took "+getElapsedSeconds()+" s");
+
+        // special values
+
+        int[] specialValues = new int[] { -1075, -1074, -1023, -1022, -1, 0, 1, 1023, 1024, Integer.MIN_VALUE, Integer.MAX_VALUE };
+        boolean foundDifferences = false;
+        System.out.print("Result differences for special values:... ");
+        for (i=0;i<specialValues.length;i++) {
+            double refResult = Math.pow(2.0,(double)specialValues[i]);
+            double fastResult = FastMath.twoPow(specialValues[i]);
+            if (!Double.toString(refResult).equals(Double.toString(fastResult))) {
+                if (!foundDifferences) {
+                    System.out.println("");
+                    foundDifferences = true;
+                }
+                System.out.println("Math.pow(2.0,(double)"+specialValues[i]+")="+refResult);
+                System.out.println("     FastMath.twoPow("+specialValues[i]+")="+fastResult);
             }
         }
         if (!foundDifferences) {
@@ -3151,9 +3425,9 @@ public strictfp class TestFastMath {
         double dummy = 0.0;
 
         System.out.println("--- testing cbrt(double) ---");
-        
+
         // [-10,10]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -3182,7 +3456,7 @@ public strictfp class TestFastMath {
         System.out.println("max delta (relative): "+maxDelta);
 
         // [-A_BIG_LOT,A_BIG_LOT]
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -3260,7 +3534,7 @@ public strictfp class TestFastMath {
             System.out.println("none.");
         }
     }
-    
+
     private void testRemainder_double_double() {
         double maxDelta;
         int i;
@@ -3415,9 +3689,9 @@ public strictfp class TestFastMath {
         int dummy = 0;
 
         System.out.println("--- testing abs(int) ---");
-        
+
         // all magnitudes
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -3552,7 +3826,7 @@ public strictfp class TestFastMath {
         System.out.println("max delta: "+maxDelta);
 
         // near integers
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -3579,7 +3853,7 @@ public strictfp class TestFastMath {
             }
         }
         System.out.println("max delta: "+maxDelta);
-        
+
         // all magnitudes
 
         j=0;
@@ -3734,7 +4008,7 @@ public strictfp class TestFastMath {
         System.out.println("max delta: "+maxDelta);
 
         // near integers
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -3916,7 +4190,7 @@ public strictfp class TestFastMath {
         System.out.println("max delta: "+maxDelta);
 
         // near integers
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -4098,7 +4372,7 @@ public strictfp class TestFastMath {
         System.out.println("max delta: "+maxDelta);
 
         // near integers
-        
+
         j=0;
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
@@ -5205,7 +5479,7 @@ public strictfp class TestFastMath {
         int i;
         int j;
         double dummy = 0.0;
-        
+
         System.out.println("--- testing normalizeMinusPiPi(double) ---");
 
         // [-PI,PI]
@@ -5249,7 +5523,7 @@ public strictfp class TestFastMath {
         System.out.println("Loop on FastMath.normalizeMinusPiPi(double), values of all magnitudes, took "+getElapsedSeconds()+" s");
 
         // special values
-        
+
         System.out.print("Testing special values... ");
 
         double[][] specialValues = new double[][] {
@@ -5305,7 +5579,7 @@ public strictfp class TestFastMath {
         int i;
         int j;
         double dummy = 0.0;
-        
+
         System.out.println("--- testing normalizeMinusPiPiFast(double) ---");
 
         // [-PI,PI]
@@ -5382,7 +5656,7 @@ public strictfp class TestFastMath {
         System.out.println("Loop on FastMath.normalizeMinusPiPiFast(double), values of all magnitudes, took "+getElapsedSeconds()+" s");
 
         // special values
-        
+
         System.out.print("Testing special values... ");
 
         double[][] specialValues = new double[][] {
@@ -5437,7 +5711,7 @@ public strictfp class TestFastMath {
         int i;
         int j;
         double dummy = 0.0;
-        
+
         System.out.println("--- testing normalizeZeroTwoPi(double) ---");
 
         // [0,2*PI]
@@ -5537,7 +5811,7 @@ public strictfp class TestFastMath {
         int i;
         int j;
         double dummy = 0.0;
-        
+
         System.out.println("--- testing normalizeZeroTwoPiFast(double) ---");
 
         // [0,2*PI]
@@ -5668,7 +5942,7 @@ public strictfp class TestFastMath {
         int i;
         int j;
         double dummy = 0.0;
-        
+
         System.out.println("--- testing normalizeMinusHalfPiHalfPi(double) ---");
 
         // [-PI/2,PI/2]
@@ -5712,7 +5986,7 @@ public strictfp class TestFastMath {
         System.out.println("Loop on FastMath.normalizeMinusHalfPiHalfPi(double), values of all magnitudes, took "+getElapsedSeconds()+" s");
 
         // special values
-        
+
         System.out.print("Testing special values... ");
 
         double[][] specialValues = new double[][] {
@@ -5845,7 +6119,7 @@ public strictfp class TestFastMath {
         System.out.println("Loop on FastMath.normalizeMinusHalfPiHalfPiFast(double), values of all magnitudes, took "+getElapsedSeconds()+" s");
 
         // special values
-        
+
         System.out.print("Testing special values... ");
 
         double[][] specialValues = new double[][] {
@@ -5895,7 +6169,7 @@ public strictfp class TestFastMath {
             System.out.println("ok.");
         }
     }
-    
+
     private void testIsInClockwiseDomain_double_double_double() {
         int i;
         int j;
@@ -5939,13 +6213,50 @@ public strictfp class TestFastMath {
         return ((nanos - timerRef)/1000000)/1000.0;
     }
 
-    private static double randomMinusOneOne() {
-        return (Math.random() - 0.5) * 2.0;
+    private double randomZeroOneDouble() {
+        return random.nextDouble();
     }
 
-    private static long randomUniform() {
-        long tmp = (long)(Math.random() * 2.0 * Integer.MAX_VALUE);
-        return tmp | (((long)(Math.random() * 2.0 * Integer.MAX_VALUE))<<32);
+    private double randomMinusOneOneDouble() {
+        return (randomZeroOneDouble() - 0.5) * 2.0;
+    }
+
+    private long randomUniformLong() {
+        return random.nextLong();
+    }
+
+    private int randomUniformInt() {
+        return random.nextInt();
+    }
+
+    private long randomAllMagnitudesLong() {
+        return (long)(randomMinusOneOneDouble() * Math.pow(2.0, randomMinusOneOneDouble() * 64));
+    }
+
+    private int randomAllMagnitudesInt() {
+        return (int)(randomMinusOneOneDouble() * Math.pow(2.0, randomMinusOneOneDouble() * 32));
+    }
+
+    /**
+     * all magnitudes in ]-infinity,+infinity[
+     */
+    private double randomAllMagnitudesDouble() {
+        double tmp;
+        do {
+            tmp = Double.longBitsToDouble(randomUniformLong());
+        } while (Double.isNaN(tmp) || Double.isInfinite(tmp));
+        return tmp;
+    }
+
+    /**
+     * all magnitudes in ]-infinity,+infinity[
+     */
+    private float randomAllMagnitudesFloat() {
+        float tmp;
+        do {
+            tmp = Float.intBitsToFloat(randomUniformInt());
+        } while (Float.isNaN(tmp) || Float.isInfinite(tmp));
+        return tmp;
     }
 
     private static void separate() {
