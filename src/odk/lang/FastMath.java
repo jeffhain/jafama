@@ -2,7 +2,7 @@ package odk.lang;
 
 /*
  * =============================================================================
- * Copyright (C) 2009 oma
+ * Copyright (C) 2011 oma
  * 
  * This program is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -52,6 +52,32 @@ package odk.lang;
  * - Methods terminating with "Quick" are meant to be quick, but do not
  *   return a good approximation, and might only work on a reduced range.
  * 
+ * Properties:
+ * 
+ * - odk.fastmath.strict (boolean, default is true):
+ *   If true, non-redefined Math methods which results could vary between Math and StrictMath,
+ *   delegate to StrictMath, and if false, to Math.
+ *   Default is true to ensure consistency across various architectures.
+ *   
+ * - odk.fastmath.usejdk (boolean, default is false):
+ *   If true, redefined Math methods, as well as their "Fast" or "Quick" terminated counterparts,
+ *   delegate to StrictMath or Math, depending on odk.fastmath.strict property.
+ *   
+ * - odk.fastmath.fastlog (boolean, default is true):
+ *   If true, using redefined log(double), if false using StrictMath.log(double) or
+ *   Math.log(double), depending on odk.fastmath.strict property.
+ *   Default is true because odk.fastmath.strict is true by default, and StrictMath.log(double)
+ *   seems usually slow.
+ *   
+ * - odk.fastmath.fastsqrt (boolean, default is false):
+ *   If true, using redefined sqrt(double), if false using StrictMath.sqrt(double) or
+ *   Math.sqrt(double), depending on odk.fastmath.strict property.
+ *   Default is false because StrictMath.sqrt(double) seems to usually delegate to hardware sqrt.
+ * 
+ * Unless odk.fastmath.strict is false and odk.fastmath.usejdk is true, these treatments
+ * are consistent across various architectures, for constants and look-up tables are
+ * computed with StrictMath, or exact Math methods.
+ * 
  * --- words, words, words ---
  * 
  * "0x42BE0000 percents of the folks out there
@@ -65,9 +91,6 @@ package odk.lang;
 public strictfp final class FastMath {
 
     /*
-     * You might want to modify this code some, for example to use redefined sqrt if you
-     * don't have a hardware one, or to use fast angle normalization treatments by default.
-     * 
      * For trigonometric functions, use of look-up tables and Taylor-Lagrange formula
      * with 4 derivatives (more take longer to compute and don't add much accuracy,
      * less require larger tables (which use more memory, take more time to initialize,
@@ -97,17 +120,36 @@ public strictfp final class FastMath {
      * Lengths of look-up tables are usually of the form 2^n+1, for their values to be
      * of the form (<a_constant> * k/2^n, k in 0 .. 2^n), so that particular values
      * (PI/2, etc.) are "exactly" computed, as well as for other reasons.
+     * 
+     * Most math treatments I could find on the web, including "fast" ones,
+     * usually take care of special cases (NaN, etc.) at the beginning, and
+     * then deal with the general case, which adds a useless overhead for the
+     * general (and common) case. In this class, special cases are only dealt
+     * with when needed, and if the general case does not already handle them.
      */
 
     //--------------------------------------------------------------------------
     // STATIC CONFIGURATION
     //--------------------------------------------------------------------------
     
-    // Set it to true if Math.sqrt is slow (i.e. if it's not a hardware sqrt).
-    private static final boolean USE_REDEFINED_SQRT = false;
+	private static boolean getBooleanProperty(
+			final String key,
+			boolean defaultValue) {
+        String tmp = System.getProperty(key);
+        if (tmp != null) {
+        	return Boolean.parseBoolean(tmp);
+        } else {
+        	return defaultValue;
+        }
+	}
+	
+    private static final boolean STRICT_MATH = getBooleanProperty("odk.fastmath.strict", true);
     
-    // Set it to true if Math.log is slow (i.e. if it's not a hardware log).
-    private static final boolean USE_REDEFINED_LOG = false;
+    private static final boolean USE_JDK_MATH = getBooleanProperty("odk.fastmath.usejdk", false);
+    
+    private static final boolean USE_REDEFINED_LOG = getBooleanProperty("odk.fastmath.fastlog", true);
+
+    private static final boolean USE_REDEFINED_SQRT = getBooleanProperty("odk.fastmath.fastsqrt", false);
     
     // Set it to true if FastMath.sqrt(double) is slow (more tables, but less calls to FastMath.sqrt(double)).
     private static final boolean USE_POWTABS_FOR_ASIN = false;
@@ -116,6 +158,15 @@ public strictfp final class FastMath {
     // GENERAL CONSTANTS
     //--------------------------------------------------------------------------
 
+    /**
+     * High approximation of PI, which is further from PI
+     * than the low approximation Math.PI:
+     *              PI ~= 3.14159265358979323846...
+     *         Math.PI ~= 3.141592653589793
+     * FastMath.PI_SUP ~= 3.1415926535897936
+     */
+    public static final double PI_SUP = Math.nextUp(Math.PI);
+    
     private static final double ONE_DIV_F2 = 1/2.0;
     private static final double ONE_DIV_F3 = 1/6.0;
     private static final double ONE_DIV_F4 = 1/24.0;
@@ -152,9 +203,11 @@ public strictfp final class FastMath {
     private static final int MIN_DOUBLE_EXPONENT = -1074;
     private static final int MAX_DOUBLE_EXPONENT = 1023;
 
-    private static final double LOG_2 = Math.log(2);
-    private static final double LOG_TWO_POW_27 = Math.log(TWO_POW_27);
-    private static final double LOG_DOUBLE_MAX_VALUE = Math.log(Double.MAX_VALUE);
+    private static final int MAX_FLOAT_EXPONENT = 127;
+
+    private static final double LOG_2 = StrictMath.log(2);
+    private static final double LOG_TWO_POW_27 = StrictMath.log(TWO_POW_27);
+    private static final double LOG_DOUBLE_MAX_VALUE = StrictMath.log(Double.MAX_VALUE);
 
     private static final double DOUBLE_BEFORE_60 = Math.nextAfter(60.0, 0.0);
 
@@ -195,10 +248,11 @@ public strictfp final class FastMath {
 
     // fdlibm uses 2^19*PI/2 here, but we normalize with % 2*PI instead of % PI/2,
     // and we can bear some more error.
-    private static final double NORMALIZE_ANGLE_MAX_MEDIUM_DOUBLE = Math.pow(2,20)*(2*Math.PI);
+    private static final double NORMALIZE_ANGLE_MAX_MEDIUM_DOUBLE = StrictMath.pow(2,20)*(2*Math.PI);
     
     /**
      * 2*Math.PI, normalized into [-PI,PI].
+     * Computed using normalizeMinusPiPi(double).
      */
     private static final double TWO_MATH_PI_IN_MINUS_PI_PI = -2.449293598153844E-16;
     
@@ -206,7 +260,7 @@ public strictfp final class FastMath {
     // CONSTANTS AND TABLES FOR COS, SIN
     //--------------------------------------------------------------------------
 
-    private static final int SIN_COS_TABS_SIZE = (1<<11) + 1;
+    private static final int SIN_COS_TABS_SIZE = (1<<getTabSizePower(11)) + 1;
     private static final double SIN_COS_DELTA_HI = TWOPI_HI/(SIN_COS_TABS_SIZE-1);
     private static final double SIN_COS_DELTA_LO = TWOPI_LO/(SIN_COS_TABS_SIZE-1);
     private static final double SIN_COS_INDEXER = 1/(SIN_COS_DELTA_HI+SIN_COS_DELTA_LO);
@@ -230,7 +284,7 @@ public strictfp final class FastMath {
 
     // We use indexing past look-up tables, so that indexing information
     // allows for fast recomputation of angle in [0,PI/2] range.
-    private static final int TAN_VIRTUAL_TABS_SIZE = (1<<12) + 1;
+    private static final int TAN_VIRTUAL_TABS_SIZE = (1<<getTabSizePower(12)) + 1;
 
     // Must be >= 45deg, and supposed to be >= 51.4deg, as fdlibm code is not
     // supposed to work with values inferior to that (51.4deg is about
@@ -265,9 +319,9 @@ public strictfp final class FastMath {
 
     // Supposed to be >= sin(77.2deg), as fdlibm code is supposed to work with values > 0.975,
     // but seems to work well enough as long as value is >= sin(25deg).
-    private static final double ASIN_MAX_VALUE_FOR_TABS = Math.sin(Math.toRadians(73.0));
+    private static final double ASIN_MAX_VALUE_FOR_TABS = StrictMath.sin(Math.toRadians(73.0));
 
-    private static final int ASIN_TABS_SIZE = (1<<13) + 1;
+    private static final int ASIN_TABS_SIZE = (1<<getTabSizePower(13)) + 1;
     private static final double ASIN_DELTA = ASIN_MAX_VALUE_FOR_TABS/(ASIN_TABS_SIZE - 1);
     private static final double ASIN_INDEXER = 1/ASIN_DELTA;
     private static final double[] asinTab = new double[ASIN_TABS_SIZE];
@@ -276,11 +330,11 @@ public strictfp final class FastMath {
     private static final double[] asinDer3DivF3Tab = new double[ASIN_TABS_SIZE];
     private static final double[] asinDer4DivF4Tab = new double[ASIN_TABS_SIZE];
 
-    private static final double ASIN_MAX_VALUE_FOR_POWTABS = Math.sin(Math.toRadians(88.6));
+    private static final double ASIN_MAX_VALUE_FOR_POWTABS = StrictMath.sin(Math.toRadians(88.6));
     private static final int ASIN_POWTABS_POWER = 84;
 
     private static final double ASIN_POWTABS_ONE_DIV_MAX_VALUE = 1/ASIN_MAX_VALUE_FOR_POWTABS;
-    private static final int ASIN_POWTABS_SIZE = USE_POWTABS_FOR_ASIN ? (1<<12) + 1 : 0;
+    private static final int ASIN_POWTABS_SIZE = USE_POWTABS_FOR_ASIN ? (1<<getTabSizePower(12)) + 1 : 0;
     private static final int ASIN_POWTABS_SIZE_MINUS_ONE = ASIN_POWTABS_SIZE - 1;
     private static final double[] asinParamPowTab = new double[ASIN_POWTABS_SIZE];
     private static final double[] asinPowTab = new double[ASIN_POWTABS_SIZE];
@@ -312,9 +366,9 @@ public strictfp final class FastMath {
     // for values corresponding to angles near +-PI/2, we use code derived from fdlibm.
 
     // Supposed to be >= tan(67.7deg), as fdlibm code is supposed to work with values > 2.4375.
-    private static final double ATAN_MAX_VALUE_FOR_TABS = Math.tan(Math.toRadians(74.0));
+    private static final double ATAN_MAX_VALUE_FOR_TABS = StrictMath.tan(Math.toRadians(74.0));
 
-    private static final int ATAN_TABS_SIZE = (1<<12) + 1;
+    private static final int ATAN_TABS_SIZE = (1<<getTabSizePower(12)) + 1;
     private static final double ATAN_DELTA = ATAN_MAX_VALUE_FOR_TABS/(ATAN_TABS_SIZE - 1);
     private static final double ATAN_INDEXER = 1/ATAN_DELTA;
     private static final double[] atanTab = new double[ATAN_TABS_SIZE];
@@ -346,7 +400,7 @@ public strictfp final class FastMath {
     private static final double EXP_MIN_INT_LIMIT = -705;
     private static final int EXP_LO_DISTANCE_TO_ZERO_POT = 0;
     private static final int EXP_LO_DISTANCE_TO_ZERO = (1<<EXP_LO_DISTANCE_TO_ZERO_POT);
-    private static final int EXP_LO_TAB_SIZE_POT = 11;
+    private static final int EXP_LO_TAB_SIZE_POT = getTabSizePower(11);
     private static final int EXP_LO_TAB_SIZE = (1<<EXP_LO_TAB_SIZE_POT)+1;
     private static final int EXP_LO_TAB_MID_INDEX = ((EXP_LO_TAB_SIZE-1)/2);
     private static final int EXP_LO_INDEXING = EXP_LO_TAB_MID_INDEX/EXP_LO_DISTANCE_TO_ZERO;
@@ -362,13 +416,13 @@ public strictfp final class FastMath {
 
     private static final double EXP_QUICK_A = TWO_POW_52/LOG_2;
     private static final double EXP_QUICK_B = MAX_DOUBLE_EXPONENT * TWO_POW_52;
-    private static final double EXP_QUICK_C = Math.ceil((Math.log(LOG_2+2/Math.E) - LOG_2 - Math.log(LOG_2)) * EXP_QUICK_A);
+    private static final double EXP_QUICK_C = Math.ceil((StrictMath.log(LOG_2+2/Math.E) - LOG_2 - StrictMath.log(LOG_2)) * EXP_QUICK_A);
 
     //--------------------------------------------------------------------------
     // CONSTANTS AND TABLES FOR LOG AND LOG1P
     //--------------------------------------------------------------------------
 
-    private static final int LOG_BITS = 12;
+    private static final int LOG_BITS = getTabSizePower(12);
     private static final int LOG_TAB_SIZE = (1<<LOG_BITS);
     private static final double[] logXLogTab = new double[LOG_TAB_SIZE];
     private static final double[] logXTab = new double[LOG_TAB_SIZE];
@@ -384,7 +438,7 @@ public strictfp final class FastMath {
     // CONSTANTS AND TABLES FOR SQRT
     //--------------------------------------------------------------------------
 
-    private static final int SQRT_LO_BITS = 12;
+    private static final int SQRT_LO_BITS = getTabSizePower(12);
     private static final int SQRT_LO_TAB_SIZE = (1<<SQRT_LO_BITS);
     private static final double[] sqrtXSqrtHiTab = new double[MAX_DOUBLE_EXPONENT-MIN_DOUBLE_EXPONENT+1];
     private static final double[] sqrtXSqrtLoTab = new double[SQRT_LO_TAB_SIZE];
@@ -395,12 +449,11 @@ public strictfp final class FastMath {
     // CONSTANTS AND TABLES FOR CBRT
     //--------------------------------------------------------------------------
 
-    private static final int CBRT_LO_BITS = 12;
+    private static final int CBRT_LO_BITS = getTabSizePower(12);
     private static final int CBRT_LO_TAB_SIZE = (1<<CBRT_LO_BITS);
     // For CBRT_LO_BITS = 12:
     // cbrtXCbrtLoTab[0] = 1.0.
     // cbrtXCbrtLoTab[1] = cbrt(1. 000000000000 1111111111111111111111111111111111111111b)
-    // ...
     // cbrtXCbrtLoTab[2] = cbrt(1. 000000000001 1111111111111111111111111111111111111111b)
     // cbrtXCbrtLoTab[3] = cbrt(1. 000000000010 1111111111111111111111111111111111111111b)
     // cbrtXCbrtLoTab[4] = cbrt(1. 000000000011 1111111111111111111111111111111111111111b)
@@ -419,7 +472,10 @@ public strictfp final class FastMath {
      * @return Angle cosine.
      */
     public static double cos(double angle) {
-        angle = FastMath.abs(angle);
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.cos(angle) : Math.cos(angle);
+        }
+        angle = Math.abs(angle);
         if (angle > SIN_COS_MAX_VALUE_FOR_INT_MODULO) {
             // Faster than using normalizeZeroTwoPi.
             angle = remainderTwoPi(angle);
@@ -447,7 +503,10 @@ public strictfp final class FastMath {
      * @return Angle cosine.
      */
     public static double cosQuick(double angle) {
-        return cosTab[((int)(FastMath.abs(angle) * SIN_COS_INDEXER + 0.5)) & (SIN_COS_TABS_SIZE-2)];
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.cos(angle) : Math.cos(angle);
+        }
+        return cosTab[((int)(Math.abs(angle) * SIN_COS_INDEXER + 0.5)) & (SIN_COS_TABS_SIZE-2)];
     }
 
     /**
@@ -455,6 +514,9 @@ public strictfp final class FastMath {
      * @return Angle sine.
      */
     public static double sin(double angle) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.sin(angle) : Math.sin(angle);
+        }
         boolean negateResult;
         if (angle < 0.0) {
             angle = -angle;
@@ -487,7 +549,10 @@ public strictfp final class FastMath {
      * @return Angle sine.
      */
     public static double sinQuick(double angle) {
-        return cosTab[((int)(FastMath.abs(angle-Math.PI/2) * SIN_COS_INDEXER + 0.5)) & (SIN_COS_TABS_SIZE-2)];
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.sin(angle) : Math.sin(angle);
+        }
+        return cosTab[((int)(Math.abs(angle-Math.PI/2) * SIN_COS_INDEXER + 0.5)) & (SIN_COS_TABS_SIZE-2)];
     }
 
     /**
@@ -498,6 +563,11 @@ public strictfp final class FastMath {
      * @param cosine Angle cosine.
      */
     public static void sinAndCos(double angle, DoubleWrapper sine, DoubleWrapper cosine) {
+        if (USE_JDK_MATH) {
+            sine.value = STRICT_MATH ? StrictMath.sin(angle) : Math.sin(angle);
+            cosine.value = STRICT_MATH ? StrictMath.cos(angle) : Math.cos(angle);
+            return;
+        }
         // Using the same algorithm than sin(double) method, and computing also cosine at the end.
         boolean negateResult;
         if (angle < 0.0) {
@@ -528,7 +598,10 @@ public strictfp final class FastMath {
      * @return Angle tangent.
      */
     public static double tan(double angle) {
-        if (FastMath.abs(angle) > TAN_MAX_VALUE_FOR_INT_MODULO) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.tan(angle) : Math.tan(angle);
+        }
+        if (Math.abs(angle) > TAN_MAX_VALUE_FOR_INT_MODULO) {
             // Faster than using normalizeMinusHalfPiHalfPi.
             angle = remainderTwoPi(angle);
             if (angle < -Math.PI/2) {
@@ -570,6 +643,9 @@ public strictfp final class FastMath {
      * @return Value arccosine, in radians, in [0,PI].
      */
     public static double acos(double value) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.acos(value) : Math.acos(value);
+        }
         return Math.PI/2 - FastMath.asin(value);
     }
 
@@ -594,6 +670,9 @@ public strictfp final class FastMath {
      * @return Value arcsine, in radians, in [-PI/2,PI/2].
      */
     public static double asin(double value) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.asin(value) : Math.asin(value);
+        }
         boolean negateResult;
         if (value < 0.0) {
             value = -value;
@@ -652,6 +731,9 @@ public strictfp final class FastMath {
      * @return Value arctangent, in radians, in [-PI/2,PI/2].
      */
     public static double atan(double value) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.atan(value) : Math.atan(value);
+        }
         boolean negateResult;
         if (value < 0.0) {
             value = -value;
@@ -696,6 +778,9 @@ public strictfp final class FastMath {
      *         Angle measure is positive when going from x axis to y axis (positive sides).
      */
     public static double atan2(double y, double x) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.atan2(y,x) : Math.atan2(y,x);
+        }
         if (x > 0.0) {
             if (y == 0.0) {
                 return (1/y == Double.NEGATIVE_INFINITY) ? -0.0 : 0.0;
@@ -763,6 +848,9 @@ public strictfp final class FastMath {
      * @return Value hyperbolic cosine.
      */
     public static double cosh(double value) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.cosh(value) : Math.cosh(value);
+        }
         // cosh(x) = (exp(x)+exp(-x))/2
         if (value < 0.0) {
             value = -value;
@@ -792,6 +880,9 @@ public strictfp final class FastMath {
      * @return Value hyperbolic sine.
      */
     public static double sinh(double value) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.sinh(value) : Math.sinh(value);
+        }
         // sinh(x) = (exp(x)-exp(-x))/2
         double h;
         if (value < 0.0) {
@@ -824,6 +915,11 @@ public strictfp final class FastMath {
      * @param hcosine Value hyperbolic cosine.
      */
     public static void sinhAndCosh(double value, DoubleWrapper hsine, DoubleWrapper hcosine) {
+        if (USE_JDK_MATH) {
+            hsine.value = STRICT_MATH ? StrictMath.sinh(value) : Math.sinh(value);
+            hcosine.value = STRICT_MATH ? StrictMath.cosh(value) : Math.cosh(value);
+            return;
+        }
         // Mixup of sinh and cosh treatments: if you modify them,
         // you might want to also modify this.
         double h;
@@ -870,6 +966,9 @@ public strictfp final class FastMath {
      * @return Value hyperbolic tangent.
      */
     public static double tanh(double value) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.tanh(value) : Math.tanh(value);
+        }
         // tanh(x) = sinh(x)/cosh(x)
         //         = (exp(x)-exp(-x))/(exp(x)+exp(-x))
         //         = (exp(2*x)-1)/(exp(2*x)+1)
@@ -901,6 +1000,9 @@ public strictfp final class FastMath {
      * @return e^value.
      */
     public static double exp(double value) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.exp(value) : Math.exp(value);
+        }
         // exp(x) = exp([x])*exp(y)
         // with [x] the integer part of x, and y = x-[x]
         // ===>
@@ -911,7 +1013,7 @@ public strictfp final class FastMath {
         // We have exp([x]) and exp(z) pre-computed in tables, we "just" have to compute exp(epsilon).
         //
         // We use the same indexing (cast to int) to compute x integer part and the
-        // table index corresponding to z, to avoit two int casts.
+        // table index corresponding to z, to avoid two int casts.
         // Also, to optimize index multiplication and division, we use powers of two,
         // so that we can do it with bits shifts.
         if (value >= 0.0) {
@@ -954,13 +1056,16 @@ public strictfp final class FastMath {
      * @return e^value.
      */
     public static double expQuick(double value) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.exp(value) : Math.exp(value);
+        }
         if (false) {
             // Schraudolph's original method.
             return Double.longBitsToDouble((long)(EXP_QUICK_A * value + (EXP_QUICK_B - EXP_QUICK_C)));
         }
         /*
-         * Cast of double values, even in long range, into long, is (TODO at least on 32 bit machines)
-         * slower than from double to int for values in int range, and then from int to long.
+         * Cast of double values, even in long range, into long, is slower than
+         * from double to int for values in int range, and then from int to long.
          * For that reason, we only work with integer values in int range (corresponding to the 32 first bits of the long,
          * containing sign, exponent, and highest significant bits of double's mantissa), and cast twice.
          */
@@ -974,6 +1079,9 @@ public strictfp final class FastMath {
      * @return e^value-1.
      */
     public static double expm1(double value) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.expm1(value) : Math.expm1(value);
+        }
         // If value is far from zero, we use exp(value)-1.
         //
         // If value is close to zero, we use the following formula:
@@ -999,68 +1107,68 @@ public strictfp final class FastMath {
      * @return Value logarithm (base e).
      */
     public static double log(double value) {
-        if (USE_REDEFINED_LOG) {
-            if (value > 0.0) {
-                if (value == Double.POSITIVE_INFINITY) {
-                    return Double.POSITIVE_INFINITY;
-                }
-
-                // For normal values not close to 1.0, we use the following formula:
-                // log(value)
-                // = log(2^exponent*1.mantissa)
-                // = log(2^exponent) + log(1.mantissa)
-                // = exponent * log(2) + log(1.mantissa)
-                // = exponent * log(2) + log(1.mantissaApprox) + log(1.mantissa/1.mantissaApprox)
-                // = exponent * log(2) + log(1.mantissaApprox) + log(1+epsilon)
-                // = exponent * log(2) + log(1.mantissaApprox) + epsilon-epsilon^2/2+epsilon^3/3-epsilon^4/4+...
-                // with:
-                // 1.mantissaApprox <= 1.mantissa,
-                // log(1.mantissaApprox) in table,
-                // epsilon = (1.mantissa/1.mantissaApprox)-1
-                //
-                // To avoid bad relative error for small results,
-                // values close to 1.0 are treated apart, with the formula:
-                // log(x) = z*(2+z^2*((2.0/3)+z^2*((2.0/5))+z^2*((2.0/7))+...)))
-                // with z=(x-1)/(x+1)
-
-                double h;
-                if (value > 0.95) {
-                    if (value < 1.14) {
-                        double z = (value-1.0)/(value+1.0);
-                        double z2 = z*z;
-                        return z*(2+z2*((2.0/3)+z2*((2.0/5)+z2*((2.0/7)+z2*((2.0/9)+z2*((2.0/11)))))));
-                    }
-                    h = 0.0;
-                } else if (value < MIN_DOUBLE_NORMAL) {
-                    // Ensuring value is normal.
-                    value *= TWO_POW_52;
-                    // log(x*2^52)
-                    // = log(x)-ln(2^52)
-                    // = log(x)-52*ln(2)
-                    h = -52*LOG_2;
-                } else {
-                    h = 0.0;
-                }
-
-                int valueBitsHi = (int)(Double.doubleToRawLongBits(value)>>32);
-                int valueExp = (valueBitsHi>>20)-MAX_DOUBLE_EXPONENT;
-                // Getting the first LOG_BITS bits of the mantissa.
-                int xIndex = ((valueBitsHi<<12)>>>(32-LOG_BITS));
-
-                // 1.mantissa/1.mantissaApprox - 1
-                double z = (value * twoPowTab[-valueExp-MIN_DOUBLE_EXPONENT]) * logXInvTab[xIndex] - 1;
-
-                z *= (1-z*((1.0/2)-z*((1.0/3))));
-
-                return h + valueExp * LOG_2 + (logXLogTab[xIndex] + z);
-
-            } else if (value == 0.0) {
-                return Double.NEGATIVE_INFINITY;
-            } else { // value < 0.0, or value is NaN
-                return Double.NaN;
-            }
+        if (USE_JDK_MATH || (!USE_REDEFINED_LOG)) {
+            return STRICT_MATH ? StrictMath.log(value) : Math.log(value);
         } else {
-            return Math.log(value);
+        	if (value > 0.0) {
+        		if (value == Double.POSITIVE_INFINITY) {
+        			return Double.POSITIVE_INFINITY;
+        		}
+
+        		// For normal values not close to 1.0, we use the following formula:
+        		// log(value)
+        		// = log(2^exponent*1.mantissa)
+        		// = log(2^exponent) + log(1.mantissa)
+        		// = exponent * log(2) + log(1.mantissa)
+        		// = exponent * log(2) + log(1.mantissaApprox) + log(1.mantissa/1.mantissaApprox)
+        		// = exponent * log(2) + log(1.mantissaApprox) + log(1+epsilon)
+        		// = exponent * log(2) + log(1.mantissaApprox) + epsilon-epsilon^2/2+epsilon^3/3-epsilon^4/4+...
+        		// with:
+        		// 1.mantissaApprox <= 1.mantissa,
+        		// log(1.mantissaApprox) in table,
+        		// epsilon = (1.mantissa/1.mantissaApprox)-1
+        		//
+        		// To avoid bad relative error for small results,
+        		// values close to 1.0 are treated apart, with the formula:
+        		// log(x) = z*(2+z^2*((2.0/3)+z^2*((2.0/5))+z^2*((2.0/7))+...)))
+        		// with z=(x-1)/(x+1)
+
+        		double h;
+        		if (value > 0.95) {
+        			if (value < 1.14) {
+        				double z = (value-1.0)/(value+1.0);
+        				double z2 = z*z;
+        				return z*(2+z2*((2.0/3)+z2*((2.0/5)+z2*((2.0/7)+z2*((2.0/9)+z2*((2.0/11)))))));
+        			}
+        			h = 0.0;
+        		} else if (value < MIN_DOUBLE_NORMAL) {
+        			// Ensuring value is normal.
+        			value *= TWO_POW_52;
+        			// log(x*2^52)
+        			// = log(x)-ln(2^52)
+        			// = log(x)-52*ln(2)
+        			h = -52*LOG_2;
+        		} else {
+        			h = 0.0;
+        		}
+
+        		int valueBitsHi = (int)(Double.doubleToRawLongBits(value)>>32);
+        		int valueExp = (valueBitsHi>>20)-MAX_DOUBLE_EXPONENT;
+        		// Getting the first LOG_BITS bits of the mantissa.
+        		int xIndex = ((valueBitsHi<<12)>>>(32-LOG_BITS));
+
+        		// 1.mantissa/1.mantissaApprox - 1
+        		double z = (value * twoPowTab[-valueExp-MIN_DOUBLE_EXPONENT]) * logXInvTab[xIndex] - 1;
+
+        		z *= (1-z*((1.0/2)-z*((1.0/3))));
+
+        		return h + valueExp * LOG_2 + (logXLogTab[xIndex] + z);
+
+        	} else if (value == 0.0) {
+        		return Double.NEGATIVE_INFINITY;
+        	} else { // value < 0.0, or value is NaN
+        		return Double.NaN;
+        	}
         }
     }
 
@@ -1070,6 +1178,9 @@ public strictfp final class FastMath {
      * outside this range.
      */
     public static double logQuick(double value) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.log(value) : Math.log(value);
+        }
         /*
          * Inverse of Schraudolph's method for exp, is very inaccurate near 1,
          * and not that fast (even using floats), especially with added if's
@@ -1107,6 +1218,9 @@ public strictfp final class FastMath {
      * @return Logarithm (base e) of (1+value).
      */
     public static double log1p(double value) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.log1p(value) : Math.log1p(value);
+        }
         if (false) {
             // This also works. Simpler but a bit slower.
             if (value == Double.POSITIVE_INFINITY) {
@@ -1116,7 +1230,7 @@ public strictfp final class FastMath {
             if (valuePlusOne == 1.0) {
                 return value;
             } else {
-                return Math.log(valuePlusOne)*(value/(valuePlusOne-1.0));
+                return FastMath.log(valuePlusOne)*(value/(valuePlusOne-1.0));
             }
         }
         if (value > -1.0) {
@@ -1169,6 +1283,26 @@ public strictfp final class FastMath {
     }
 
     /**
+     * @param value An integer value in [1,Integer.MAX_VALUE].
+     * @return The integer part of the logarithm, in base 2, of the specified value,
+     *         i.e. a result in [0,30]
+     * @throws IllegalArgumentException if the specified value is <= 0.
+     */
+    public static int log2(int value) {
+        return NumbersUtils.log2(value);
+    }
+    
+    /**
+     * @param value An integer value in [1,Long.MAX_VALUE].
+     * @return The integer part of the logarithm, in base 2, of the specified value,
+     *         i.e. a result in [0,62]
+     * @throws IllegalArgumentException if the specified value is <= 0.
+     */
+    public static int log2(long value) {
+        return NumbersUtils.log2(value);
+    }
+
+    /**
      * 1e-13ish accuracy (or better) on whole double range.
      * 
      * @param value A double value.
@@ -1176,6 +1310,9 @@ public strictfp final class FastMath {
      * @return value^power.
      */
     public static double pow(double value, double power) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.pow(value,power) : Math.pow(value,power);
+        }
         if (power == 0.0) {
             return 1.0;
         } else if (power == 1.0) {
@@ -1190,7 +1327,7 @@ public strictfp final class FastMath {
                 powerInfo = 1;
             } else {
                 // If power's magnitude permits, we cast into int instead of into long,
-                // as it is faster (TODO check it on 64 bits machines...).
+                // as it is faster.
                 if (Math.abs(power) <= (double)Integer.MAX_VALUE) {
                     int powerAsInt = (int)power;
                     if (power == (double)powerAsInt) {
@@ -1243,6 +1380,9 @@ public strictfp final class FastMath {
      * @return value^power.
      */
     public static double powQuick(double value, double power) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.pow(value,power) : Math.pow(value,power);
+        }
         return FastMath.exp(power*FastMath.logQuick(value));
     }
 
@@ -1256,6 +1396,9 @@ public strictfp final class FastMath {
      * @return value^power.
      */
     public static double powFast(double value, int power) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.pow(value,power) : Math.pow(value,power);
+        }
         if (power > 5) { // Most common case first.
             double oddRemains = 1.0;
             do {
@@ -1316,22 +1459,9 @@ public strictfp final class FastMath {
      * @return 2^power.
      */
     public static double twoPow(int power) {
-        if (false) {
-            /*
-             * Version without table.
-             */
-            if (power <= -MAX_DOUBLE_EXPONENT) { // Not normal.
-                if (power >= MIN_DOUBLE_EXPONENT) { // Subnormal.
-                    return Double.longBitsToDouble(0x0008000000000000L>>(-(power+MAX_DOUBLE_EXPONENT)));
-                } else { // Underflow.
-                    return 0.0;
-                }
-            } else if (power > MAX_DOUBLE_EXPONENT) { // Overflow.
-                return Double.POSITIVE_INFINITY;
-            } else { // Normal.
-                return Double.longBitsToDouble(((long)(power+MAX_DOUBLE_EXPONENT))<<52);
-            }
-        }
+        /*
+         * Using table, to go faster than NumbersUtils.twoPow(int).
+         */
         if (power >= 0) {
             if (power <= MAX_DOUBLE_EXPONENT) {
                 return twoPowTab[power-MIN_DOUBLE_EXPONENT];
@@ -1354,7 +1484,7 @@ public strictfp final class FastMath {
      * @return value*value.
      */
     public static int pow2(int value) {
-        return value*value;
+        return NumbersUtils.pow2(value);
     }
 
     /**
@@ -1362,7 +1492,7 @@ public strictfp final class FastMath {
      * @return value*value.
      */
     public static long pow2(long value) {
-        return value*value;
+        return NumbersUtils.pow2(value);
     }
 
     /**
@@ -1370,7 +1500,7 @@ public strictfp final class FastMath {
      * @return value*value.
      */
     public static float pow2(float value) {
-        return value*value;
+        return NumbersUtils.pow2(value);
     }
 
     /**
@@ -1378,7 +1508,7 @@ public strictfp final class FastMath {
      * @return value*value.
      */
     public static double pow2(double value) {
-        return value*value;
+        return NumbersUtils.pow2(value);
     }
 
     /**
@@ -1386,7 +1516,7 @@ public strictfp final class FastMath {
      * @return value*value*value.
      */
     public static int pow3(int value) {
-        return value*value*value;
+        return NumbersUtils.pow3(value);
     }
 
     /**
@@ -1394,7 +1524,7 @@ public strictfp final class FastMath {
      * @return value*value*value.
      */
     public static long pow3(long value) {
-        return value*value*value;
+        return NumbersUtils.pow3(value);
     }
 
     /**
@@ -1402,7 +1532,7 @@ public strictfp final class FastMath {
      * @return value*value*value.
      */
     public static float pow3(float value) {
-        return value*value*value;
+        return NumbersUtils.pow3(value);
     }
 
     /**
@@ -1410,7 +1540,7 @@ public strictfp final class FastMath {
      * @return value*value*value.
      */
     public static double pow3(double value) {
-        return value*value*value;
+        return NumbersUtils.pow3(value);
     }
 
     /**
@@ -1418,7 +1548,9 @@ public strictfp final class FastMath {
      * @return Value square root.
      */
     public static double sqrt(double value) {
-        if (USE_REDEFINED_SQRT) {
+        if (USE_JDK_MATH || (!USE_REDEFINED_SQRT)) {
+            return STRICT_MATH ? StrictMath.sqrt(value) : Math.sqrt(value);
+        } else {
             // See cbrt for comments, sqrt uses the same ideas.
 
             if (!(value > 0.0)) { // value <= 0.0, or value is NaN
@@ -1446,8 +1578,6 @@ public strictfp final class FastMath {
             result += (value - result * result) * slope;
             result += (value - result * result) * slope;
             return h*(result + (value - result * result) * slope);
-        } else {
-            return Math.sqrt(value);
         }
     }
 
@@ -1456,6 +1586,9 @@ public strictfp final class FastMath {
      * @return Value cubic root.
      */
     public static double cbrt(double value) {
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.cbrt(value) : Math.cbrt(value);
+        }
         double h;
         if (value < 0.0) {
             if (value == Double.NEGATIVE_INFINITY) {
@@ -1496,8 +1629,7 @@ public strictfp final class FastMath {
         // (we could iterate on this method, using value/x as new value for each iteration,
         // but finishing with Newton's method is faster).
 
-        // TODO for everywhere: check if slower to work on int like this with 64 bits machines
-        // (adding a shift and a cast here for that)...
+        // Shift and cast into an int, which overall is faster than working with a long.
         int valueBitsHi = (int)(Double.doubleToRawLongBits(value)>>32);
         int valueExponentIndex = (valueBitsHi>>20)+(-MAX_DOUBLE_EXPONENT-MIN_DOUBLE_EXPONENT);
         // Getting the first CBRT_LO_BITS bits of the mantissa.
@@ -1545,13 +1677,40 @@ public strictfp final class FastMath {
     }
 
     /**
-     * Behaves about (exactly?) like Math.IEEEremainder(double,double).
+     * Returns dividend - divisor * n, where n is the mathematical integer
+     * closest to dividend/divisor.
+     * If dividend/divisor is equally close to surrounding integers,
+     * we choose n to be the integer of smallest magnitude, which makes
+     * this treatment differ from Math.IEEEremainder(double,double),
+     * where n is chosen to be the even integer.
+     * The practical effect is that if multiple results would be possible,
+     * we always choose the result that is the closest to (and has the same
+     * sign as) the dividend.
+     * Ex. :
+     * - for (-3.0,2.0), this method returns -1.0,
+     *   whereas Math.IEEEremainder returns 1.0.
+     * - for (-5.0,2.0), both this method and Math.IEEEremainder return -1.0.
+     * 
+     * If the remainder is zero, its sign is the same as the sign of the first argument.
+     * If either argument is NaN, or the first argument is infinite,
+     * or the second argument is positive zero or negative zero,
+     * then the result is NaN.
+     * If the first argument is finite and the second argument is
+     * infinite, then the result is the same as the first argument.
+     * 
+     * NB:
+     * - Modulo operator (%) returns a value in ]-|divisor|,|divisor|[,
+     *   which sign is the same as dividend.
+     * - As for modulo operator, the sign of the divisor has no effect on the result.
      * 
      * @param dividend Dividend.
      * @param divisor Divisor.
-     * @return Remainder of dividend/divisor.
+     * @return Remainder of dividend/divisor, i.e. a value in [-|divisor|/2,|divisor|/2].
      */
     public static double remainder(double dividend, double divisor) {
+        if (USE_JDK_MATH) {
+            // no Math equivalent (differs from IEEEremainder(double,double))
+        }
         if (Double.isInfinite(divisor)) {
             if (Double.isInfinite(dividend)) {
                 return Double.NaN;
@@ -1560,8 +1719,8 @@ public strictfp final class FastMath {
             }
         }
         double value = dividend % divisor;
-        if (FastMath.abs(value+value) > FastMath.abs(divisor)) {
-            return value + ((value > 0.0) ? -FastMath.abs(divisor) : FastMath.abs(divisor));
+        if (Math.abs(value+value) > Math.abs(divisor)) {
+            return value + ((value > 0.0) ? -Math.abs(divisor) : Math.abs(divisor));
         } else {
             return value;
         }
@@ -1570,7 +1729,6 @@ public strictfp final class FastMath {
     /**
      * @param angle Angle in radians.
      * @return The same angle, in radians, but in [-Math.PI,Math.PI].
-     * @published
      */
     public static double normalizeMinusPiPi(double angle) {
         // Not modifying values in output range.
@@ -1704,8 +1862,11 @@ public strictfp final class FastMath {
      * Returns sqrt(x^2+y^2) without intermediate overflow or underflow.
      */
     public static double hypot(double x, double y) {
-        x = FastMath.abs(x);
-        y = FastMath.abs(y);
+        if (USE_JDK_MATH) {
+            return STRICT_MATH ? StrictMath.hypot(x,y) : Math.hypot(x,y);
+        }
+        x = Math.abs(x);
+        y = Math.abs(y);
         if (y < x) {
             double a = x;
             x = y;
@@ -1743,6 +1904,9 @@ public strictfp final class FastMath {
      * @return Ceiling of value.
      */
     public static double ceil(double value) {
+        if (USE_JDK_MATH) {
+            return Math.ceil(value);
+        }
         return -FastMath.floor(-value);
     }
 
@@ -1751,6 +1915,10 @@ public strictfp final class FastMath {
      * @return Ceiling of value.
      */
     public static float ceil(float value) {
+        if (USE_JDK_MATH) {
+            // TODO use Math.ceil(float) if exists
+            return (float)Math.ceil((double)value);
+        }
         return -FastMath.floor(-value);
     }
 
@@ -1761,8 +1929,11 @@ public strictfp final class FastMath {
      * @return Floor of value.
      */
     public static double floor(double value) {
-        // Faster than to work directly on bits, as done for floor(float).
-        if (FastMath.abs(value) <= (double)Integer.MAX_VALUE) {
+        if (USE_JDK_MATH) {
+            return Math.floor(value);
+        }
+        // Faster than to work directly on bits.
+        if (Math.abs(value) <= (double)Integer.MAX_VALUE) {
             if (value > 0.0) {
                 return (double)(int)value;
             } else if (value < 0.0) {
@@ -1775,12 +1946,11 @@ public strictfp final class FastMath {
             } else { // value is +-0.0 (not NaN due to test against Integer.MAX_VALUE)
                 return value;
             }
-        } else if (FastMath.abs(value) < TWO_POW_52) {
-            // Possible repartitions of the 17 decimal digits around coma:
-            //        xxxxxxxxxx.yyyyyyy
-            //       xxxxxxxxxxx.yyyyyy
-            //                (...)
-            //  xxxxxxxxxxxxxxxx.y
+        } else if (Math.abs(value) < TWO_POW_52) {
+            // We split the value in two:
+            // high part, which is a mathematical integer,
+            // and the rest, for which we can get rid of the
+            // post coma digits by casting into an int.
             double highPart = ((int)(value * TWO_POW_N26)) * TWO_POW_26;
             if (value > 0.0) {
                 return highPart + (double)((int)(value - highPart));
@@ -1796,12 +1966,16 @@ public strictfp final class FastMath {
             return value;
         }
     }
-
+    
     /**
      * @param value A float value.
      * @return Floor of value.
      */
     public static float floor(float value) {
+        if (USE_JDK_MATH) {
+            // TODO use Math.floor(float) if exists
+            return (float)Math.floor((double)value);
+        }
         int exp = FastMath.getExponent(value);
         if (exp < 0) {
             if (value < 0.0f) {
@@ -1831,10 +2005,13 @@ public strictfp final class FastMath {
      * @return Value rounded to nearest long.
      */
     public static long round(double value) {
+        if (USE_JDK_MATH) {
+            return Math.round(value);
+        }
         // Would be more coherent with rint, to call rint(double) instead of
         // floor(double), but that would not give same results than Math.round(double).
         double roundedValue = FastMath.floor(value+0.5);
-        if (FastMath.abs(roundedValue) <= (double)Integer.MAX_VALUE) {
+        if (Math.abs(roundedValue) <= (double)Integer.MAX_VALUE) {
             // Faster with intermediary cast in int.
             return (long)(int)roundedValue;
         } else {
@@ -1849,6 +2026,9 @@ public strictfp final class FastMath {
      * @return Value rounded to nearest int.
      */
     public static int round(float value) {
+        if (USE_JDK_MATH) {
+            return Math.round(value);
+        }
         // "return (int)FastMath.floor((float)(value+0.5));" would be more accurate for values in [8388609.0f,16777216.0f]
         // (i.e. [0x800001,0x1000000]), but would not give same results than Math.round(float).
         return (int)FastMath.floor(value+0.5f);
@@ -1859,6 +2039,9 @@ public strictfp final class FastMath {
      * @return Value unbiased exponent.
      */
     public static int getExponent(double value) {
+        if (USE_JDK_MATH) {
+            return Math.getExponent(value);
+        }
         return (((int)(Double.doubleToRawLongBits(value)>>52))&0x7FF)-MAX_DOUBLE_EXPONENT;
     }
 
@@ -1867,7 +2050,10 @@ public strictfp final class FastMath {
      * @return Value unbiased exponent.
      */
     public static int getExponent(float value) {
-        return ((Float.floatToRawIntBits(value)>>23)&0xFF)-127;
+        if (USE_JDK_MATH) {
+            return Math.getExponent(value);
+        }
+        return ((Float.floatToRawIntBits(value)>>23)&0xFF)-MAX_FLOAT_EXPONENT;
     }
 
     /**
@@ -1878,6 +2064,9 @@ public strictfp final class FastMath {
      * @return Angle value in degrees.
      */
     public static double toDegrees(double angrad) {
+        if (USE_JDK_MATH) {
+            return Math.toDegrees(angrad);
+        }
         return angrad * (180/Math.PI);
     }
 
@@ -1889,6 +2078,9 @@ public strictfp final class FastMath {
      * @return Angle value in radians.
      */
     public static double toRadians(double angdeg) {
+        if (USE_JDK_MATH) {
+            return Math.toRadians(angdeg);
+        }
         return angdeg * (Math.PI/180);
     }
 
@@ -1941,7 +2133,10 @@ public strictfp final class FastMath {
      * @return The absolute value, except if value is Integer.MIN_VALUE, for which it returns Integer.MIN_VALUE.
      */
     public static int abs(int value) {
-        return (value^(value>>31))-(value>>31);
+        if (USE_JDK_MATH) {
+            return Math.abs(value);
+        }
+        return NumbersUtils.abs(value);
     }
 
     /**
@@ -1949,13 +2144,7 @@ public strictfp final class FastMath {
      * @return The closest int value in [Integer.MIN_VALUE,Integer.MAX_VALUE] range.
      */
     public static int toInt(long value) {
-        if (value < (long)Integer.MIN_VALUE) {
-            return Integer.MIN_VALUE;
-        } else if (value > (long)Integer.MAX_VALUE) {
-            return Integer.MAX_VALUE;
-        } else {
-            return (int)value;
-        }
+        return NumbersUtils.toInt(value);
     }
 
     /**
@@ -1964,11 +2153,7 @@ public strictfp final class FastMath {
      *         otherwise throws an exception.
      */
     public static int toIntSafe(long value) {
-        if ((value < (long)Integer.MIN_VALUE) || (value > (long)Integer.MAX_VALUE)) {
-            throw new ArithmeticException("overflow: "+value);
-        } else {
-            return (int)value;
-        }
+        return NumbersUtils.toIntSafe(value);
     }
 
     /**
@@ -1977,7 +2162,7 @@ public strictfp final class FastMath {
      * @return The int value of [Integer.MIN_VALUE,Integer.MAX_VALUE] range which is the closest to mathematical result of a+b.
      */
     public static int plusNoModulo(int a, int b) {
-        return FastMath.toInt(((long)a) + ((long)b));
+        return NumbersUtils.plusNoModulo(a, b);
     }
 
     /**
@@ -1987,16 +2172,7 @@ public strictfp final class FastMath {
      *         otherwise throws an exception.
      */
     public static int plusNoModuloSafe(int a, int b) {
-        if ((a^b) < 0) { // test if a and b signs are different
-            return a + b;
-        } else {
-            int sum = a + b;
-            if ((a^sum) < 0) {
-                throw new ArithmeticException("overflow: "+a+"+"+b);
-            } else {
-                return sum;
-            }
-        }
+        return NumbersUtils.plusNoModuloSafe(a, b);
     }
 
     /**
@@ -2005,17 +2181,7 @@ public strictfp final class FastMath {
      * @return The long value of [Long.MIN_VALUE,Long.MAX_VALUE] range which is the closest to mathematical result of a+b.
      */
     public static long plusNoModulo(long a, long b) {
-        // Algorithm tested on int type, for which it's faster with cast to long.
-        if ((a^b) < 0) { // test if a and b signs are different
-            return a + b;
-        } else {
-            long sum = a + b;
-            if ((a^sum) < 0) {
-                return (sum >= 0) ? Long.MIN_VALUE : Long.MAX_VALUE;
-            } else {
-                return sum;
-            }
-        }
+        return NumbersUtils.plusNoModulo(a, b);
     }
 
     /**
@@ -2025,17 +2191,7 @@ public strictfp final class FastMath {
      *         otherwise throws an exception.
      */
     public static long plusNoModuloSafe(long a, long b) {
-        // Algorithm tested on int type.
-        if ((a^b) < 0) { // test if a and b signs are different
-            return a + b;
-        } else {
-            long sum = a + b;
-            if ((a^sum) < 0) {
-                throw new ArithmeticException("overflow: "+a+"+"+b);
-            } else {
-                return sum;
-            }
-        }
+        return NumbersUtils.plusNoModuloSafe(a, b);
     }
 
     /**
@@ -2044,7 +2200,7 @@ public strictfp final class FastMath {
      * @return The int value of [Integer.MIN_VALUE,Integer.MAX_VALUE] range which is the closest to mathematical result of a-b.
      */
     public static int minusNoModulo(int a, int b) {
-        return FastMath.toInt(((long)a) - ((long)b));
+        return NumbersUtils.minusNoModulo(a, b);
     }
 
     /**
@@ -2054,16 +2210,7 @@ public strictfp final class FastMath {
      *         otherwise throws an exception.
      */
     public static int minusNoModuloSafe(int a, int b) {
-        if ((a^b) >= 0) { // test if a and b signs are identical
-            return a - b;
-        } else {
-            int diff = a - b;
-            if ((a^diff) < 0) {
-                throw new ArithmeticException("overflow: "+a+"-"+b);
-            } else {
-                return diff;
-            }
-        }
+        return NumbersUtils.minusNoModuloSafe(a, b);
     }
 
     /**
@@ -2072,17 +2219,7 @@ public strictfp final class FastMath {
      * @return The long value of [Long.MIN_VALUE,Long.MAX_VALUE] range which is the closest to mathematical result of a-b.
      */
     public static long minusNoModulo(long a, long b) {
-        // Algorithm tested on int type, for which it's faster with cast to long.
-        if ((a^b) >= 0) { // test if a and b signs are identical
-            return a - b;
-        } else {
-            long diff = a - b;
-            if ((a^diff) < 0) {
-                return (diff >= 0) ? Long.MIN_VALUE : Long.MAX_VALUE;
-            } else {
-                return diff;
-            }
-        }
+        return NumbersUtils.minusNoModulo(a, b);
     }
 
     /**
@@ -2092,17 +2229,7 @@ public strictfp final class FastMath {
      *         otherwise throws an exception.
      */
     public static long minusNoModuloSafe(long a, long b) {
-        // Algorithm tested on int type.
-        if ((a^b) >= 0) { // test if a and b signs are identical
-            return a - b;
-        } else {
-            long diff = a - b;
-            if ((a^diff) < 0) {
-                throw new ArithmeticException("overflow: "+a+"-"+b);
-            } else {
-                return diff;
-            }
-        }
+        return NumbersUtils.minusNoModuloSafe(a, b);
     }
 
     /**
@@ -2111,13 +2238,7 @@ public strictfp final class FastMath {
      * @return The int value of [Integer.MIN_VALUE,Integer.MAX_VALUE] range which is the closest to mathematical result of a*b.
      */
     public static int timesNoModulo(int a, int b) {
-        if (false) {
-            /*
-             * slower
-             */
-            return FastMath.toInt(((long)a) * ((long)b));
-        }
-        return (int)(a * (double)b);
+        return NumbersUtils.timesNoModulo(a, b);
     }
 
     /**
@@ -2127,33 +2248,7 @@ public strictfp final class FastMath {
      *         otherwise throws an exception.
      */
     public static int timesNoModuloSafe(int a, int b) {
-        if (false) {
-            /*
-             * slower
-             */
-            if (b == 0) {
-                return 0;
-            }
-            int product = a * b;
-            if ((product == Integer.MIN_VALUE) && ((a^b) >= 0)) {
-                // product negative, but a and b have the same sign:
-                // that means total would be -Integer.MIN_VALUE,
-                // which does not exist as int.
-                throw new ArithmeticException("overflow: "+a+"*"+b);
-            } else {
-                if (product / b != a) {
-                    throw new ArithmeticException("overflow: "+a+"*"+b);
-                } else {
-                    return product;
-                }
-            }
-        }
-        double product = a * (double)b;
-        if ((product >= (double)Integer.MIN_VALUE) && (product <= (double)Integer.MAX_VALUE)) {
-            return (int)product;
-        } else {
-            throw new ArithmeticException("overflow: "+a+"*"+b);
-        }
+        return NumbersUtils.timesNoModuloSafe(a, b);
     }
 
     /**
@@ -2162,23 +2257,7 @@ public strictfp final class FastMath {
      * @return The long value of [Long.MIN_VALUE,Long.MAX_VALUE] range which is the closest to mathematical result of a*b.
      */
     public static long timesNoModulo(long a, long b) {
-        // Algorithm tested on int type, for which it's faster to do another way.
-        if (b == 0) {
-            return 0;
-        }
-        long product = a * b;
-        if ((product == Long.MIN_VALUE) && ((a^b) >= 0)) {
-            // product negative, but a and b have the same sign:
-            // that means total would be -Long.MIN_VALUE,
-            // which does not exist as long.
-            return Long.MAX_VALUE;
-        } else {
-            if (product / b != a) {
-                return ((a^b) >= 0) ? Long.MAX_VALUE : Long.MIN_VALUE;
-            } else {
-                return product;
-            }
-        }
+        return NumbersUtils.timesNoModulo(a, b);
     }
 
     /**
@@ -2188,23 +2267,7 @@ public strictfp final class FastMath {
      *         otherwise throws an exception.
      */
     public static long timesNoModuloSafe(long a, long b) {
-        // Algorithm tested on int type.
-        if (b == 0) {
-            return 0;
-        }
-        long product = a * b;
-        if ((product == Long.MIN_VALUE) && ((a^b) >= 0)) {
-            // product negative, but a and b have the same sign:
-            // that means total would be -Long.MIN_VALUE,
-            // which does not exist as long.
-            throw new ArithmeticException("overflow: "+a+"*"+b);
-        } else {
-            if (product / b != a) {
-                throw new ArithmeticException("overflow: "+a+"*"+b);
-            } else {
-                return product;
-            }
-        }
+        return NumbersUtils.timesNoModuloSafe(a, b);
     }
 
     /**
@@ -2213,14 +2276,8 @@ public strictfp final class FastMath {
      * @param value An int value.
      * @return minValue if value < minValue, maxValue if value > maxValue, value otherwise.
      */
-    public static int inRange(int minValue, int maxValue, int value) {
-        if (value < minValue) {
-            return minValue;
-        } else if (value > maxValue) {
-            return maxValue;
-        } else {
-            return value;
-        }
+    public static int toRange(int minValue, int maxValue, int value) {
+        return NumbersUtils.toRange(minValue, maxValue, value);
     }
 
     /**
@@ -2229,30 +2286,18 @@ public strictfp final class FastMath {
      * @param value A long value.
      * @return minValue if value < minValue, maxValue if value > maxValue, value otherwise.
      */
-    public static long inRange(long minValue, long maxValue, long value) {
-        if (value < minValue) {
-            return minValue;
-        } else if (value > maxValue) {
-            return maxValue;
-        } else {
-            return value;
-        }
+    public static long toRange(long minValue, long maxValue, long value) {
+        return NumbersUtils.toRange(minValue, maxValue, value);
     }
 
     /**
      * @param minValue A float value.
      * @param maxValue A float value.
      * @param value A float value.
-     * @return minValue if value < minValue, maxValue if value > maxValue, value otherwise.     * @published
+     * @return minValue if value < minValue, maxValue if value > maxValue, value otherwise.
      */
-    public static float inRange(float minValue, float maxValue, float value) {
-        if (value < minValue) {
-            return minValue;
-        } else if (value > maxValue) {
-            return maxValue;
-        } else {
-            return value;
-        }
+    public static float toRange(float minValue, float maxValue, float value) {
+        return NumbersUtils.toRange(minValue, maxValue, value);
     }
 
     /**
@@ -2261,20 +2306,14 @@ public strictfp final class FastMath {
      * @param value A double value.
      * @return minValue if value < minValue, maxValue if value > maxValue, value otherwise.
      */
-    public static double inRange(double minValue, double maxValue, double value) {
-        if (value < minValue) {
-            return minValue;
-        } else if (value > maxValue) {
-            return maxValue;
-        } else {
-            return value;
-        }
+    public static double toRange(double minValue, double maxValue, double value) {
+        return NumbersUtils.toRange(minValue, maxValue, value);
     }
     
     /**
      * NB: Since 2*Math.PI < 2*PI, a span of 2*Math.PI does not mean full angular range.
      * ex.: isInClockwiseDomain(0.0, 2*Math.PI, -1e-20) returns false.
-     * ---> For full angular range, use a span > 2*Math.PI.
+     * ---> For full angular range, use a span > 2*Math.PI, like 2*PI_SUP constant of this class.
      * 
      * @param startAngRad An angle, in radians.
      * @param angSpanRad An angular span, >= 0.0, in radians.
@@ -2283,7 +2322,7 @@ public strictfp final class FastMath {
      *         extremities included, false otherwise.
      */
     public static boolean isInClockwiseDomain(double startAngRad, double angSpanRad, double angRad) {
-        if (FastMath.abs(angRad) < -TWO_MATH_PI_IN_MINUS_PI_PI) {
+        if (Math.abs(angRad) < -TWO_MATH_PI_IN_MINUS_PI_PI) {
             // special case for angular values of small magnitude
             if (angSpanRad < 0.0) {
                 // empty domain
@@ -2310,8 +2349,7 @@ public strictfp final class FastMath {
     }
 
     public static boolean isNaNOrInfinite(double value) {
-        // value-value is not equal to 0.0 (and is NaN) <-> value is NaN or +-infinity
-        return !(value-value == 0.0);
+        return NumbersUtils.isNaNOrInfinite(value);
     }
 
     /*
@@ -2341,7 +2379,7 @@ public strictfp final class FastMath {
         return Math.IEEEremainder(f1,f2);
     }
     public static double log10(double a) {
-        return Math.log10(a);
+        return STRICT_MATH ? StrictMath.log10(a) : Math.log10(a);
     }
     public static double max(double a, double b) {
         return Math.max(a,b);
@@ -2380,7 +2418,9 @@ public strictfp final class FastMath {
         return Math.nextUp(f);
     }
     public static double random() {
-        return Math.random();
+    	// StrictMath and Math use different RNG instances,
+    	// so their random() methods are not equivalent.
+        return STRICT_MATH ? StrictMath.random() : Math.random();
     }
     public static double rint(double a) {
         return Math.rint(a);
@@ -2415,6 +2455,15 @@ public strictfp final class FastMath {
     }
 
     /**
+     * Use look-up tables size power through this method,
+     * to make sure is it small in case java.lang.Math
+     * is directly used.
+     */
+    private static int getTabSizePower(int tabSizePower) {
+        return USE_JDK_MATH ? Math.min(2, tabSizePower) : tabSizePower;
+    }
+    
+    /**
      * Remainder using an accurate definition of PI.
      * Derived from a fdlibm treatment called __ieee754_rem_pio2.
      * 
@@ -2424,6 +2473,11 @@ public strictfp final class FastMath {
      * @return Remainder of (angle % (2*PI)), which is in [-PI,PI] range.
      */
     private static double remainderTwoPi(double angle) {
+        if (USE_JDK_MATH) {
+            double y = STRICT_MATH ? StrictMath.sin(angle) : Math.sin(angle);
+            double x = STRICT_MATH ? StrictMath.cos(angle) : Math.cos(angle);
+            return STRICT_MATH ? StrictMath.atan2(y,x) : Math.atan2(y,x);
+        }
         boolean negateResult;
         if (angle < 0.0) {
             negateResult = true;
@@ -2462,6 +2516,9 @@ public strictfp final class FastMath {
      * @return Remainder of (angle % (2*PI)), which is in [-PI,PI] range.
      */
     private static double remainderTwoPiFast(double angle) {
+        if (USE_JDK_MATH) {
+            return remainderTwoPi(angle);
+        }
         boolean negateResult;
         if (angle < 0.0) {
             negateResult = true;
@@ -2656,8 +2713,9 @@ public strictfp final class FastMath {
             z = (z*twoPowQ) % 8.0;
             z -= (double)((int)z);
             if (q > 0) {
-                iq4 &= 0xFFFFFF>>q;
-    ih = iq4>>(23-q);
+                // some parentheses for Eclipse formatter's weaknesses with bits shifts
+                iq4 &= (0xFFFFFF>>q);
+                ih = (iq4>>(23-q));
             } else if (q == 0) {
                 ih = iq4>>23;
             } else if (z >= 0.5) {
@@ -2742,8 +2800,8 @@ public strictfp final class FastMath {
     /**
      * Initializes look-up tables.
      * 
-     * Using some FastMath methods in there, not to spend
-     * an hour in it. Must take care not to use methods
+     * Might use some FastMath methods in there, not to spend
+     * an hour in it, but must take care not to use methods
      * which look-up tables have not yet been initialized,
      * or that are not accurate enough.
      */
@@ -2758,8 +2816,8 @@ public strictfp final class FastMath {
         for (int i=0;i<SIN_COS_TABS_SIZE;i++) {
             // angle: in [0,2*PI].
             double angle = i * SIN_COS_DELTA_HI + i * SIN_COS_DELTA_LO;
-            double sinAngle = Math.sin(angle);
-            double cosAngle = Math.cos(angle);
+            double sinAngle = StrictMath.sin(angle);
+            double cosAngle = StrictMath.cos(angle);
             // For indexes corresponding to null cosine or sine, we make sure the value is zero
             // and not an epsilon. This allows for a much better accuracy for results close to zero.
             if (i == SIN_COS_PI_INDEX) {
@@ -2780,9 +2838,9 @@ public strictfp final class FastMath {
         for (int i=0;i<TAN_TABS_SIZE;i++) {
             // angle: in [0,TAN_MAX_VALUE_FOR_TABS].
             double angle = i * TAN_DELTA_HI + i * TAN_DELTA_LO;
-            tanTab[i] = Math.tan(angle);
-            double cosAngle = Math.cos(angle);
-            double sinAngle = Math.sin(angle);
+            tanTab[i] = StrictMath.tan(angle);
+            double cosAngle = StrictMath.cos(angle);
+            double sinAngle = StrictMath.sin(angle);
             double cosAngleInv = 1/cosAngle;
             double cosAngleInv2 = cosAngleInv*cosAngleInv;
             double cosAngleInv3 = cosAngleInv2*cosAngleInv;
@@ -2799,9 +2857,9 @@ public strictfp final class FastMath {
         for (int i=0;i<ASIN_TABS_SIZE;i++) {
             // x: in [0,ASIN_MAX_VALUE_FOR_TABS].
             double x = i * ASIN_DELTA;
-            asinTab[i] = Math.asin(x);
+            asinTab[i] = StrictMath.asin(x);
             double oneMinusXSqInv = 1.0/(1-x*x);
-            double oneMinusXSqInv0_5 = Math.sqrt(oneMinusXSqInv);
+            double oneMinusXSqInv0_5 = StrictMath.sqrt(oneMinusXSqInv);
             double oneMinusXSqInv1_5 = oneMinusXSqInv0_5*oneMinusXSqInv;
             double oneMinusXSqInv2_5 = oneMinusXSqInv1_5*oneMinusXSqInv;
             double oneMinusXSqInv3_5 = oneMinusXSqInv2_5*oneMinusXSqInv;
@@ -2814,11 +2872,11 @@ public strictfp final class FastMath {
         if (USE_POWTABS_FOR_ASIN) {
             for (int i=0;i<ASIN_POWTABS_SIZE;i++) {
                 // x: in [0,ASIN_MAX_VALUE_FOR_POWTABS].
-                double x = Math.pow(i*(1.0/ASIN_POWTABS_SIZE_MINUS_ONE), 1.0/ASIN_POWTABS_POWER) * ASIN_MAX_VALUE_FOR_POWTABS;
+                double x = StrictMath.pow(i*(1.0/ASIN_POWTABS_SIZE_MINUS_ONE), 1.0/ASIN_POWTABS_POWER) * ASIN_MAX_VALUE_FOR_POWTABS;
                 asinParamPowTab[i] = x;
-                asinPowTab[i] = Math.asin(x);
+                asinPowTab[i] = StrictMath.asin(x);
                 double oneMinusXSqInv = 1.0/(1-x*x);
-                double oneMinusXSqInv0_5 = Math.sqrt(oneMinusXSqInv);
+                double oneMinusXSqInv0_5 = StrictMath.sqrt(oneMinusXSqInv);
                 double oneMinusXSqInv1_5 = oneMinusXSqInv0_5*oneMinusXSqInv;
                 double oneMinusXSqInv2_5 = oneMinusXSqInv1_5*oneMinusXSqInv;
                 double oneMinusXSqInv3_5 = oneMinusXSqInv2_5*oneMinusXSqInv;
@@ -2838,7 +2896,7 @@ public strictfp final class FastMath {
             double onePlusXSqInv2 = onePlusXSqInv*onePlusXSqInv;
             double onePlusXSqInv3 = onePlusXSqInv2*onePlusXSqInv;
             double onePlusXSqInv4 = onePlusXSqInv2*onePlusXSqInv2;
-            atanTab[i] = Math.atan(x);
+            atanTab[i] = StrictMath.atan(x);
             atanDer1DivF1Tab[i] = onePlusXSqInv;
             atanDer2DivF2Tab[i] = (-2*x*onePlusXSqInv2) * ONE_DIV_F2;
             atanDer3DivF3Tab[i] = ((-2+6*x*x)*onePlusXSqInv3) * ONE_DIV_F3;
@@ -2851,19 +2909,19 @@ public strictfp final class FastMath {
             // x: in [-EXPM1_DISTANCE_TO_ZERO,EXPM1_DISTANCE_TO_ZERO].
             double x = -EXP_LO_DISTANCE_TO_ZERO + i/(double)EXP_LO_INDEXING;
             // exp(x)
-            expLoPosTab[i] = Math.exp(x);
+            expLoPosTab[i] = StrictMath.exp(x);
             // 1-exp(-x), accurately computed
-            expLoNegTab[i] = -Math.expm1(-x);
+            expLoNegTab[i] = -StrictMath.expm1(-x);
         }
         for (int i=0;i<=(int)EXP_OVERFLOW_LIMIT;i++) {
-            expHiTab[i] = Math.exp(i);
+            expHiTab[i] = StrictMath.exp(i);
         }
         for (int i=0;i<=-(int)EXP_UNDERFLOW_LIMIT;i++) {
             // We take care not to compute with subnormal values.
             if ((double)-i >= EXP_MIN_INT_LIMIT) {
-                expHiInvTab[i] = Math.exp(-i);
+                expHiInvTab[i] = StrictMath.exp(-i);
             } else {
-                expHiInvTab[i] = Math.exp(54*LOG_2-i);
+                expHiInvTab[i] = StrictMath.exp(54*LOG_2-i);
             }
         }
 
@@ -2872,7 +2930,7 @@ public strictfp final class FastMath {
         for (int i=0;i<LOG_TAB_SIZE;i++) {
             // Exact to use inverse of tab size, since it is a power of two.
             double x = 1+i*(1.0/LOG_TAB_SIZE);
-            logXLogTab[i] = Math.log(x);
+            logXLogTab[i] = StrictMath.log(x);
             logXTab[i] = x;
             logXInvTab[i] = 1/x;
         }
@@ -2880,13 +2938,13 @@ public strictfp final class FastMath {
         // twoPow
 
         for (int i=MIN_DOUBLE_EXPONENT;i<=MAX_DOUBLE_EXPONENT;i++) {
-            twoPowTab[i-MIN_DOUBLE_EXPONENT] = Math.pow(2.0,i);
+            twoPowTab[i-MIN_DOUBLE_EXPONENT] = StrictMath.pow(2.0,i);
         }
 
         // sqrt
 
         for (int i=MIN_DOUBLE_EXPONENT;i<=MAX_DOUBLE_EXPONENT;i++) {
-            double twoPowExpDiv2 = Math.pow(2.0,i*0.5);
+            double twoPowExpDiv2 = StrictMath.pow(2.0,i*0.5);
             sqrtXSqrtHiTab[i-MIN_DOUBLE_EXPONENT] = twoPowExpDiv2 * 0.5; // Half sqrt, to avoid overflows.
             sqrtSlopeHiTab[i-MIN_DOUBLE_EXPONENT] = 1/twoPowExpDiv2;
         }
@@ -2895,7 +2953,7 @@ public strictfp final class FastMath {
         final long SQRT_LO_MASK = (0x3FF0000000000000L | (0x000FFFFFFFFFFFFFL>>SQRT_LO_BITS));
         for (int i=1;i<SQRT_LO_TAB_SIZE;i++) {
             long xBits = SQRT_LO_MASK | (((long)(i-1))<<(52-SQRT_LO_BITS));
-            double sqrtX = Math.sqrt(Double.longBitsToDouble(xBits));
+            double sqrtX = StrictMath.sqrt(Double.longBitsToDouble(xBits));
             sqrtXSqrtLoTab[i] = sqrtX;
             sqrtSlopeLoTab[i] = 1/sqrtX;
         }
@@ -2903,7 +2961,7 @@ public strictfp final class FastMath {
         // cbrt
 
         for (int i=MIN_DOUBLE_EXPONENT;i<=MAX_DOUBLE_EXPONENT;i++) {
-            double twoPowExpDiv3 = Math.pow(2.0,i/3.0);
+            double twoPowExpDiv3 = StrictMath.pow(2.0,i/3.0);
             cbrtXCbrtHiTab[i-MIN_DOUBLE_EXPONENT] = twoPowExpDiv3 * 0.5; // Half cbrt, to avoid overflows.
             double tmp = 1/twoPowExpDiv3;
             cbrtSlopeHiTab[i-MIN_DOUBLE_EXPONENT] = (4.0/3)*tmp*tmp;
@@ -2913,7 +2971,7 @@ public strictfp final class FastMath {
         final long CBRT_LO_MASK = (0x3FF0000000000000L | (0x000FFFFFFFFFFFFFL>>CBRT_LO_BITS));
         for (int i=1;i<CBRT_LO_TAB_SIZE;i++) {
             long xBits = CBRT_LO_MASK | (((long)(i-1))<<(52-CBRT_LO_BITS));
-            double cbrtX = Math.cbrt(Double.longBitsToDouble(xBits));
+            double cbrtX = StrictMath.cbrt(Double.longBitsToDouble(xBits));
             cbrtXCbrtLoTab[i] = cbrtX;
             cbrtSlopeLoTab[i] = 1/(cbrtX*cbrtX);
         }

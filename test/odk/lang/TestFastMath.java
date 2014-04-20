@@ -3,25 +3,6 @@ package odk.lang;
 import java.lang.management.ManagementFactory;
 import java.util.Random;
 
-/*
- * =============================================================================
- * Copyright (C) 2009 oma
- * 
- * This program is free software: you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * as published by the Free Software Foundation, either version 3 of
- * the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * =============================================================================
- */
-
 /**
  * Class to test some treatments of FastMath class: speed and accuracy, relative to java.lang.Math treatments.
  */
@@ -31,7 +12,7 @@ public strictfp class TestFastMath {
     // CONSTANTS
     //--------------------------------------------------------------------------
 
-    private final long seed = System.currentTimeMillis();;
+    private final long seed = System.currentTimeMillis();
 
     private static final int NBR_OF_ROUNDS = 10000000;
     private static final int NBR_OF_VALUES = 100000;
@@ -52,6 +33,7 @@ public strictfp class TestFastMath {
     private final double[] anglesMinusPiPi;
     private final double[] anglesZeroTwoPi;
     private final double[] anglesMinusHalfPiHalfPi;
+    private final double[] anglesMinusTwoPiTwoPi;
     private final double[] anglesNearPiModTwoPi;
     private final double[] anglesNearTwoPiModTwoPi;
     private final double[] anglesNearHalfPiModPi;
@@ -70,6 +52,8 @@ public strictfp class TestFastMath {
     private final float[] valuesFloatAllMagnitudes;
     private final int[] valuesIntAllMagnitudes;
     private final long[] valuesLongAllMagnitudes;
+    private final int[] valuesIntPositive;
+    private final long[] valuesLongPositive;
     private final double[] values1ForExp;
     private final double[] values2ForExp;
     private final double[] values1ForLog;
@@ -100,6 +84,7 @@ public strictfp class TestFastMath {
         anglesMinusPiPi = new double[NBR_OF_VALUES];
         anglesZeroTwoPi = new double[NBR_OF_VALUES];
         anglesMinusHalfPiHalfPi = new double[NBR_OF_VALUES];
+        anglesMinusTwoPiTwoPi = new double[NBR_OF_VALUES];
         anglesNearPiModTwoPi = new double[NBR_OF_VALUES];
         anglesNearTwoPiModTwoPi = new double[NBR_OF_VALUES];
         anglesNearHalfPiModPi = new double[NBR_OF_VALUES];
@@ -118,6 +103,8 @@ public strictfp class TestFastMath {
         valuesFloatAllMagnitudes = new float[NBR_OF_VALUES];
         valuesIntAllMagnitudes = new int[NBR_OF_VALUES];
         valuesLongAllMagnitudes = new long[NBR_OF_VALUES];
+        valuesIntPositive = new int[NBR_OF_VALUES];
+        valuesLongPositive = new long[NBR_OF_VALUES];
         values1ForExp = new double[NBR_OF_VALUES];
         values2ForExp = new double[NBR_OF_VALUES];
         values1ForLog = new double[NBR_OF_VALUES];
@@ -138,6 +125,7 @@ public strictfp class TestFastMath {
             anglesMinusPiPi[i] = randomMinusOneOneDouble() * Math.PI;
             anglesZeroTwoPi[i] = randomZeroOneDouble() * (2*Math.PI);
             anglesMinusHalfPiHalfPi[i] = randomMinusOneOneDouble() * (Math.PI/2);
+            anglesMinusTwoPiTwoPi[i] = randomMinusOneOneDouble() * (2*Math.PI);
             int valueZeroFour = (int)(randomZeroOneDouble() * 5.0); // might be 5
             int valueMinutTenTen = (int)(randomMinusOneOneDouble() * 11.0); // might be +-11
             double direction = (randomZeroOneDouble() > 0.5) ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
@@ -164,6 +152,14 @@ public strictfp class TestFastMath {
             valuesFloatAllMagnitudes[i] = randomAllMagnitudesFloat();
             valuesIntAllMagnitudes[i] = randomAllMagnitudesInt();
             valuesLongAllMagnitudes[i] = randomAllMagnitudesLong();
+            int tmpInt;
+            while ((tmpInt = randomUniformInt() & Integer.MAX_VALUE) == 0) {
+            }
+            valuesIntPositive[i] = tmpInt;
+            long tmpLong;
+            while ((tmpLong = randomUniformLong() & Long.MAX_VALUE) == 0) {
+            }
+            valuesLongPositive[i] = tmpLong;
             values1ForExp[i] = randomZeroOneDouble() * (700.0+700.0) - 700.0;
             values2ForExp[i] = randomZeroOneDouble() * (720.0+750.0) - 750.0;
             values1ForLog[i] = 0.1 + randomZeroOneDouble() * 9.9; // values around 1, such as log(x) goes around -1 and 0
@@ -180,152 +176,155 @@ public strictfp class TestFastMath {
 
     public void launchTests() {
 
-        //      settingMode = true;
+        if (false) {
+            settingMode = true;
+        }
 
         testClassLoad();
         separate();
 
         // trigonometry
 
-        testCos_double();
+        test_cos_double();
         separate();
-        testCosQuick_double();
+        test_cosQuick_double();
         separate();
-        testSin_double();
+        test_sin_double();
         separate();
-        testSinQuick_double();
+        test_sinQuick_double();
         separate();
-        testSinAndCos_double_DoubleWrapper_DoubleWrapper();
+        test_sinAndCos_double_DoubleWrapper_DoubleWrapper();
         separate();
-        testTan_double();
+        test_tan_double();
         separate();
-        testAcos_double();
+        test_acos_double();
         separate();
-        testAsin_double();
+        test_asin_double();
         separate();
-        testAtan_double();
+        test_atan_double();
         separate();
-        testAtan2_double_double();
+        test_atan2_double_double();
         separate();
-        testIsInClockwiseDomain_double_double_double();
+        test_isInClockwiseDomain_double_double_double();
         separate();
 
         // hyperbolic trigonometry
 
-        testCosh_double();
+        test_cosh_double();
         separate();
-        testSinh_double();
+        test_sinh_double();
         separate();
-        testSinhAndCosh_double_DoubleWrapper_DoubleWrapper();
+        test_sinhAndCosh_double_DoubleWrapper_DoubleWrapper();
         separate();
-        testTanh_double();
+        test_tanh_double();
         separate();
 
         // exponentials
 
-        testExp_double();
+        test_exp_double();
         separate();
-        testExpQuick_double();
+        test_expQuick_double();
         separate();
-        testExpm1_double();
+        test_expm1_double();
         separate();
 
         // logarithms
 
-        testLog_double();
+        test_log_double();
         separate();
-        testLogQuick_double();
+        test_logQuick_double();
         separate();
-        testLog1p_double();
+        test_log1p_double();
         separate();
-
+        test_log2_int();
+        separate();
+        test_log2_long();
+        separate();
+        
         // powers
 
-        testPow_double_double();
+        test_pow_double_double();
         separate();
-        testPowQuick_double_double();
+        test_powQuick_double_double();
         separate();
-        testPowFast_double_int();
+        test_powFast_double_int();
         separate();
-        testTwoPow_int();
+        test_twoPow_int();
         separate();
 
         // roots
 
-        testSqrt_double();
+        test_sqrt_double();
         separate();
-        testCbrt_double();
+        test_cbrt_double();
         separate();
 
         // reduction
 
-        testRemainder_double_double();
+        test_remainder_double_double();
         separate();
 
-        testNormalizeMinusPiPi();
+        test_normalizeMinusPiPi();
         separate();
-        testNormalizeMinusPiPiFast();
+        test_normalizeMinusPiPiFast();
         separate();
-        testNormalizeZeroTwoPi();
+        test_normalizeZeroTwoPi();
         separate();
-        testNormalizeZeroTwoPiFast();
+        test_normalizeZeroTwoPiFast();
         separate();
-        testNormalizeMinusHalfPiHalfPi();
+        test_normalizeMinusHalfPiHalfPi();
         separate();
-        testNormalizeMinusHalfPiHalfPiFast();
+        test_normalizeMinusHalfPiHalfPiFast();
         separate();
 
         // basics
 
-        testAbs_int();
+        test_abs_int();
         separate();
-        testCeil_double();
+        test_ceil_double();
         separate();
-        testCeil_float();
+        test_ceil_float();
         separate();
-        testFloor_double();
+        test_floor_double();
         separate();
-        testFloor_float();
+        test_floor_float();
         separate();
-        testRound_double();
+        test_round_double();
         separate();
-        testRound_float();
+        test_round_float();
         separate();
 
         // others
 
-        testHypot_double_double();
+        test_hypot_double_double();
         separate();
 
-        testPlusNoModulo_int_int();
+        test_plusNoModulo_int_int();
         separate();
-        testPlusNoModuloSafe_int_int();
+        test_plusNoModuloSafe_int_int();
         separate();
-        testPlusNoModulo_long_long();
+        test_plusNoModulo_long_long();
         separate();
-        testPlusNoModuloSafe_long_long();
+        test_plusNoModuloSafe_long_long();
         separate();
-        testMinusNoModulo_int_int();
+        test_minusNoModulo_int_int();
         separate();
-        testMinusNoModuloSafe_int_int();
+        test_minusNoModuloSafe_int_int();
         separate();
-        testMinusNoModulo_long_long();
+        test_minusNoModulo_long_long();
         separate();
-        testMinusNoModuloSafe_long_long();
+        test_minusNoModuloSafe_long_long();
         separate();
-        testTimesNoModulo_int_int();
+        test_timesNoModulo_int_int();
         separate();
-        testTimesNoModuloSafe_int_int();
+        test_timesNoModuloSafe_int_int();
         separate();
-        testTimesNoModulo_long_long();
+        test_timesNoModulo_long_long();
         separate();
-        testTimesNoModuloSafe_long_long();
+        test_timesNoModuloSafe_long_long();
         separate();
     }
 
-    /**
-     * @published
-     */
     public static void main(String[] args) {
         TestFastMath tester = new TestFastMath();
         System.out.println("--- TestFastMath --- loops of "+NBR_OF_ROUNDS+" rounds with "+NBR_OF_VALUES+" random values ---");
@@ -366,9 +365,11 @@ public strictfp class TestFastMath {
         startTimer();
         dummy += FastMath.abs(0);
         System.out.println("FastMath class load took "+getElapsedSeconds()+" s");
+        
+        useDummy(dummy);
     }
 
-    private void testCos_double() {
+    private void test_cos_double() {
         double maxDelta;
         int i;
         int j;
@@ -570,9 +571,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testCosQuick_double() {
+    private void test_cosQuick_double() {
         double maxDelta;
         int i;
         int j;
@@ -608,9 +611,11 @@ public strictfp class TestFastMath {
             }
         }
         System.out.println("max delta: "+maxDelta);
+        
+        useDummy(dummy);
     }
 
-    private void testSin_double() {
+    private void test_sin_double() {
         double maxDelta;
         int i;
         int j;
@@ -812,9 +817,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testSinQuick_double() {
+    private void test_sinQuick_double() {
         double maxDelta;
         int i;
         int j;
@@ -850,15 +857,18 @@ public strictfp class TestFastMath {
             }
         }
         System.out.println("max delta: "+maxDelta);
+        
+        useDummy(dummy);
     }
 
-    private void testSinAndCos_double_DoubleWrapper_DoubleWrapper() {
+    private void test_sinAndCos_double_DoubleWrapper_DoubleWrapper() {
         double maxSinDelta;
         double maxCosDelta;
         int i;
         int j;
         DoubleWrapper sine = new DoubleWrapper();
         DoubleWrapper cosine = new DoubleWrapper();
+        double dummy = 0.0;
 
         System.out.println("--- testing sinAndCos(double,DoubleWrapper,DoubleWrapper) ---");
 
@@ -868,6 +878,7 @@ public strictfp class TestFastMath {
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
             FastMath.sinAndCos(anglesZeroTwoPi[j],sine,cosine);
+            dummy += sine.value + cosine.value;
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on FastMath.sinAndCos(double,DoubleWrapper,DoubleWrapper), values in [0,2*PI], took "+getElapsedSeconds()+" s");
@@ -896,6 +907,7 @@ public strictfp class TestFastMath {
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
             FastMath.sinAndCos(valuesMinusTenTen[j],sine,cosine);
+            dummy += sine.value + cosine.value;
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on FastMath.sinAndCos(double,DoubleWrapper,DoubleWrapper), values in [-10,10], took "+getElapsedSeconds()+" s");
@@ -924,6 +936,7 @@ public strictfp class TestFastMath {
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
             FastMath.sinAndCos(valuesMinusHundredHundred[j],sine,cosine);
+            dummy += sine.value + cosine.value;
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on FastMath.sinAndCos(double,DoubleWrapper,DoubleWrapper), values in [-100,100], took "+getElapsedSeconds()+" s");
@@ -952,6 +965,7 @@ public strictfp class TestFastMath {
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
             FastMath.sinAndCos(valuesMinusALittleLotALittleLot[j],sine,cosine);
+            dummy += sine.value + cosine.value;
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on FastMath.sinAndCos(double,DoubleWrapper,DoubleWrapper), values in ["+(-A_LITTLE_LOT)+","+A_LITTLE_LOT+"], took "+getElapsedSeconds()+" s");
@@ -980,6 +994,7 @@ public strictfp class TestFastMath {
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
             FastMath.sinAndCos(valuesMinusABigLotABigLot[j],sine,cosine);
+            dummy += sine.value + cosine.value;
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on FastMath.sinAndCos(double,DoubleWrapper,DoubleWrapper), values in ["+(-A_BIG_LOT)+","+A_BIG_LOT+"], took "+getElapsedSeconds()+" s");
@@ -1008,6 +1023,7 @@ public strictfp class TestFastMath {
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
             FastMath.sinAndCos(valuesDoubleAllMagnitudes[j],sine,cosine);
+            dummy += sine.value + cosine.value;
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on FastMath.sinAndCos(double,DoubleWrapper,DoubleWrapper), values of all magnitudes, took "+getElapsedSeconds()+" s");
@@ -1061,9 +1077,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testTan_double() {
+    private void test_tan_double() {
         double maxDelta;
         int i;
         int j;
@@ -1265,9 +1283,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testAcos_double() {
+    private void test_acos_double() {
         double maxDelta;
         int i;
         int j;
@@ -1325,9 +1345,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testAsin_double() {
+    private void test_asin_double() {
         double maxDelta;
         int i;
         int j;
@@ -1385,9 +1407,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testAtan_double() {
+    private void test_atan_double() {
         double maxDelta;
         int i;
         int j;
@@ -1445,9 +1469,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testAtan2_double_double() {
+    private void test_atan2_double_double() {
         double maxDelta;
         int i;
         int j;
@@ -1507,9 +1533,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testCosh_double() {
+    private void test_cosh_double() {
         double maxDelta;
         int i;
         int j;
@@ -1682,9 +1710,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testSinh_double() {
+    private void test_sinh_double() {
         double maxDelta;
         int i;
         int j;
@@ -1857,15 +1887,18 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testSinhAndCosh_double_DoubleWrapper_DoubleWrapper() {
+    private void test_sinhAndCosh_double_DoubleWrapper_DoubleWrapper() {
         double maxSinhDelta;
         double maxCoshDelta;
         int i;
         int j;
         DoubleWrapper hsine = new DoubleWrapper();
         DoubleWrapper hcosine = new DoubleWrapper();
+        double dummy = 0.0;
 
         System.out.println("--- testing sinhAndCosh(double,DoubleWrapper,DoubleWrapper) ---");
 
@@ -1875,6 +1908,7 @@ public strictfp class TestFastMath {
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
             FastMath.sinhAndCosh(valuesMinusOneOne[j],hsine,hcosine);
+            dummy += hsine.value + hcosine.value;
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on FastMath.sinhAndCosh(double,DoubleWrapper,DoubleWrapper), values in [-1,1], took "+getElapsedSeconds()+" s");
@@ -1903,6 +1937,7 @@ public strictfp class TestFastMath {
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
             FastMath.sinhAndCosh(valuesMinusTenTen[j],hsine,hcosine);
+            dummy += hsine.value + hcosine.value;
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on FastMath.sinhAndCosh(double,DoubleWrapper,DoubleWrapper), values in [-10,10], took "+getElapsedSeconds()+" s");
@@ -1931,6 +1966,7 @@ public strictfp class TestFastMath {
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
             FastMath.sinhAndCosh(values1ForExp[j],hsine,hcosine);
+            dummy += hsine.value + hcosine.value;
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on FastMath.sinhAndCosh(double,DoubleWrapper,DoubleWrapper), values in [-700,700], took "+getElapsedSeconds()+" s");
@@ -1959,6 +1995,7 @@ public strictfp class TestFastMath {
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
             FastMath.sinhAndCosh(values2ForExp[j],hsine,hcosine);
+            dummy += hsine.value + hcosine.value;
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on FastMath.sinhAndCosh(double,DoubleWrapper,DoubleWrapper), values in [-750,720], took "+getElapsedSeconds()+" s");
@@ -1987,6 +2024,7 @@ public strictfp class TestFastMath {
         startTimer();
         for (i=0;i<NBR_OF_ROUNDS;i++) {
             FastMath.sinhAndCosh(valuesDoubleAllMagnitudes[j],hsine,hcosine);
+            dummy += hsine.value + hcosine.value;
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on FastMath.sinhAndCosh(double,DoubleWrapper,DoubleWrapper), values of all magnitudes, took "+getElapsedSeconds()+" s");
@@ -2040,9 +2078,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testTanh_double() {
+    private void test_tanh_double() {
         double maxDelta;
         int i;
         int j;
@@ -2215,9 +2255,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testExp_double() {
+    private void test_exp_double() {
         double maxDelta;
         int i;
         int j;
@@ -2390,9 +2432,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testExpQuick_double() {
+    private void test_expQuick_double() {
         double maxDelta;
         int i;
         int j;
@@ -2486,9 +2530,11 @@ public strictfp class TestFastMath {
             }
         }
         System.out.println("max delta (relative): "+maxDelta);
+        
+        useDummy(dummy);
     }
 
-    private void testExpm1_double() {
+    private void test_expm1_double() {
         double maxDelta;
         int i;
         int j;
@@ -2661,9 +2707,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testLog_double() {
+    private void test_log_double() {
         double maxDelta;
         int i;
         int j;
@@ -2749,9 +2797,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testLogQuick_double() {
+    private void test_logQuick_double() {
         double maxDelta;
         int i;
         int j;
@@ -2816,9 +2866,11 @@ public strictfp class TestFastMath {
             }
         }
         System.out.println("max delta (relative): "+maxDelta);
+        
+        useDummy(dummy);
     }
 
-    private void testLog1p_double() {
+    private void test_log1p_double() {
         double maxDelta;
         int i;
         int j;
@@ -2904,9 +2956,93 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testPow_double_double() {
+    private void test_log2_int() {
+        int i;
+        int j;
+        double dummy = 0.0;
+
+        System.out.println("--- testing log2(int) ---");
+
+        // [0,Integer.MAX_VALUE]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.log2(valuesIntPositive[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on FastMath.log2(int), values in [1,Integer.MAX_VALUE], took "+getElapsedSeconds()+" s... ");
+
+        // special values
+
+        int[] specialValues = new int[] { 1, 2, 3, 4, 7, 8, 15, 16, 31, 32, (1<<20)-1, (1<<20) };
+        boolean foundDifferences = false;
+        System.out.print("Result differences for special values:... ");
+        for (i=0;i<specialValues.length;i++) {
+            int refResult = (int)(Math.log((double)specialValues[i])/Math.log(2.0));
+            int fastResult = FastMath.log2(specialValues[i]);
+            if (!Integer.toString(refResult).equals(Integer.toString(fastResult))) {
+                if (!foundDifferences) {
+                    System.out.println("");
+                    foundDifferences = true;
+                }
+                System.out.println("Math.log("+(double)specialValues[i]+")/Math.log(2.0)="+refResult);
+                System.out.println("         FastMath.log2("+specialValues[i]+")="+fastResult);
+            }
+        }
+        if (!foundDifferences) {
+            System.out.println("none.");
+        }
+        
+        useDummy(dummy);
+    }
+
+    private void test_log2_long() {
+        int i;
+        int j;
+        double dummy = 0.0;
+
+        System.out.println("--- testing log2(long) ---");
+
+        // [0,Long.MAX_VALUE]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.log2(valuesLongPositive[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on FastMath.log2(long), values in [1,Long.MAX_VALUE], took "+getElapsedSeconds()+" s... ");
+
+        // special values
+
+        long[] specialValues = new long[] { 1, 2, 3, 4, 7, 8, 15, 16, 31, 32, (1L<<20)-1, (1L<<20) };
+        boolean foundDifferences = false;
+        System.out.print("Result differences for special values:... ");
+        for (i=0;i<specialValues.length;i++) {
+            int refResult = (int)(Math.log((double)specialValues[i])/Math.log(2.0));
+            int fastResult = FastMath.log2(specialValues[i]);
+            if (!Integer.toString(refResult).equals(Integer.toString(fastResult))) {
+                if (!foundDifferences) {
+                    System.out.println("");
+                    foundDifferences = true;
+                }
+                System.out.println("Math.log("+(double)specialValues[i]+")/Math.log(2.0)="+refResult);
+                System.out.println("         FastMath.log2("+specialValues[i]+")="+fastResult);
+            }
+        }
+        if (!foundDifferences) {
+            System.out.println("none.");
+        }
+        
+        useDummy(dummy);
+    }
+
+    private void test_pow_double_double() {
         double maxDelta;
         int i;
         int j;
@@ -3052,9 +3188,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testPowQuick_double_double() {
+    private void test_powQuick_double_double() {
         double maxDelta;
         int i;
         int j;
@@ -3143,9 +3281,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testPowFast_double_int() {
+    private void test_powFast_double_int() {
         double maxDelta;
         int i;
         int j;
@@ -3234,9 +3374,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testTwoPow_int() {
+    private void test_twoPow_int() {
         int i;
         int j;
         double dummy = 0.0;
@@ -3299,9 +3441,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testSqrt_double() {
+    private void test_sqrt_double() {
         double maxDelta;
         int i;
         int j;
@@ -3416,9 +3560,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testCbrt_double() {
+    private void test_cbrt_double() {
         double maxDelta;
         int i;
         int j;
@@ -3533,9 +3679,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testRemainder_double_double() {
+    private void test_remainder_double_double() {
         double maxDelta;
         int i;
         int j;
@@ -3661,7 +3809,7 @@ public strictfp class TestFastMath {
 
         // special values
 
-        double[] specialValues = new double[] { Double.NaN, -0.0, 0.0, -1.0, 1.0, -2.0, 2.0, -Double.MIN_VALUE, Double.MIN_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY };
+        double[] specialValues = new double[] { Double.NaN, -0.0, 0.0, -1.0, 1.0, -2.0, 2.0, -3.0, 3.0, -5.0, 5.0, -Double.MIN_VALUE, Double.MIN_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY };
         boolean foundDifferences = false;
         System.out.print("Result differences for special values:... ");
         for (i=0;i<specialValues.length;i++) {
@@ -3681,9 +3829,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testAbs_int() {
+    private void test_abs_int() {
         int i;
         int j;
         int dummy = 0;
@@ -3716,7 +3866,7 @@ public strictfp class TestFastMath {
         for (i=0;i<specialValues.length;i++) {
             int refResult = Math.abs(specialValues[i]);
             int fastResult = FastMath.abs(specialValues[i]);
-            if (!Double.toString(refResult).equals(Double.toString(fastResult))) {
+            if (!Integer.toString(refResult).equals(Integer.toString(fastResult))) {
                 if (!foundDifferences) {
                     System.out.println("");
                     foundDifferences = true;
@@ -3728,9 +3878,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
-
-    private void testCeil_double() {
+    
+    private void test_ceil_double() {
         double maxDelta;
         int i;
         int j;
@@ -3910,9 +4062,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testCeil_float() {
+    private void test_ceil_float() {
         float maxDelta;
         int i;
         int j;
@@ -4092,9 +4246,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testFloor_double() {
+    private void test_floor_double() {
         double maxDelta;
         int i;
         int j;
@@ -4274,9 +4430,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testFloor_float() {
+    private void test_floor_float() {
         float maxDelta;
         int i;
         int j;
@@ -4456,9 +4614,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testRound_double() {
+    private void test_round_double() {
         long maxDelta;
         int i;
         int j;
@@ -4585,7 +4745,7 @@ public strictfp class TestFastMath {
         for (i=0;i<specialValues.length;i++) {
             long refResult = Math.round(specialValues[i]);
             long fastResult = FastMath.round(specialValues[i]);
-            if (!Double.toString(refResult).equals(Double.toString(fastResult))) {
+            if (!Long.toString(refResult).equals(Long.toString(fastResult))) {
                 if (!foundDifferences) {
                     System.out.println("");
                     foundDifferences = true;
@@ -4597,9 +4757,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testRound_float() {
+    private void test_round_float() {
         int maxDelta;
         int i;
         int j;
@@ -4726,7 +4888,7 @@ public strictfp class TestFastMath {
         for (i=0;i<specialValues.length;i++) {
             int refResult = Math.round(specialValues[i]);
             int fastResult = FastMath.round(specialValues[i]);
-            if (!Float.toString(refResult).equals(Float.toString(fastResult))) {
+            if (!Integer.toString(refResult).equals(Integer.toString(fastResult))) {
                 if (!foundDifferences) {
                     System.out.println("");
                     foundDifferences = true;
@@ -4738,9 +4900,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testHypot_double_double() {
+    private void test_hypot_double_double() {
         double maxDelta;
         int i;
         int j;
@@ -4828,9 +4992,11 @@ public strictfp class TestFastMath {
         if (!foundDifferences) {
             System.out.println("none.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testPlusNoModulo_int_int() {
+    private void test_plusNoModulo_int_int() {
         int i;
         int j;
         int dummy = 0;
@@ -4874,7 +5040,7 @@ public strictfp class TestFastMath {
             for (j=0;j<specialValues.length;j++) {
                 int refResult = FastMath.toInt(((long)specialValues[i])+((long)specialValues[j]));
                 int fastResult = FastMath.plusNoModulo(specialValues[i],specialValues[j]);
-                if (!Double.toString(refResult).equals(Double.toString(fastResult))) {
+                if (!Integer.toString(refResult).equals(Integer.toString(fastResult))) {
                     if (!foundErrors) {
                         System.out.println("");
                         foundErrors = true;
@@ -4887,9 +5053,11 @@ public strictfp class TestFastMath {
         if (!foundErrors) {
             System.out.println("ok.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testPlusNoModuloSafe_int_int() {
+    private void test_plusNoModuloSafe_int_int() {
         int i;
         int j;
         int dummy = 0;
@@ -4991,9 +5159,11 @@ public strictfp class TestFastMath {
         if (!foundErrors) {
             System.out.println("ok.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testPlusNoModulo_long_long() {
+    private void test_plusNoModulo_long_long() {
         int i;
         int j;
         long dummy = 0;
@@ -5009,9 +5179,11 @@ public strictfp class TestFastMath {
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on plusNoModulo(long,long), values of all magnitudes, took "+getElapsedSeconds()+" s");
+        
+        useDummy(dummy);
     }
 
-    private void testPlusNoModuloSafe_long_long() {
+    private void test_plusNoModuloSafe_long_long() {
         int i;
         int j;
         long dummy = 0;
@@ -5043,9 +5215,11 @@ public strictfp class TestFastMath {
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on plusNoModuloSafe(long,long), values of all magnitudes, took "+getElapsedSeconds()+" s");
+        
+        useDummy(dummy);
     }
 
-    private void testMinusNoModulo_int_int() {
+    private void test_minusNoModulo_int_int() {
         int i;
         int j;
         int dummy = 0;
@@ -5089,7 +5263,7 @@ public strictfp class TestFastMath {
             for (j=0;j<specialValues.length;j++) {
                 int refResult = FastMath.toInt(((long)specialValues[i])-((long)specialValues[j]));
                 int fastResult = FastMath.minusNoModulo(specialValues[i],specialValues[j]);
-                if (!Double.toString(refResult).equals(Double.toString(fastResult))) {
+                if (!Integer.toString(refResult).equals(Integer.toString(fastResult))) {
                     if (!foundErrors) {
                         System.out.println("");
                         foundErrors = true;
@@ -5102,9 +5276,11 @@ public strictfp class TestFastMath {
         if (!foundErrors) {
             System.out.println("ok.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testMinusNoModuloSafe_int_int() {
+    private void test_minusNoModuloSafe_int_int() {
         int i;
         int j;
         int dummy = 0;
@@ -5206,9 +5382,11 @@ public strictfp class TestFastMath {
         if (!foundErrors) {
             System.out.println("ok.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testMinusNoModulo_long_long() {
+    private void test_minusNoModulo_long_long() {
         int i;
         int j;
         long dummy = 0;
@@ -5224,9 +5402,11 @@ public strictfp class TestFastMath {
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on minusNoModulo(long,long), values of all magnitudes, took "+getElapsedSeconds()+" s");
+        
+        useDummy(dummy);
     }
 
-    private void testMinusNoModuloSafe_long_long() {
+    private void test_minusNoModuloSafe_long_long() {
         int i;
         int j;
         long dummy = 0;
@@ -5258,9 +5438,11 @@ public strictfp class TestFastMath {
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on minusNoModuloSafe(long,long), values of all magnitudes, took "+getElapsedSeconds()+" s");
+        
+        useDummy(dummy);
     }
 
-    private void testTimesNoModulo_int_int() {
+    private void test_timesNoModulo_int_int() {
         int i;
         int j;
         int dummy = 0;
@@ -5304,7 +5486,7 @@ public strictfp class TestFastMath {
             for (j=0;j<specialValues.length;j++) {
                 int refResult = FastMath.toInt(((long)specialValues[i]) * ((long)specialValues[j]));
                 int fastResult = FastMath.timesNoModulo(specialValues[i],specialValues[j]);
-                if (!Double.toString(refResult).equals(Double.toString(fastResult))) {
+                if (!Integer.toString(refResult).equals(Integer.toString(fastResult))) {
                     if (!foundErrors) {
                         System.out.println("");
                         foundErrors = true;
@@ -5317,9 +5499,11 @@ public strictfp class TestFastMath {
         if (!foundErrors) {
             System.out.println("ok.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testTimesNoModuloSafe_int_int() {
+    private void test_timesNoModuloSafe_int_int() {
         int i;
         int j;
         int dummy = 0;
@@ -5421,9 +5605,11 @@ public strictfp class TestFastMath {
         if (!foundErrors) {
             System.out.println("ok.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testTimesNoModulo_long_long() {
+    private void test_timesNoModulo_long_long() {
         int i;
         int j;
         long dummy = 0;
@@ -5439,9 +5625,11 @@ public strictfp class TestFastMath {
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on timesNoModulo(long,long), values of all magnitudes, took "+getElapsedSeconds()+" s");
+        
+        useDummy(dummy);
     }
 
-    private void testTimesNoModuloSafe_long_long() {
+    private void test_timesNoModuloSafe_long_long() {
         int i;
         int j;
         long dummy = 0;
@@ -5473,9 +5661,11 @@ public strictfp class TestFastMath {
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on timesNoModuloSafe(long,long), values of all magnitudes, took "+getElapsedSeconds()+" s");
+        
+        useDummy(dummy);
     }
 
-    private void testNormalizeMinusPiPi() {
+    private void test_normalizeMinusPiPi() {
         int i;
         int j;
         double dummy = 0.0;
@@ -5491,6 +5681,16 @@ public strictfp class TestFastMath {
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on FastMath.normalizeMinusPiPi(double), values in [-PI,PI], took "+getElapsedSeconds()+" s");
+
+        // [-2*PI,2*PI]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.normalizeMinusPiPi(anglesMinusTwoPiTwoPi[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on FastMath.normalizeMinusPiPi(double), values in [-2*PI,2*PI], took "+getElapsedSeconds()+" s");
 
         // [-100.0,100.0]
 
@@ -5572,9 +5772,11 @@ public strictfp class TestFastMath {
         if (!errorFound) {
             System.out.println("ok.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testNormalizeMinusPiPiFast() {
+    private void test_normalizeMinusPiPiFast() {
         double maxDelta;
         int i;
         int j;
@@ -5596,6 +5798,27 @@ public strictfp class TestFastMath {
         for (i=0;i<NBR_OF_VALUES;i++) {
             double refResult = FastMath.normalizeMinusPiPi(anglesMinusPiPi[i]);
             double fastResult = FastMath.normalizeMinusPiPiFast(anglesMinusPiPi[i]);
+            double delta = absDeltaMod(fastResult,refResult,2*Math.PI);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta: "+maxDelta);
+
+        // [-2*PI,2*PI]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.normalizeMinusPiPiFast(anglesMinusTwoPiTwoPi[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.normalizeMinusPiPiFast(double), values in [-2*PI,2*PI], took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = FastMath.normalizeMinusPiPi(anglesMinusTwoPiTwoPi[i]);
+            double fastResult = FastMath.normalizeMinusPiPiFast(anglesMinusTwoPiTwoPi[i]);
             double delta = absDeltaMod(fastResult,refResult,2*Math.PI);
             if (delta > maxDelta) {
                 maxDelta = delta;
@@ -5705,9 +5928,11 @@ public strictfp class TestFastMath {
         if (!errorFound) {
             System.out.println("ok.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testNormalizeZeroTwoPi() {
+    private void test_normalizeZeroTwoPi() {
         int i;
         int j;
         double dummy = 0.0;
@@ -5723,6 +5948,16 @@ public strictfp class TestFastMath {
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on FastMath.normalizeZeroTwoPi(double), values in [0,2*PI], took "+getElapsedSeconds()+" s");
+
+        // [-2*PI,2*PI]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.normalizeZeroTwoPi(anglesMinusTwoPiTwoPi[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on FastMath.normalizeZeroTwoPi(double), values in [-2*PI,2*PI], took "+getElapsedSeconds()+" s");
 
         // [-100.0,100.0]
 
@@ -5804,9 +6039,11 @@ public strictfp class TestFastMath {
         if (!errorFound) {
             System.out.println("ok.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testNormalizeZeroTwoPiFast() {
+    private void test_normalizeZeroTwoPiFast() {
         double maxDelta;
         int i;
         int j;
@@ -5828,6 +6065,27 @@ public strictfp class TestFastMath {
         for (i=0;i<NBR_OF_VALUES;i++) {
             double refResult = FastMath.normalizeZeroTwoPi(anglesZeroTwoPi[i]);
             double fastResult = FastMath.normalizeZeroTwoPiFast(anglesZeroTwoPi[i]);
+            double delta = absDeltaMod(fastResult,refResult,2*Math.PI);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta: "+maxDelta);
+
+        // [-2*PI,2*PI]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.normalizeZeroTwoPiFast(anglesMinusTwoPiTwoPi[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.normalizeZeroTwoPiFast(double), values in [-2*PI,2*PI], took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = FastMath.normalizeZeroTwoPi(anglesMinusTwoPiTwoPi[i]);
+            double fastResult = FastMath.normalizeZeroTwoPiFast(anglesMinusTwoPiTwoPi[i]);
             double delta = absDeltaMod(fastResult,refResult,2*Math.PI);
             if (delta > maxDelta) {
                 maxDelta = delta;
@@ -5936,9 +6194,11 @@ public strictfp class TestFastMath {
         if (!errorFound) {
             System.out.println("ok.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testNormalizeMinusHalfPiHalfPi() {
+    private void test_normalizeMinusHalfPiHalfPi() {
         int i;
         int j;
         double dummy = 0.0;
@@ -5954,6 +6214,16 @@ public strictfp class TestFastMath {
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on FastMath.normalizeMinusHalfPiHalfPi(double), values in [-PI/2,PI/2], took "+getElapsedSeconds()+" s");
+
+        // [-2*PI,2*PI]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.normalizeMinusHalfPiHalfPi(anglesMinusTwoPiTwoPi[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.println("Loop on FastMath.normalizeMinusHalfPiHalfPi(double), values in [-2*PI,2*PI], took "+getElapsedSeconds()+" s");
 
         // [-100.0,100.0]
 
@@ -6035,9 +6305,11 @@ public strictfp class TestFastMath {
         if (!errorFound) {
             System.out.println("ok.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testNormalizeMinusHalfPiHalfPiFast() {
+    private void test_normalizeMinusHalfPiHalfPiFast() {
         double maxDelta;
         int i;
         int j;
@@ -6059,6 +6331,27 @@ public strictfp class TestFastMath {
         for (i=0;i<NBR_OF_VALUES;i++) {
             double refResult = FastMath.normalizeMinusHalfPiHalfPi(anglesMinusHalfPiHalfPi[i]);
             double fastResult = FastMath.normalizeMinusHalfPiHalfPiFast(anglesMinusHalfPiHalfPi[i]);
+            double delta = absDeltaMod(fastResult,refResult,Math.PI);
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+        System.out.println("max delta: "+maxDelta);
+
+        // [-2*PI,2*PI]
+
+        j=0;
+        startTimer();
+        for (i=0;i<NBR_OF_ROUNDS;i++) {
+            dummy += FastMath.normalizeMinusHalfPiHalfPiFast(anglesMinusTwoPiTwoPi[j]);
+            j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
+        }
+        System.out.print("Loop on FastMath.normalizeMinusHalfPiHalfPiFast(double), values in [-2*PI,2*PI], took "+getElapsedSeconds()+" s... ");
+
+        maxDelta = 0.0;
+        for (i=0;i<NBR_OF_VALUES;i++) {
+            double refResult = FastMath.normalizeMinusHalfPiHalfPi(anglesMinusTwoPiTwoPi[i]);
+            double fastResult = FastMath.normalizeMinusHalfPiHalfPiFast(anglesMinusTwoPiTwoPi[i]);
             double delta = absDeltaMod(fastResult,refResult,Math.PI);
             if (delta > maxDelta) {
                 maxDelta = delta;
@@ -6168,9 +6461,11 @@ public strictfp class TestFastMath {
         if (!errorFound) {
             System.out.println("ok.");
         }
+        
+        useDummy(dummy);
     }
 
-    private void testIsInClockwiseDomain_double_double_double() {
+    private void test_isInClockwiseDomain_double_double_double() {
         int i;
         int j;
         boolean dummy = false;
@@ -6198,12 +6493,52 @@ public strictfp class TestFastMath {
             j = (j<NBR_OF_VALUES-1) ? j+1 : 0;
         }
         System.out.println("Loop on    FastMath.isInClockwiseDomain(double,double,double), values in [-100.0,100.0], took "+getElapsedSeconds()+" s... ");
+        
+        useDummy(dummy);
     }
 
     //--------------------------------------------------------------------------
     // MISCELLANEOUS METHODS
     //--------------------------------------------------------------------------
 
+    private static void dummyLog() {
+        System.out.println("anti optimization log - discard it");
+    }
+    
+    private static void useDummy(int dummy) {
+        if (dummy == Integer.MIN_VALUE+1) {
+            dummyLog();
+        }
+    }
+
+    private static void useDummy(long dummy) {
+        if (dummy == Long.MIN_VALUE+1) {
+            dummyLog();
+        }
+    }
+
+    private static void useDummy(float dummy) {
+        if (dummy == Math.PI+Math.E) {
+            dummyLog();
+        }
+    }
+
+    private static void useDummy(double dummy) {
+        if (dummy == Math.PI+Math.E) {
+            dummyLog();
+        }
+    }
+
+    private static void useDummy(boolean dummy) {
+        // Either case can't be optimized away
+        // (uses Math.sqrt, which is a native function).
+        if (dummy) {
+            useDummy(Math.sqrt(Math.PI));
+        } else {
+            useDummy(Math.sqrt(Math.E));
+        }
+    }
+    
     private void startTimer() {
         timerRef = System.nanoTime();
     }

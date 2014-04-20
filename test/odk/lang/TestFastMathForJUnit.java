@@ -1,23 +1,5 @@
 package odk.lang;
 
-/*
- * =============================================================================
- * Copyright (C) 2009 oma
- * 
- * This program is free software: you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * as published by the Free Software Foundation, either version 3 of
- * the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 import java.util.Random;
 
 import junit.framework.TestCase;
@@ -429,10 +411,41 @@ public strictfp class TestFastMathForJUnit extends TestCase {
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double a = valuesDoubleAllMagnitudes[i];
             double b = valuesDoubleAllMagnitudes[NBR_OF_VALUES-1-i];
-            assertTrue(minDelta(Math.IEEEremainder(a,b), FastMath.remainder(a,b)) < DEFAULT_EPSILON);
+            double ref = getRemainderExpectedResult(a,b);
+            double res = FastMath.remainder(a,b);
+            assertTrue(minDelta(ref, res) < DEFAULT_EPSILON);
         }
-        assertEquals(Double.NaN, FastMath.remainder(Double.NaN,1.0));
-        assertEquals(Double.NaN, FastMath.remainder(1.0,Double.NaN));
+        
+        double[] specialValues = new double[] { Double.NaN, -0.0, 0.0, -1.0, 1.0, -2.0, 2.0, -3.0, 3.0, -5.0, 5.0, -Double.MIN_VALUE, Double.MIN_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY };
+        for (int i=0;i<specialValues.length;i++) {
+            double a = specialValues[i];
+            for (int j=0;j<specialValues.length;j++) {
+                double b = specialValues[j];
+                double ref = getRemainderExpectedResult(a,b);
+                double res = FastMath.remainder(a,b);
+                assertEquals(ref, res);
+            }
+        }
+    }
+    
+    private static double getRemainderExpectedResult(double a, double b) {
+        double expected = Math.IEEEremainder(a,b);
+        
+        // Treating special case, where we differ from IEEEremainder.
+        
+        double div = a/b;
+        double divAnteComa = Math.rint(div);
+        double divPostComa = div - divAnteComa;
+        if (Math.abs(divPostComa) == 0.5) {
+            double nIEEE = divAnteComa;
+            double nFastMath = Math.rint(Math.nextAfter(div, 0.0));
+            if (nIEEE != nFastMath) {
+                assertEquals(Math.abs(nIEEE), Math.abs(nFastMath)+1.0);
+                expected -= (nFastMath - nIEEE) * b;
+            }
+        }
+        
+        return expected;
     }
 
     public void test_normalizeMinusPiPi() {
@@ -924,35 +937,35 @@ public strictfp class TestFastMathForJUnit extends TestCase {
     }
     
     public void test_inRange_int_int_int() {
-        assertEquals(0, FastMath.inRange(0, 2, -1));
-        assertEquals(0, FastMath.inRange(0, 2, 0));
-        assertEquals(1, FastMath.inRange(0, 2, 1));
-        assertEquals(2, FastMath.inRange(0, 2, 2));
-        assertEquals(2, FastMath.inRange(0, 2, 3));
+        assertEquals(0, FastMath.toRange(0, 2, -1));
+        assertEquals(0, FastMath.toRange(0, 2, 0));
+        assertEquals(1, FastMath.toRange(0, 2, 1));
+        assertEquals(2, FastMath.toRange(0, 2, 2));
+        assertEquals(2, FastMath.toRange(0, 2, 3));
     }
 
     public void test_inRange_long_long_long() {
-        assertEquals(0L, FastMath.inRange(0L, 2L, -1L));
-        assertEquals(0L, FastMath.inRange(0L, 2L, 0L));
-        assertEquals(1L, FastMath.inRange(0L, 2L, 1L));
-        assertEquals(2L, FastMath.inRange(0L, 2L, 2L));
-        assertEquals(2L, FastMath.inRange(0L, 2L, 3L));
+        assertEquals(0L, FastMath.toRange(0L, 2L, -1L));
+        assertEquals(0L, FastMath.toRange(0L, 2L, 0L));
+        assertEquals(1L, FastMath.toRange(0L, 2L, 1L));
+        assertEquals(2L, FastMath.toRange(0L, 2L, 2L));
+        assertEquals(2L, FastMath.toRange(0L, 2L, 3L));
     }
 
     public void test_inRange_float_float_float() {
-        assertEquals(0.0f, FastMath.inRange(0.0f, 2.0f, -1.0f));
-        assertEquals(0.0f, FastMath.inRange(0.0f, 2.0f, 0.0f));
-        assertEquals(1.0f, FastMath.inRange(0.0f, 2.0f, 1.0f));
-        assertEquals(2.0f, FastMath.inRange(0.0f, 2.0f, 2.0f));
-        assertEquals(2.0f, FastMath.inRange(0.0f, 2.0f, 3.0f));
+        assertEquals(0.0f, FastMath.toRange(0.0f, 2.0f, -1.0f));
+        assertEquals(0.0f, FastMath.toRange(0.0f, 2.0f, 0.0f));
+        assertEquals(1.0f, FastMath.toRange(0.0f, 2.0f, 1.0f));
+        assertEquals(2.0f, FastMath.toRange(0.0f, 2.0f, 2.0f));
+        assertEquals(2.0f, FastMath.toRange(0.0f, 2.0f, 3.0f));
     }
 
     public void test_inRange_double_double_double_double() {
-        assertEquals(0.0, FastMath.inRange(0.0, 2.0, -1.0));
-        assertEquals(0.0, FastMath.inRange(0.0, 2.0, 0.0));
-        assertEquals(1.0, FastMath.inRange(0.0, 2.0, 1.0));
-        assertEquals(2.0, FastMath.inRange(0.0, 2.0, 2.0));
-        assertEquals(2.0, FastMath.inRange(0.0, 2.0, 3.0));
+        assertEquals(0.0, FastMath.toRange(0.0, 2.0, -1.0));
+        assertEquals(0.0, FastMath.toRange(0.0, 2.0, 0.0));
+        assertEquals(1.0, FastMath.toRange(0.0, 2.0, 1.0));
+        assertEquals(2.0, FastMath.toRange(0.0, 2.0, 2.0));
+        assertEquals(2.0, FastMath.toRange(0.0, 2.0, 3.0));
     }
 
     public void test_isInClockwiseDomain_double_double_double() {
@@ -983,8 +996,10 @@ public strictfp class TestFastMathForJUnit extends TestCase {
         // small angular values
         assertTrue(FastMath.isInClockwiseDomain(0.0, 2*Math.PI, -1e-10));
         assertFalse(FastMath.isInClockwiseDomain(0.0, 2*Math.PI, -1e-20));
+        assertTrue(FastMath.isInClockwiseDomain(0.0, 2*FastMath.PI_SUP, -1e-20));
         assertTrue(FastMath.isInClockwiseDomain(1e-10, 2*Math.PI, -1e-20));
         assertFalse(FastMath.isInClockwiseDomain(1e-20, 2*Math.PI, -1e-20));
+        assertTrue(FastMath.isInClockwiseDomain(1e-20, 2*FastMath.PI_SUP, -1e-20));
         
         // NaN
         assertFalse(FastMath.isInClockwiseDomain(Double.NaN, Math.PI, Math.PI/2));

@@ -1,4 +1,32 @@
 ################################################################################
+Jafama 1.2, 2011/03/19, oma
+
+Changes since version 1.1:
+- Now using StrictMath to compute constants and look-up tables, to ensure
+  consistency across various architectures.
+- Now using Math.abs(double) directly instead of FastMath.abs(double), since
+  this method is not redefined.
+- Added PI_SUP constant, the closest upper approximation of Pi as double,
+  especially useful to define a span that covers full angular range
+  (2*Math.PI doesn't).
+- Added log2(long), log2(int).
+- Added odk.fastmath.strict, odk.fastmath.usejdk, odk.fastmath.fastlog and
+  odk.fastmath.fastsqrt properties. See FastMath Javadoc for details.
+  NB: As a consequence, by default, a redefined log(double) is now used instead
+      of Math.log(double), for non-redefined treatments now use StrictMath by
+      default, and StrictMath.log(double) seems usually slow.
+- Simplified toString() implementation for IntWrapper and DoubleWrapper classes.
+- Completed Javadoc and updated tests for FastMath.remainder(double,double)
+  method, which does not behave as Math.IEEEremainder(double,double).
+- Moved some basic numbers related treatments, into a new class (NumbersUtils),
+  since they are very low-level and can be used in many places where a
+  dependency to the heavy (look-up tables) FastMath class could be considered
+  inappropriate.
+  These treatments are still available from FastMath class.
+- In benches, made sure dummy variables are used, to avoid treatments to be
+  optimized away (has not been observed, but might have been with some JVMs).
+
+################################################################################
 Jafama 1.1, 2009/12/05, oma
 
 Changes since version 1.0:

@@ -1,0 +1,620 @@
+### output of TestFastMath, using an Intel Core i7 X 980 @3.33GHz ###
+
+--- TestFastMath --- loops of 10000000 rounds with 100000 random values ---
+
+java.vm.name=Java HotSpot(TM) 64-Bit Server VM
+java.runtime.version=1.6.0_24-b07
+java.class.version=50.0
+os.name=Windows 7
+os.arch=amd64
+os.version=6.1
+sun.arch.data.model=64
+JVM input arguments: [-Dfile.encoding=Cp1252]
+
+Loop overhead: 0.013 s
+random seed: 1300575712571
+
+--- testing FastMath class load ---
+FastMath class load took 0.156 s
+
+--- testing cos(double) ---
+Loop on     Math.cos(double), values in [0,2*PI], took 0.555 s
+Loop on FastMath.cos(double), values in [0,2*PI], took 0.108 s... max delta: 4.996003610813204E-16
+Loop on     Math.cos(double), values in [-10,10], took 0.639 s
+Loop on FastMath.cos(double), values in [-10,10], took 0.11 s... max delta: 5.273559366969494E-16
+Loop on     Math.cos(double), values in [-100,100], took 0.722 s
+Loop on FastMath.cos(double), values in [-100,100], took 0.118 s... max delta: 4.996003610813204E-16
+Loop on     Math.cos(double), values in [-1000000.0,1000000.0], took 0.84 s
+Loop on FastMath.cos(double), values in [-1000000.0,1000000.0], took 0.271 s... max delta: 1.2351231148954867E-15
+Loop on     Math.cos(double), values in [-1.0E12,1.0E12], took 4.863 s
+Loop on FastMath.cos(double), values in [-1.0E12,1.0E12], took 1.2 s... max delta: 1.304512053934559E-15
+Loop (rounds/10) on     Math.cos(double), values of all magnitudes, took 0.275 s
+Loop (rounds/10) on FastMath.cos(double), values of all magnitudes, took 0.111 s... max delta: 1.3183898417423734E-15
+Result differences for special values:... 
+    Math.cos(-1.5707963267948966)=6.123233995736766E-17
+FastMath.cos(-1.5707963267948966)=6.12323399538461E-17
+    Math.cos(1.5707963267948966)=6.123233995736766E-17
+FastMath.cos(1.5707963267948966)=6.12323399538461E-17
+
+--- testing cosQuick(double) ---
+Loop on          Math.cos(double), values in [-1000000.0,1000000.0], took 0.862 s
+Loop on FastMath.cosQuick(double), values in [-1000000.0,1000000.0], took 0.026 s... max delta: 0.0015332863213575222
+
+--- testing sin(double) ---
+Loop on     Math.sin(double), values in [0,2*PI], took 0.621 s
+Loop on FastMath.sin(double), values in [0,2*PI], took 0.121 s... max delta: 5.551115123125783E-16
+Loop on     Math.sin(double), values in [-10,10], took 0.648 s
+Loop on FastMath.sin(double), values in [-10,10], took 0.16 s... max delta: 5.551115123125783E-16
+Loop on     Math.sin(double), values in [-100,100], took 0.677 s
+Loop on FastMath.sin(double), values in [-100,100], took 0.163 s... max delta: 4.996003610813204E-16
+Loop on     Math.sin(double), values in [-1000000.0,1000000.0], took 0.797 s
+Loop on FastMath.sin(double), values in [-1000000.0,1000000.0], took 0.34 s... max delta: 1.124100812432971E-15
+Loop on     Math.sin(double), values in [-1.0E12,1.0E12], took 4.743 s
+Loop on FastMath.sin(double), values in [-1.0E12,1.0E12], took 1.205 s... max delta: 1.1102230246251565E-15
+Loop (rounds/10) on     Math.sin(double), values of all magnitudes, took 0.263 s
+Loop (rounds/10) on FastMath.sin(double), values of all magnitudes, took 0.094 s... max delta: 1.1657341758564144E-15
+Result differences for special values:... 
+    Math.sin(-3.141592653589793)=-1.2246467991473532E-16
+FastMath.sin(-3.141592653589793)=-1.224646799076922E-16
+    Math.sin(3.141592653589793)=1.2246467991473532E-16
+FastMath.sin(3.141592653589793)=1.224646799076922E-16
+    Math.sin(-1.7976931348623157E308)=-0.004961954789184062
+FastMath.sin(-1.7976931348623157E308)=-0.004961954789184255
+    Math.sin(1.7976931348623157E308)=0.004961954789184062
+FastMath.sin(1.7976931348623157E308)=0.004961954789184255
+
+--- testing sinQuick(double) ---
+Loop on          Math.sin(double), values in [-1000000.0,1000000.0], took 0.8 s
+Loop on FastMath.sinQuick(double), values in [-1000000.0,1000000.0], took 0.03 s... max delta: 0.0015332638192443009
+
+--- testing sinAndCos(double,DoubleWrapper,DoubleWrapper) ---
+Loop on FastMath.sinAndCos(double,DoubleWrapper,DoubleWrapper), values in [0,2*PI], took 0.184 s
+max sin delta: 5.551115123125783E-16
+max cos delta: 4.996003610813204E-16
+Loop on FastMath.sinAndCos(double,DoubleWrapper,DoubleWrapper), values in [-10,10], took 0.202 s
+max sin delta: 5.551115123125783E-16
+max cos delta: 5.273559366969494E-16
+Loop on FastMath.sinAndCos(double,DoubleWrapper,DoubleWrapper), values in [-100,100], took 0.2 s
+max sin delta: 4.996003610813204E-16
+max cos delta: 4.996003610813204E-16
+Loop on FastMath.sinAndCos(double,DoubleWrapper,DoubleWrapper), values in [-1000000.0,1000000.0], took 0.42 s
+max sin delta: 1.124100812432971E-15
+max cos delta: 1.2351231148954867E-15
+Loop on FastMath.sinAndCos(double,DoubleWrapper,DoubleWrapper), values in [-1.0E12,1.0E12], took 1.29 s
+max sin delta: 1.1102230246251565E-15
+max cos delta: 1.304512053934559E-15
+Loop on FastMath.sinAndCos(double,DoubleWrapper,DoubleWrapper), values of all magnitudes, took 1.283 s
+max sin delta: 1.1657341758564144E-15
+max cos delta: 1.3183898417423734E-15
+Result differences for special values:... 
+                 Math.sin(-3.141592653589793)=-1.2246467991473532E-16
+FastMath.sinAndCos(-3.141592653589793,,) sine=-1.224646799076922E-16
+                   Math.cos(-1.5707963267948966)=6.123233995736766E-17
+FastMath.sinAndCos(-1.5707963267948966,,) cosine=6.12323399538461E-17
+                   Math.cos(1.5707963267948966)=6.123233995736766E-17
+FastMath.sinAndCos(1.5707963267948966,,) cosine=6.12323399538461E-17
+                 Math.sin(3.141592653589793)=1.2246467991473532E-16
+FastMath.sinAndCos(3.141592653589793,,) sine=1.224646799076922E-16
+                 Math.sin(-1.7976931348623157E308)=-0.004961954789184062
+FastMath.sinAndCos(-1.7976931348623157E308,,) sine=-0.004961954789184255
+                 Math.sin(1.7976931348623157E308)=0.004961954789184062
+FastMath.sinAndCos(1.7976931348623157E308,,) sine=0.004961954789184255
+
+--- testing tan(double) ---
+Loop on     Math.tan(double), values in [-PI/2,PI/2], took 0.756 s
+Loop on FastMath.tan(double), values in [-PI/2,PI/2], took 0.184 s... max delta (delta=min(abs delta, relative delta)): 8.575630823103144E-16
+Loop on     Math.tan(double), values in [-10,10], took 1.039 s
+Loop on FastMath.tan(double), values in [-10,10], took 0.223 s... max delta (delta=min(abs delta, relative delta)): 8.415867116487612E-16
+Loop on     Math.tan(double), values in [-100,100], took 1.156 s
+Loop on FastMath.tan(double), values in [-100,100], took 0.246 s... max delta (delta=min(abs delta, relative delta)): 8.674738386701486E-16
+Loop on     Math.tan(double), values in [-1000000.0,1000000.0], took 1.236 s
+Loop on FastMath.tan(double), values in [-1000000.0,1000000.0], took 0.363 s... max delta (delta=min(abs delta, relative delta)): 2.190659572710353E-12
+Loop on     Math.tan(double), values in [-1.0E12,1.0E12], took 5.259 s
+Loop on FastMath.tan(double), values in [-1.0E12,1.0E12], took 1.336 s... max delta (delta=min(abs delta, relative delta)): 3.829024194703606E-12
+Loop (rounds/10) on     Math.tan(double), values of all magnitudes, took 0.31 s
+Loop (rounds/10) on FastMath.tan(double), values of all magnitudes, took 0.106 s... max delta (delta=min(abs delta, relative delta)): 1.3144801762097542E-12
+Result differences for special values:... 
+    Math.tan(-1.5707963267948966)=-1.633123935319537E16
+FastMath.tan(-1.5707963267948966)=-1.6331239354134602E16
+    Math.tan(1.5707963267948966)=1.633123935319537E16
+FastMath.tan(1.5707963267948966)=1.6331239354134602E16
+    Math.tan(-1.7976931348623157E308)=0.004962015874444895
+FastMath.tan(-1.7976931348623157E308)=0.004962015874445068
+    Math.tan(1.7976931348623157E308)=-0.004962015874444895
+FastMath.tan(1.7976931348623157E308)=-0.004962015874445068
+
+--- testing acos(double) ---
+Loop on     Math.acos(double) took 4.985 s
+Loop on FastMath.acos(double) took 0.161 s... max delta: 1.7763568394002505E-15
+Result differences for special values:... none.
+
+--- testing asin(double) ---
+Loop on     Math.asin(double) took 5.117 s
+Loop on FastMath.asin(double) took 0.169 s... max delta: 1.7763568394002505E-15
+Result differences for special values:... none.
+
+--- testing atan(double) ---
+Loop on     Math.atan(double) took 0.869 s
+Loop on FastMath.atan(double) took 0.207 s... max delta: 2.220446049250313E-16
+Result differences for special values:... none.
+
+--- testing atan2(double,double) ---
+Loop on     Math.atan2(double,double) took 1.166 s
+Loop on FastMath.atan2(double,double) took 0.356 s... max delta: 4.440892098500626E-16
+Result differences for special values:... none.
+
+--- testing isInClockwiseDomain(double,double,double) ---
+Loop on FastMath.isInClockwiseDomain(double,double,double), values in normalized ranges, took 0.197 s... 
+Loop on    FastMath.isInClockwiseDomain(double,double,double), values in [-100.0,100.0], took 0.257 s... 
+
+--- testing cosh(double) ---
+Loop on     Math.cosh(double), values in [-1,1], took 0.885 s
+Loop on FastMath.cosh(double), values in [-1,1], took 0.181 s... max delta (relative): 3.155976586323121E-16
+Loop on     Math.cosh(double), values in [-10,10], took 0.972 s
+Loop on FastMath.cosh(double), values in [-10,10], took 0.193 s... max delta (relative): 5.305457283411357E-16
+Loop on     Math.cosh(double), values in [-700,700], took 0.894 s
+Loop on FastMath.cosh(double), values in [-700,700], took 0.218 s... max delta (relative): 4.941904855679104E-16
+Loop on     Math.cosh(double), values in [-750,720], took 0.902 s
+Loop on FastMath.cosh(double), values in [-750,720], took 0.221 s... max delta (relative): 8.036604454293388E-16
+Loop on     Math.cosh(double), values of all magnitudes, took 0.341 s
+Loop on FastMath.cosh(double), values of all magnitudes, took 0.177 s... max delta (relative): 3.1688114197085215E-16
+Result differences for special values:... 
+    Math.cosh(1.5)=2.352409615243247
+FastMath.cosh(1.5)=2.3524096152432477
+
+--- testing sinh(double) ---
+Loop on     Math.sinh(double), values in [-1,1], took 1.032 s
+Loop on FastMath.sinh(double), values in [-1,1], took 0.178 s... max delta (relative): 5.838079099675056E-16
+Loop on     Math.sinh(double), values in [-10,10], took 1.296 s
+Loop on FastMath.sinh(double), values in [-10,10], took 0.215 s... max delta (relative): 7.472003406605029E-16
+Loop on     Math.sinh(double), values in [-700,700], took 0.885 s
+Loop on FastMath.sinh(double), values in [-700,700], took 0.182 s... max delta (relative): 6.087147922981784E-16
+Loop on     Math.sinh(double), values in [-750,720], took 0.873 s
+Loop on FastMath.sinh(double), values in [-750,720], took 0.186 s... max delta (relative): 8.036604454293388E-16
+Loop on     Math.sinh(double), values of all magnitudes, took 0.293 s
+Loop on FastMath.sinh(double), values of all magnitudes, took 0.16 s... max delta (relative): 4.676234563863109E-16
+Result differences for special values:... 
+    Math.sinh(1.0)=1.1752011936438014
+FastMath.sinh(1.0)=1.1752011936438016
+    Math.sinh(1.5)=2.1292794550948173
+FastMath.sinh(1.5)=2.1292794550948178
+
+--- testing sinhAndCosh(double,DoubleWrapper,DoubleWrapper) ---
+Loop on FastMath.sinhAndCosh(double,DoubleWrapper,DoubleWrapper), values in [-1,1], took 0.348 s
+max sinh delta (relative): 5.838079099675056E-16
+max cosh delta (relative): 3.155976586323121E-16
+Loop on FastMath.sinhAndCosh(double,DoubleWrapper,DoubleWrapper), values in [-10,10], took 0.427 s
+max sinh delta (relative): 7.472003406605029E-16
+max cosh delta (relative): 5.305457283411357E-16
+Loop on FastMath.sinhAndCosh(double,DoubleWrapper,DoubleWrapper), values in [-700,700], took 0.27 s
+max sinh delta (relative): 6.087147922981784E-16
+max cosh delta (relative): 4.941904855679104E-16
+Loop on FastMath.sinhAndCosh(double,DoubleWrapper,DoubleWrapper), values in [-750,720], took 0.274 s
+max sinh delta (relative): 8.036604454293388E-16
+max cosh delta (relative): 8.036604454293388E-16
+Loop on FastMath.sinhAndCosh(double,DoubleWrapper,DoubleWrapper), values of all magnitudes, took 0.24 s
+max sinh delta (relative): 4.676234563863109E-16
+max cosh delta (relative): 3.1688114197085215E-16
+Result differences for special values:... 
+                   Math.sinh(1.0)=1.1752011936438014
+FastMath.sinhAndCosh(1.0,,) hsine=1.1752011936438016
+                   Math.sinh(1.5)=2.1292794550948173
+FastMath.sinhAndCosh(1.5,,) hsine=2.1292794550948178
+                     Math.cosh(1.5)=2.352409615243247
+FastMath.sinhAndCosh(1.5,,) hcosine=2.3524096152432477
+
+--- testing tanh(double) ---
+Loop on     Math.tanh(double), values in [-1,1], took 1.302 s
+Loop on FastMath.tanh(double), values in [-1,1], took 0.264 s... max delta (relative): 8.192066180547895E-16
+Loop on     Math.tanh(double), values in [-10,10], took 1.33 s
+Loop on FastMath.tanh(double), values in [-10,10], took 0.264 s... max delta (relative): 6.095794645339095E-16
+Loop on     Math.tanh(double), values in [-700,700], took 0.236 s
+Loop on FastMath.tanh(double), values in [-700,700], took 0.121 s... max delta (relative): 3.780761980082374E-16
+Loop on     Math.tanh(double), values in [-750,720], took 0.248 s
+Loop on FastMath.tanh(double), values in [-750,720], took 0.112 s... max delta (relative): 4.3926387218196245E-16
+Loop on     Math.tanh(double), values of all magnitudes, took 0.259 s
+Loop on FastMath.tanh(double), values of all magnitudes, took 0.14 s... max delta (relative): 4.0802539333197446E-16
+Result differences for special values:... none.
+
+--- testing exp(double) ---
+Loop on     Math.exp(double), values in [-1,1], took 0.431 s
+Loop on FastMath.exp(double), values in [-1,1], took 0.156 s... max delta (relative): 3.825179431069884E-16
+Loop on     Math.exp(double), values in [-10,10], took 0.544 s
+Loop on FastMath.exp(double), values in [-10,10], took 0.153 s... max delta (relative): 5.305458085801774E-16
+Loop on     Math.exp(double), values in [-700,700], took 0.543 s
+Loop on FastMath.exp(double), values in [-700,700], took 0.157 s... max delta (relative): 4.691350509586831E-16
+Loop on     Math.exp(double), values in [-750,720], took 0.568 s
+Loop on FastMath.exp(double), values in [-750,720], took 0.214 s... max delta (relative): 4.3563295455378364E-12
+Loop on     Math.exp(double), values of all magnitudes, took 0.356 s
+Loop on FastMath.exp(double), values of all magnitudes, took 0.165 s... max delta (relative): 1.2337271726326087E-14
+Result differences for special values:... 
+    Math.exp(0.1)=1.1051709180756477
+FastMath.exp(0.1)=1.1051709180756475
+    Math.exp(1.5)=4.4816890703380645
+FastMath.exp(1.5)=4.481689070338065
+
+--- testing expQuick(double) ---
+Loop on          Math.exp(double), values in [-1,1], took 0.435 s
+Loop on FastMath.expQuick(double), values in [-1,1], took 0.029 s... max delta (relative): 0.02982172288627647
+Loop on          Math.exp(double), values in [-10,10], took 0.542 s
+Loop on FastMath.expQuick(double), values in [-10,10], took 0.028 s... max delta (relative): 0.029821022302239254
+Loop on          Math.exp(double), values in [-700,700], took 0.513 s
+Loop on FastMath.expQuick(double), values in [-700,700], took 0.026 s... max delta (relative): 0.029820754006570086
+
+--- testing expm1(double) ---
+Loop on     Math.expm1(double), values in [-1,1], took 0.744 s
+Loop on FastMath.expm1(double), values in [-1,1], took 0.098 s... max delta (relative): 4.438221618364115E-16
+Loop on     Math.expm1(double), values in [-10,10], took 0.942 s
+Loop on FastMath.expm1(double), values in [-10,10], took 0.196 s... max delta (relative): 6.60401659626838E-16
+Loop on     Math.expm1(double), values in [-700,700], took 0.614 s
+Loop on FastMath.expm1(double), values in [-700,700], took 0.201 s... max delta (relative): 4.691350509586831E-16
+Loop on     Math.expm1(double), values in [-750,720], took 0.606 s
+Loop on FastMath.expm1(double), values in [-750,720], took 0.238 s... max delta (relative): 4.667520944152996E-16
+Loop on     Math.expm1(double), values of all magnitudes, took 0.319 s
+Loop on FastMath.expm1(double), values of all magnitudes, took 0.188 s... max delta (relative): 4.01773122284135E-16
+Result differences for special values:... 
+    Math.expm1(1.0)=1.718281828459045
+FastMath.expm1(1.0)=1.7182818284590455
+    Math.expm1(1.5)=3.481689070338065
+FastMath.expm1(1.5)=3.4816890703380654
+
+--- testing log(double) ---
+Loop on     Math.log(double), values in [0.1,10.0], took 0.218 s
+Loop on FastMath.log(double), values in [0.1,10.0], took 0.097 s... max delta (relative): 5.254591971665522E-15
+Loop on     Math.log(double), values of all magnitudes, took 0.245 s
+Loop on FastMath.log(double), values of all magnitudes, took 0.121 s... max delta (relative): 2.4746095110952575E-15
+Result differences for special values:... none.
+
+--- testing logQuick(double) ---
+Loop on          Math.log(double), values in [0.1,10.0], took 0.235 s
+Loop on FastMath.logQuick(double), values in [0.1,10.0], took 0.055 s... max delta (relative): 0.0018306063645139447
+Loop on          Math.log(double), values of all magnitudes (positive), took 0.217 s
+Loop on FastMath.logQuick(double), values of all magnitudes (positive), took 0.096 s... max delta (relative): 0.001472679399156094
+
+--- testing log1p(double) ---
+Loop on     Math.log1p(double), values in [-0.9,9.0], took 0.818 s
+Loop on FastMath.log1p(double), values in [-0.9,9.0], took 0.107 s... max delta (relative): 6.164018160678865E-15
+Loop on     Math.log1p(double), values of all magnitudes, took 0.356 s
+Loop on FastMath.log1p(double), values of all magnitudes, took 0.101 s... max delta (relative): 6.169884743896515E-15
+Result differences for special values:... none.
+
+--- testing log2(int) ---
+Loop on FastMath.log2(int), values in [1,Integer.MAX_VALUE], took 0.04 s... 
+Result differences for special values:... none.
+
+--- testing log2(long) ---
+Loop on FastMath.log2(long), values in [1,Long.MAX_VALUE], took 0.036 s... 
+Result differences for special values:... none.
+
+--- testing pow(double,double) ---
+Loop on     Math.pow(double,double), values in {[-10,10],[-10,10]}, took 1.331 s
+Loop on FastMath.pow(double,double), values in {[-10,10],[-10,10]}, took 0.282 s... max delta (relative): 1.1236651547254226E-14
+Loop on     Math.pow(double,double), values in {[-2^10,2^10],[-10,10]}, took 1.301 s
+Loop on FastMath.pow(double,double), values in {[-2^10,2^10],[-10,10]}, took 0.297 s... max delta (relative): 1.5714620503494336E-14
+Loop on     Math.pow(double,double), values in {[-10,10],[-2^10,2^10]}, took 1.284 s
+Loop on FastMath.pow(double,double), values in {[-10,10],[-2^10,2^10]}, took 0.285 s... max delta (relative): 1.2511621277651437E-12
+Loop on     Math.pow(double,double), values of all magnitudes, took 1.258 s
+Loop on FastMath.pow(double,double), values of all magnitudes, took 0.392 s... max delta (relative): 1.5083541846139002E-13
+Result differences for special values:... 
+    Math.pow(-3.0,-3.0)=-0.037037037037037035
+FastMath.pow(-3.0,-3.0)=-0.037037037037037056
+    Math.pow(-3.0,-2.0)=0.1111111111111111
+FastMath.pow(-3.0,-2.0)=0.11111111111111113
+    Math.pow(-3.0,-1.0)=-0.3333333333333333
+FastMath.pow(-3.0,-1.0)=-0.3333333333333334
+    Math.pow(-3.0,2.0)=9.0
+FastMath.pow(-3.0,2.0)=8.999999999999998
+    Math.pow(-3.0,3.0)=-27.0
+FastMath.pow(-3.0,3.0)=-26.99999999999999
+    Math.pow(-2.0,-3.0)=-0.125
+FastMath.pow(-2.0,-3.0)=-0.12500000000000003
+    Math.pow(-2.0,-1.0)=-0.5
+FastMath.pow(-2.0,-1.0)=-0.49999999999999994
+    Math.pow(-2.0,3.0)=-8.0
+FastMath.pow(-2.0,3.0)=-7.999999999999999
+    Math.pow(-1.1,-2.0)=0.8264462809917354
+FastMath.pow(-1.1,-2.0)=0.8264462809917353
+    Math.pow(-0.9,-2.0)=1.2345679012345678
+FastMath.pow(-0.9,-2.0)=1.2345679012345676
+    Math.pow(-0.9,2.0)=0.81
+FastMath.pow(-0.9,2.0)=0.8100000000000002
+    Math.pow(0.9,-2.0)=1.2345679012345678
+FastMath.pow(0.9,-2.0)=1.2345679012345676
+    Math.pow(0.9,-1.1)=1.1228797235592125
+FastMath.pow(0.9,-1.1)=1.1228797235592123
+    Math.pow(0.9,-0.9)=1.0994658424513493
+FastMath.pow(0.9,-0.9)=1.0994658424513495
+    Math.pow(0.9,2.0)=0.81
+FastMath.pow(0.9,2.0)=0.8100000000000002
+    Math.pow(1.1,-2.0)=0.8264462809917354
+FastMath.pow(1.1,-2.0)=0.8264462809917353
+    Math.pow(2.0,-3.0)=0.125
+FastMath.pow(2.0,-3.0)=0.12500000000000003
+    Math.pow(2.0,-1.0)=0.5
+FastMath.pow(2.0,-1.0)=0.49999999999999994
+    Math.pow(2.0,0.9)=1.8660659830736148
+FastMath.pow(2.0,0.9)=1.866065983073615
+    Math.pow(2.0,3.0)=8.0
+FastMath.pow(2.0,3.0)=7.999999999999999
+    Math.pow(3.0,-3.0)=0.037037037037037035
+FastMath.pow(3.0,-3.0)=0.037037037037037056
+    Math.pow(3.0,-2.0)=0.1111111111111111
+FastMath.pow(3.0,-2.0)=0.11111111111111113
+    Math.pow(3.0,-1.1)=0.2986528199469207
+FastMath.pow(3.0,-1.1)=0.2986528199469208
+    Math.pow(3.0,-1.0)=0.3333333333333333
+FastMath.pow(3.0,-1.0)=0.3333333333333334
+    Math.pow(3.0,-0.9)=0.3720410580113015
+FastMath.pow(3.0,-0.9)=0.37204105801130155
+    Math.pow(3.0,1.1)=3.348369522101714
+FastMath.pow(3.0,1.1)=3.3483695221017133
+    Math.pow(3.0,2.0)=9.0
+FastMath.pow(3.0,2.0)=8.999999999999998
+    Math.pow(3.0,3.0)=27.0
+FastMath.pow(3.0,3.0)=26.99999999999999
+    Math.pow(4.9E-324,-0.9)=9.45352569147208E290
+FastMath.pow(4.9E-324,-0.9)=9.453525691471869E290
+    Math.pow(4.9E-324,0.9)=1.0578064022210135E-291
+FastMath.pow(4.9E-324,0.9)=1.057806402221037E-291
+    Math.pow(-1.7976931348623157E308,-1.0)=-5.562684646268003E-309
+FastMath.pow(-1.7976931348623157E308,-1.0)=-5.562684646268063E-309
+    Math.pow(1.7976931348623157E308,-1.0)=5.562684646268003E-309
+FastMath.pow(1.7976931348623157E308,-1.0)=5.562684646268063E-309
+    Math.pow(1.7976931348623157E308,-0.9)=3.7218254053692855E-278
+FastMath.pow(1.7976931348623157E308,-0.9)=3.721825405369466E-278
+    Math.pow(1.7976931348623157E308,0.9)=2.6868536029587838E277
+FastMath.pow(1.7976931348623157E308,0.9)=2.686853602958654E277
+
+--- testing powQuick(double,double) ---
+Loop on          Math.pow(double,double), values in {[0.1,10],[-100,100]}, took 2.482 s
+Loop on FastMath.powQuick(double,double), values in {[0.1,10],[-100,100]}, took 0.241 s... max delta (relative): 0.025495917866863848
+Loop on          Math.pow(double,double), values in {]0,+infinity[,all magnitudes}, took 2.129 s
+Loop on FastMath.powQuick(double,double), values in {]0,+infinity[,all magnitudes}, took 0.262 s... max delta (relative): 0.056901982937779524
+Result differences for special values:... 
+         Math.pow(0.9,-1.0)=1.1111111111111112
+FastMath.powQuick(0.9,-1.0)=1.1110029410844708
+         Math.pow(0.9,1.0)=0.9
+FastMath.powQuick(0.9,1.0)=0.9000876262522592
+         Math.pow(1.1,-1.0)=0.9090909090909091
+FastMath.powQuick(1.1,-1.0)=0.909156442876713
+         Math.pow(1.1,1.0)=1.1
+FastMath.powQuick(1.1,1.0)=1.0999207098349804
+         Math.pow(1.7976931348623157E308,-1.0)=5.562684646268003E-309
+FastMath.powQuick(1.7976931348623157E308,-1.0)=5.563363767821543E-309
+         Math.pow(1.7976931348623157E308,1.0)=1.7976931348623157E308
+FastMath.powQuick(1.7976931348623157E308,1.0)=1.7974736898995897E308
+
+--- testing powFast(double,int) ---
+Loop on      Math.pow(double,double), values in ({[-2^100,-2^-100],[2^-100,2^100]},[-10,10]), took 2.133 s
+Loop on FastMath.powFast(double,int), values in ({[-2^100,-2^-100],[2^-100,2^100]},[-10,10]), took 0.192 s... max delta (relative): 8.057723916142369E-16
+Loop on      Math.pow(double,double), values in ({[-2^10,-2^-10],[2^-10,2^10]},[-100,100]), took 2.523 s
+Loop on FastMath.powFast(double,int), values in ({[-2^10,-2^-10],[2^-10,2^10]},[-100,100]), took 0.303 s... max delta (relative): 8.269949175276648E-15
+Result differences for special values:... none.
+
+--- testing twoPow(int) ---
+Loop on Math.pow(2.0,double), values in [-1074,1023], took 2.408 s
+Loop on FastMath.twoPow(int), values in [-1074,1023], took 0.037 s
+Loop on Math.pow(2.0,double), values of all magnitudes, took 1.129 s
+Loop on FastMath.twoPow(int), values of all magnitudes, took 0.068 s
+Result differences for special values:... none.
+
+--- testing sqrt(double) ---
+Loop on     Math.sqrt(double), values in [0,10], took 0.12 s
+Loop on FastMath.sqrt(double), values in [0,10], took 0.104 s... max delta (relative): 0.0
+Loop on     Math.sqrt(double), values in [0,1.0E12], took 0.098 s
+Loop on FastMath.sqrt(double), values in [0,1.0E12], took 0.103 s... max delta (relative): 0.0
+Loop on     Math.sqrt(double), values of all magnitudes, took 0.107 s
+Loop on FastMath.sqrt(double), values of all magnitudes, took 0.099 s... max delta (relative): 0.0
+Result differences for special values:... none.
+
+--- testing cbrt(double) ---
+Loop on     Math.cbrt(double), values in [-10,10], took 0.944 s
+Loop on FastMath.cbrt(double), values in [-10,10], took 0.158 s... max delta (relative): 3.495687697681725E-16
+Loop on     Math.cbrt(double), values in [-1.0E12,1.0E12], took 0.944 s
+Loop on FastMath.cbrt(double), values in [-1.0E12,1.0E12], took 0.155 s... max delta (relative): 3.479459172070089E-16
+Loop on     Math.cbrt(double), values of all magnitudes, took 0.927 s
+Loop on FastMath.cbrt(double), values of all magnitudes, took 0.2 s... max delta (relative): 4.720808659462928E-16
+Result differences for special values:... none.
+
+--- testing remainder(double,double) ---
+Loop on Math.IEEEremainder(double,double), values in [-10,10], took 0.766 s
+Loop on FastMath.remainder(double,double), values in [-10,10], took 0.367 s... max delta: 0.0
+Loop on Math.IEEEremainder(double,double), values in [-1000000.0,1000000.0], took 0.747 s
+Loop on FastMath.remainder(double,double), values in [-1000000.0,1000000.0], took 0.364 s... max delta: 0.0
+Loop on Math.IEEEremainder(double,double), values in [-1.0E12,1.0E12], took 0.749 s
+Loop on FastMath.remainder(double,double), values in [-1.0E12,1.0E12], took 0.399 s... max delta: 0.0
+Loop (rounds/100) on Math.IEEEremainder(double,double), values of all magnitudes, took 0.385 s
+Loop (rounds/100) on FastMath.remainder(double,double), values of all magnitudes, took 0.021 s... max delta: 0.0
+Result differences for special values:... 
+Math.IEEEremainder(-3.0,-2.0)=1.0
+FastMath.remainder(-3.0,-2.0)=-1.0
+Math.IEEEremainder(-3.0,2.0)=1.0
+FastMath.remainder(-3.0,2.0)=-1.0
+Math.IEEEremainder(3.0,-2.0)=-1.0
+FastMath.remainder(3.0,-2.0)=1.0
+Math.IEEEremainder(3.0,2.0)=-1.0
+FastMath.remainder(3.0,2.0)=1.0
+
+--- testing normalizeMinusPiPi(double) ---
+Loop on FastMath.normalizeMinusPiPi(double), values in [-PI,PI], took 0.043 s
+Loop on FastMath.normalizeMinusPiPi(double), values in [-2*PI,2*PI], took 0.116 s
+Loop on FastMath.normalizeMinusPiPi(double), values in [-100.0,100.0], took 0.152 s
+Loop on FastMath.normalizeMinusPiPi(double), values in [-1.0E12,1.0E12], took 1.06 s
+Loop on FastMath.normalizeMinusPiPi(double), values of all magnitudes, took 0.656 s
+Testing special values... ok.
+
+--- testing normalizeMinusPiPiFast(double) ---
+Loop on FastMath.normalizeMinusPiPiFast(double), values in [-PI,PI], took 0.049 s... max delta: 0.0
+Loop on FastMath.normalizeMinusPiPiFast(double), values in [-2*PI,2*PI], took 0.114 s... max delta: 0.0
+Loop on FastMath.normalizeMinusPiPiFast(double), values in [-100.0,100.0], took 0.129 s... max delta: 0.0
+Loop on FastMath.normalizeMinusPiPiFast(double), values in [-1.0E12,1.0E12], took 0.254 s... max delta: 2.980232283178452E-8
+Loop on FastMath.normalizeMinusPiPiFast(double), values of all magnitudes, took 0.114 s
+Testing special values... ok.
+
+--- testing normalizeZeroTwoPi(double) ---
+Loop on FastMath.normalizeZeroTwoPi(double), values in [0,2*PI], took 0.049 s
+Loop on FastMath.normalizeZeroTwoPi(double), values in [-2*PI,2*PI], took 0.13 s
+Loop on FastMath.normalizeZeroTwoPi(double), values in [-100.0,100.0], took 0.199 s
+Loop on FastMath.normalizeZeroTwoPi(double), values in [-1.0E12,1.0E12], took 1.131 s
+Loop on FastMath.normalizeZeroTwoPi(double), values of all magnitudes, took 0.68 s
+Testing special values... ok.
+
+--- testing normalizeZeroTwoPiFast(double) ---
+Loop on FastMath.normalizeZeroTwoPiFast(double), values in [0,2*PI], took 0.05 s... max delta: 0.0
+Loop on FastMath.normalizeZeroTwoPiFast(double), values in [-2*PI,2*PI], took 0.13 s... max delta: 0.0
+Loop on FastMath.normalizeZeroTwoPiFast(double), values in [-100.0,100.0], took 0.19 s... max delta: 0.0
+Loop on FastMath.normalizeZeroTwoPiFast(double), values in [-1.0E12,1.0E12], took 0.313 s... max delta: 2.980232283178452E-8
+Loop on FastMath.normalizeZeroTwoPiFast(double), values of all magnitudes, took 0.157 s
+Testing special values... ok.
+
+--- testing normalizeMinusHalfPiHalfPi(double) ---
+Loop on FastMath.normalizeMinusHalfPiHalfPi(double), values in [-PI/2,PI/2], took 0.047 s
+Loop on FastMath.normalizeMinusHalfPiHalfPi(double), values in [-2*PI,2*PI], took 0.231 s
+Loop on FastMath.normalizeMinusHalfPiHalfPi(double), values in [-100.0,100.0], took 0.226 s
+Loop on FastMath.normalizeMinusHalfPiHalfPi(double), values in [-1.0E12,1.0E12], took 1.14 s
+Loop on FastMath.normalizeMinusHalfPiHalfPi(double), values of all magnitudes, took 0.661 s
+Testing special values... ok.
+
+--- testing normalizeMinusHalfPiHalfPiFast(double) ---
+Loop on FastMath.normalizeMinusHalfPiHalfPiFast(double), values in [-PI/2,PI/2], took 0.049 s... max delta: 0.0
+Loop on FastMath.normalizeMinusHalfPiHalfPiFast(double), values in [-2*PI,2*PI], took 0.21 s... max delta: 0.0
+Loop on FastMath.normalizeMinusHalfPiHalfPiFast(double), values in [-100.0,100.0], took 0.233 s... max delta: 0.0
+Loop on FastMath.normalizeMinusHalfPiHalfPiFast(double), values in [-1.0E12,1.0E12], took 0.366 s... max delta: 2.980232283178452E-8
+Loop on FastMath.normalizeMinusHalfPiHalfPiFast(double), values of all magnitudes, took 0.13 s
+Testing special values... ok.
+
+--- testing abs(int) ---
+Loop on     Math.abs(int), values of all magnitudes, took 0.054 s
+Loop on FastMath.abs(int), values of all magnitudes, took 0.02 s
+Result differences for special values:... none.
+
+--- testing ceil(double) ---
+Loop on     Math.ceil(double), values in [-10,10], took 0.14 s
+Loop on FastMath.ceil(double), values in [-10,10], took 0.075 s... max delta: 0.0
+Loop on     Math.ceil(double), values in [-1000000.0,1000000.0], took 0.117 s
+Loop on FastMath.ceil(double), values in [-1000000.0,1000000.0], took 0.075 s... max delta: 0.0
+Loop on     Math.ceil(double), values in [-1.0E16,1.0E16], took 0.133 s
+Loop on FastMath.ceil(double), values in [-1.0E16,1.0E16], took 0.12 s... max delta: 0.0
+Loop on     Math.ceil(double), values near integers, took 0.081 s
+Loop on FastMath.ceil(double), values near integers, took 0.064 s... max delta: 0.0
+Loop on     Math.ceil(double), values of all magnitudes, took 0.128 s
+Loop on FastMath.ceil(double), values of all magnitudes, took 0.1 s... max delta: 0.0
+Result differences for special values:... none.
+
+--- testing ceil(float) ---
+Loop on    Math.ceil(double), values in [-10,10], took 0.169 s
+Loop on FastMath.ceil(float), values in [-10,10], took 0.107 s... max delta: 0.0
+Loop on    Math.ceil(double), values in [-1000000.0,1000000.0], took 0.139 s
+Loop on FastMath.ceil(float), values in [-1000000.0,1000000.0], took 0.096 s... max delta: 0.0
+Loop on    Math.ceil(double), values in [-2.0E7,2.0E7], took 0.12 s
+Loop on FastMath.ceil(float), values in [-2.0E7,2.0E7], took 0.118 s... max delta: 0.0
+Loop on    Math.ceil(double), values near integers, took 0.075 s
+Loop on FastMath.ceil(float), values near integers, took 0.048 s... max delta: 0.0
+Loop on    Math.ceil(double), values of all magnitudes, took 0.174 s
+Loop on FastMath.ceil(float), values of all magnitudes, took 0.109 s... max delta: 0.0
+Result differences for special values:... none.
+
+--- testing floor(double) ---
+Loop on     Math.floor(double), values in [-10,10], took 0.149 s
+Loop on FastMath.floor(double), values in [-10,10], took 0.082 s... max delta: 0.0
+Loop on     Math.floor(double), values in [-1000000.0,1000000.0], took 0.117 s
+Loop on FastMath.floor(double), values in [-1000000.0,1000000.0], took 0.075 s... max delta: 0.0
+Loop on     Math.floor(double), values in [-1.0E16,1.0E16], took 0.13 s
+Loop on FastMath.floor(double), values in [-1.0E16,1.0E16], took 0.107 s... max delta: 0.0
+Loop on     Math.floor(double), values near integers, took 0.079 s
+Loop on FastMath.floor(double), values near integers, took 0.058 s... max delta: 0.0
+Loop on     Math.floor(double), values of all magnitudes, took 0.127 s
+Loop on FastMath.floor(double), values of all magnitudes, took 0.1 s... max delta: 0.0
+Result differences for special values:... none.
+
+--- testing floor(float) ---
+Loop on    Math.floor(double), values in [-10,10], took 0.172 s
+Loop on FastMath.floor(float), values in [-10,10], took 0.097 s... max delta: 0.0
+Loop on    Math.floor(double), values in [-1000000.0,1000000.0], took 0.153 s
+Loop on FastMath.floor(float), values in [-1000000.0,1000000.0], took 0.09 s... max delta: 0.0
+Loop on    Math.floor(double), values in [-2.0E7,2.0E7], took 0.12 s
+Loop on FastMath.floor(float), values in [-2.0E7,2.0E7], took 0.112 s... max delta: 0.0
+Loop on    Math.floor(double), values near integers, took 0.076 s
+Loop on FastMath.floor(float), values near integers, took 0.044 s... max delta: 0.0
+Loop on    Math.floor(double), values of all magnitudes, took 0.165 s
+Loop on FastMath.floor(float), values of all magnitudes, took 0.098 s... max delta: 0.0
+Result differences for special values:... none.
+
+--- testing round(double) ---
+Loop on     Math.round(double), values in [-10,10], took 0.153 s
+Loop on FastMath.round(double), values in [-10,10], took 0.085 s... max delta: 0
+Loop on     Math.round(double), values in [-1000000.0,1000000.0], took 0.13 s
+Loop on FastMath.round(double), values in [-1000000.0,1000000.0], took 0.085 s... max delta: 0
+Loop on     Math.round(double), values in [-1.0E16,1.0E16], took 0.144 s
+Loop on FastMath.round(double), values in [-1.0E16,1.0E16], took 0.137 s... max delta: 0
+Loop on     Math.round(double), values of all magnitudes, took 0.144 s
+Loop on FastMath.round(double), values of all magnitudes, took 0.111 s... max delta: 0
+Result differences for special values:... none.
+
+--- testing round(float) ---
+Loop on     Math.round(float), values in [-10,10], took 0.189 s
+Loop on FastMath.round(float), values in [-10,10], took 0.119 s... max delta: 0
+Loop on     Math.round(float), values in [-1000000.0,1000000.0], took 0.164 s
+Loop on FastMath.round(float), values in [-1000000.0,1000000.0], took 0.107 s... max delta: 0
+Loop on     Math.round(float), values in [-2.0E7,2.0E7], took 0.162 s
+Loop on FastMath.round(float), values in [-2.0E7,2.0E7], took 0.128 s... max delta: 0
+Loop on     Math.round(float), values of all magnitudes, took 0.185 s
+Loop on FastMath.round(float), values of all magnitudes, took 0.126 s... max delta: 0
+Result differences for special values:... none.
+
+--- testing hypot(double,double) ---
+Loop on     Math.hypot(double,double), values in [-1e308,1e308] (magnitudes varying together), took 7.134 s
+Loop on FastMath.hypot(double,double), values in [-1e308,1e308] (magnitudes varying together), took 0.153 s... max delta (relative): 2.2203970738935906E-16
+Loop on     Math.hypot(double,double), values of all magnitudes, took 0.639 s
+Loop on FastMath.hypot(double,double), values of all magnitudes, took 0.103 s... max delta (relative): 2.2184828586058743E-16
+Result differences for special values:... none.
+
+--- testing plusNoModulo(int,int) ---
+Loop on plusNoModulo(int,int), values of all magnitudes, took 0.038 s... results ok.
+Testing special values:... ok.
+
+--- testing plusNoModuloSafe(int,int) ---
+Loop on     plusNoModuloSafe(int,int), values in safe range, took 0.078 s
+Loop on plusNoModuloSafe(int,int), values of all magnitudes, took 0.103 s... results ok.
+Testing special values:... ok.
+
+--- testing plusNoModulo(long,long) ---
+Loop on plusNoModulo(long,long), values of all magnitudes, took 0.08 s
+
+--- testing plusNoModuloSafe(long,long) ---
+Loop on     plusNoModuloSafe(long,long), values in safe range, took 0.088 s
+Loop on plusNoModuloSafe(long,long), values of all magnitudes, took 0.09 s
+
+--- testing minusNoModulo(int,int) ---
+Loop on plusNoModulo(int,int), values of all magnitudes, took 0.042 s... results ok.
+Testing special values:... ok.
+
+--- testing minusNoModuloSafe(int,int) ---
+Loop on     minusNoModuloSafe(int,int), values in safe range, took 0.078 s
+Loop on minusNoModuloSafe(int,int), values of all magnitudes, took 0.089 s... results ok.
+Testing special values:... ok.
+
+--- testing minusNoModulo(long,long) ---
+Loop on minusNoModulo(long,long), values of all magnitudes, took 0.086 s
+
+--- testing minusNoModuloSafe(long,long) ---
+Loop on     minusNoModuloSafe(long,long), values in safe range, took 0.091 s
+Loop on minusNoModuloSafe(long,long), values of all magnitudes, took 0.079 s
+
+--- testing timesNoModulo(int,int) ---
+Loop on timesNoModulo(int,int), values of all magnitudes, took 0.071 s... results ok.
+Testing special values:... ok.
+
+--- testing timesNoModuloSafe(int,int) ---
+Loop on     timesNoModuloSafe(int,int), values in safe range, took 0.068 s
+Loop on timesNoModuloSafe(int,int), values of all magnitudes, took 0.938 s... results ok.
+Testing special values:... ok.
+
+--- testing timesNoModulo(long,long) ---
+Loop on timesNoModulo(long,long), values of all magnitudes, took 0.141 s
+
+--- testing timesNoModuloSafe(long,long) ---
+Loop on     timesNoModuloSafe(long,long), values in safe range, took 0.114 s
+Loop on timesNoModuloSafe(long,long), values of all magnitudes, took 1.21 s
+
+--- TestFastMath --- done ---
