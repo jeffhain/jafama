@@ -1,5 +1,105 @@
 ################################################################################
-Jafama 1.2, 2011/03/19, oma
+Jafama 2.0, 2013/02/20
+
+Changes since version 1.2:
+- Changed license from GNU LGPL V3 to Apache V2.
+- Is now Java 5 compatible (but some unit tests require Java 6).
+- Renamed package from odk.lang into net.jafama.
+- Renamed properties from odk.fastmath.xxx into jafama.xxx.
+- To match upcoming JDK8's new Math methods, renamed:
+  - toIntSafe into toIntExact (and asInt in NumbersUtils)
+  - plusNoModulo into addBounded (and plusBounded in NumbersUtils)
+  - plusNoModuloSafe into addExact (and plusExact in NumbersUtils)
+  - minusNoModulo into subtractBounded (and minusBounded in NumbersUtils)
+  - minusNoModuloSafe into subtractExact (and minusExact in NumbersUtils)
+  - timesNoModulo into multiplyBounded (and timesBounded in NumbersUtils)
+  - timesNoModuloSafe into multiplyExact (and timesExact in NumbersUtils)
+- Corrected Javadoc (accuracy claims) for some xxxQuick methods.
+- Removed usage of strictfp, which can cause an overhead.
+  As a result, behavior might change depending on architecture,
+  as well as dynamically due to JIT (ex.: pow2(double)).
+- Minor typos, refactorings and doc enhancements.
+- NumbersUtils:
+  - Renamed mask methods, such as leftBit0LongMask into longMaskMSBits0.
+  - Added methods:
+    - isMathematicalInteger(float)
+    - isMathematicalInteger(double)
+    - isEquidistant(float)
+    - isEquidistant(double)
+    - isNaNOrInfinite(float)
+  - Upgraded some implementations.
+- FastMath:
+  - In spec., added warning about possible FastMath slowness and
+    initialization overhead.
+  - FastMath now only depends on Java 5, and therefore, when delegating to
+    Math, only does so for Math methods that exist in Java 5 and have the
+    same semantics (except for accuracy).
+  - Modified some treatments for JVM crash after JIT-optimization to
+    (hopefully) not occur (crashes observed with Java 6u29, with which
+    workarounds were tested).
+  - Removed usage of StrictMath, and related property, which is allowed due
+    to spec. relaxation by strictfp removal, to make things both simpler,
+    and possibly faster.
+    As a result, for FastMath.log(double), we now use Math.log(double) by
+    default instead of our redefined method, which was used before due to
+    StrictMath.log(double) being possibly very slow. This makes log10(double),
+    log1p(double), logQuick(double), pow(double,double) and
+    powQuick(double,double) more accurate.
+  - Changed sinAndCos(double,DoubleWrapper,DoubleWrapper) into
+    sinAndCos(double,DoubleWrapper), and
+    sinhAndCosh(double,DoubleWrapper,DoubleWrapper) into
+    sinhAndCosh(double,DoubleWrapper).
+  - exp(double) is now more accurate (removed special handling for subnormals,
+    which is useless with proper multiplications order).
+    This makes hyperbolic trigonometry functions, expm1(double),
+    pow(double,double) and powQuick(double,double) more accurate.
+  - round(float) and round(double) now no longer follow Math class, which
+    spec. and behavior changed over time, but just round-up properly.
+  - For asinInRange and acosInRange, replaced < and > with <= and >=,
+    for quick return in case input is a bound.
+  - Removed internal usage of look-up table to compute double powers of two,
+    for it doesn't speed things up much, and to avoid possible cache-misses
+    for methods that are now table-free.
+  - Added methods:
+    - coshm1(double)
+    - asinh(double)
+    - acosh(double)
+    - acosh1p(double)
+    - atanh(double)
+    - log10(double)
+    - sqrtQuick(double)
+    - invSqrtQuick(double)
+    - roundEven(float)
+    - roundEven(double)
+    - rint(float)
+    - rint(double)
+    - abs(long)
+    - floorDiv(int,int)
+    - floorDiv(long,long)
+    - floorMod(int,int)
+    - floorMod(long,long)
+    - isNaNOrInfinite(float)
+    - signum(float)
+    - signum(double)
+    - signFromBit(float)
+    - signFromBit(double)
+    - copySign(float,float)
+    - copySign(double,double)
+    - ulp(float)
+    - ulp(double)
+    - nextAfter(float,double)
+    - nextAfter(double,double)
+    - nextDown(float)
+    - nextDown(double)
+    - nextUp(float)
+    - nextUp(double)
+    - scalb(float,int)
+    - scalb(double,int)
+  - Separated accuracy/correctness tests from benches, and
+    improved/simplified both.
+
+################################################################################
+Jafama 1.2, 2011/03/19
 
 Changes since version 1.1:
 - Now using StrictMath to compute constants and look-up tables, to ensure
@@ -27,7 +127,7 @@ Changes since version 1.1:
   optimized away (has not been observed, but might have been with some JVMs).
 
 ################################################################################
-Jafama 1.1, 2009/12/05, oma
+Jafama 1.1, 2009/12/05
 
 Changes since version 1.0:
 - for asin pow tabs, use of powFast(double,int) instead of pow(double,double),
@@ -35,7 +135,7 @@ Changes since version 1.0:
 - changed random numbers computation for tests.
 
 ################################################################################
-Jafama 1.0, 2009/07/25, oma
+Jafama 1.0, 2009/07/25
 
 - Placed under the GNU Lesser General Public License, version 3.
 
