@@ -26,11 +26,17 @@ public class NumbersUtilsPerf {
     private static final int NBR_OF_RUNS = 2;
     
     private static final int NBR_OF_CALLS = 10 * 1000 * 1000;
-    
+
+    private static final int NBR_OF_VALUES = NumbersUtils.floorPowerOfTwo(10 * 1000);
+
     //--------------------------------------------------------------------------
     // PRIVATE CLASSES
     //--------------------------------------------------------------------------
 
+    /**
+     * To bench toStringXXX methods on ints or longs.
+     * Provides length to avoid code being optimized away.
+     */
     private interface InterfaceToStringLengthProvider {
         public int toStringLength(int value);
     }
@@ -78,7 +84,7 @@ public class NumbersUtilsPerf {
         public MyTSLP_toStringBits_byte() {
             super("byte");
         }
-        @Override
+        //@Override
         public int toStringLength(int bits) {
             return NumbersUtils.toStringBits((byte)bits).length();
         }
@@ -88,7 +94,7 @@ public class NumbersUtilsPerf {
         public MyTSLP_toStringBits_short() {
             super("short");
         }
-        @Override
+        //@Override
         public int toStringLength(int bits) {
             return NumbersUtils.toStringBits((short)bits).length();
         }
@@ -98,7 +104,7 @@ public class NumbersUtilsPerf {
         public MyTSLP_toStringBits_int() {
             super("int");
         }
-        @Override
+        //@Override
         public int toStringLength(int bits) {
             return NumbersUtils.toStringBits(bits).length();
         }
@@ -108,7 +114,7 @@ public class NumbersUtilsPerf {
         public MyTSLP_toStringBits_long() {
             super("long");
         }
-        @Override
+        //@Override
         public int toStringLength(int bits) {
             return NumbersUtils.toStringBits((long)bits).length();
         }
@@ -122,7 +128,7 @@ public class NumbersUtilsPerf {
         public MyTSLP_toStringBits_byte_2int_2boolean(int first, int lastExcl, boolean bigEndian, boolean padding) {
             super("byte",first, lastExcl, bigEndian, padding);
         }
-        @Override
+        //@Override
         public int toStringLength(int bits) {
             return NumbersUtils.toStringBits((byte)bits,first,lastExcl,bigEndian,padding).length();
         }
@@ -132,7 +138,7 @@ public class NumbersUtilsPerf {
         public MyTSLP_toStringBits_short_2int_2boolean(int first, int lastExcl, boolean bigEndian, boolean padding) {
             super("short",first, lastExcl, bigEndian, padding);
         }
-        @Override
+        //@Override
         public int toStringLength(int bits) {
             return NumbersUtils.toStringBits((short)bits,first,lastExcl,bigEndian,padding).length();
         }
@@ -142,7 +148,7 @@ public class NumbersUtilsPerf {
         public MyTSLP_toStringBits_int_2int_2boolean(int first, int lastExcl, boolean bigEndian, boolean padding) {
             super("int",first, lastExcl, bigEndian, padding);
         }
-        @Override
+        //@Override
         public int toStringLength(int bits) {
             return NumbersUtils.toStringBits(bits,first,lastExcl,bigEndian,padding).length();
         }
@@ -152,12 +158,12 @@ public class NumbersUtilsPerf {
         public MyTSLP_toStringBits_long_2int_2boolean(int first, int lastExcl, boolean bigEndian, boolean padding) {
             super("long",first, lastExcl, bigEndian, padding);
         }
-        @Override
+        //@Override
         public int toStringLength(int bits) {
             return NumbersUtils.toStringBits((long)bits,first,lastExcl,bigEndian,padding).length();
         }
     }
-    
+
     //--------------------------------------------------------------------------
     // PUBLIC METHODS
     //--------------------------------------------------------------------------
@@ -182,7 +188,7 @@ public class NumbersUtilsPerf {
         // XXX
         System.out.println("--- "+NumbersUtilsPerf.class.getSimpleName()+"... ---");
         System.out.println("number of calls = "+NBR_OF_CALLS);
-
+        
         bench_isMathematicalInteger_float();
         
         bench_isMathematicalInteger_double();
@@ -190,6 +196,14 @@ public class NumbersUtilsPerf {
         bench_isEquidistant_float();
 
         bench_isEquidistant_double();
+        
+        bench_floorPowerOfTwo_int();
+
+        bench_floorPowerOfTwo_long();
+
+        bench_ceilingPowerOfTwo_int();
+
+        bench_ceilingPowerOfTwo_long();
 
         bench_toString_int_int();
 
@@ -211,6 +225,10 @@ public class NumbersUtilsPerf {
         
         bench_toStringBits_long_2int_2boolean();
 
+        bench_toStringCSN_double();
+
+        bench_toStringNoCSN_double();
+
         System.out.println("--- ..."+NumbersUtilsPerf.class.getSimpleName()+" ---");
     }
     
@@ -219,47 +237,40 @@ public class NumbersUtilsPerf {
      */
     
     private void bench_isMathematicalInteger_float() {
-        final int nbrOfRuns = NBR_OF_RUNS;
-        final int nbrOfCalls = NBR_OF_CALLS;
-
         final Random random = new Random(123456789L);
         
-        System.out.println("");
+        System.out.println();
         
         int dummy = Integer.MIN_VALUE;
 
         {
-            final int n = Integer.highestOneBit(NBR_OF_CALLS);
-            final int mask = n-1;
-            final float[] values = new float[n];
-            for (int i=0;i<n;i++) {
+            final float[] values = new float[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
                 values[i] = (1-2*random.nextFloat()) * 100.0f;
             }
-            for (int k=0;k<nbrOfRuns;k++) {
+            for (int k=0;k<NBR_OF_RUNS;k++) {
                 long a = System.nanoTime();
-                for (int i=0;i<nbrOfCalls;i++) {
-                    dummy += NumbersUtils.isMathematicalInteger(values[i&mask]) ? 1 : -1;
+                for (int i=0;i<NBR_OF_CALLS;i++) {
+                    dummy += NumbersUtils.isMathematicalInteger(values[i&(NBR_OF_VALUES-1)]) ? 1 : -1;
                 }
                 long b = System.nanoTime();
-                System.out.println("NumbersUtils.isMathematicalInteger(float), values in [-100,100], took "+TestUtils.nsToSRounded(b-a)+" s");
+                System.out.println("Loop on NumbersUtils.isMathematicalInteger(float), values in [-100,100], took "+TestUtils.nsToSRounded(b-a)+" s");
             }
         }
 
         {
-            final int n = Integer.highestOneBit(NBR_OF_CALLS);
-            final int mask = n-1;
-            final float[] values = new float[n];
-            for (int i=0;i<n;i++) {
+            final float[] values = new float[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
                 // possibly NaN or +-Infinity
                 values[i] = Float.intBitsToFloat(random.nextInt());
             }
-            for (int k=0;k<nbrOfRuns;k++) {
+            for (int k=0;k<NBR_OF_RUNS;k++) {
                 long a = System.nanoTime();
-                for (int i=0;i<nbrOfCalls;i++) {
-                    dummy += NumbersUtils.isMathematicalInteger(values[i&mask]) ? 1 : -1;
+                for (int i=0;i<NBR_OF_CALLS;i++) {
+                    dummy += NumbersUtils.isMathematicalInteger(values[i&(NBR_OF_VALUES-1)]) ? 1 : -1;
                 }
                 long b = System.nanoTime();
-                System.out.println("NumbersUtils.isMathematicalInteger(float), values all magnitudes, took "+TestUtils.nsToSRounded(b-a)+" s");
+                System.out.println("Loop on NumbersUtils.isMathematicalInteger(float), values of all magnitudes, took "+TestUtils.nsToSRounded(b-a)+" s");
             }
         }
 
@@ -269,47 +280,40 @@ public class NumbersUtilsPerf {
     }
     
     private void bench_isMathematicalInteger_double() {
-        final int nbrOfRuns = NBR_OF_RUNS;
-        final int nbrOfCalls = NBR_OF_CALLS;
-
         final Random random = new Random(123456789L);
         
-        System.out.println("");
+        System.out.println();
         
         int dummy = Integer.MIN_VALUE;
 
         {
-            final int n = Integer.highestOneBit(NBR_OF_CALLS);
-            final int mask = n-1;
-            final double[] values = new double[n];
-            for (int i=0;i<n;i++) {
+            final double[] values = new double[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
                 values[i] = (1-2*random.nextDouble()) * 100.0;
             }
-            for (int k=0;k<nbrOfRuns;k++) {
+            for (int k=0;k<NBR_OF_RUNS;k++) {
                 long a = System.nanoTime();
-                for (int i=0;i<nbrOfCalls;i++) {
-                    dummy += NumbersUtils.isMathematicalInteger(values[i&mask]) ? 1 : -1;
+                for (int i=0;i<NBR_OF_CALLS;i++) {
+                    dummy += NumbersUtils.isMathematicalInteger(values[i&(NBR_OF_VALUES-1)]) ? 1 : -1;
                 }
                 long b = System.nanoTime();
-                System.out.println("NumbersUtils.isMathematicalInteger(double), values in [-100,100], took "+TestUtils.nsToSRounded(b-a)+" s");
+                System.out.println("Loop on NumbersUtils.isMathematicalInteger(double), values in [-100,100], took "+TestUtils.nsToSRounded(b-a)+" s");
             }
         }
 
         {
-            final int n = Integer.highestOneBit(NBR_OF_CALLS);
-            final int mask = n-1;
-            final double[] values = new double[n];
-            for (int i=0;i<n;i++) {
+            final double[] values = new double[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
                 // possibly NaN or +-Infinity
                 values[i] = Double.longBitsToDouble(random.nextLong());
             }
-            for (int k=0;k<nbrOfRuns;k++) {
+            for (int k=0;k<NBR_OF_RUNS;k++) {
                 long a = System.nanoTime();
-                for (int i=0;i<nbrOfCalls;i++) {
-                    dummy += NumbersUtils.isMathematicalInteger(values[i&mask]) ? 1 : -1;
+                for (int i=0;i<NBR_OF_CALLS;i++) {
+                    dummy += NumbersUtils.isMathematicalInteger(values[i&(NBR_OF_VALUES-1)]) ? 1 : -1;
                 }
                 long b = System.nanoTime();
-                System.out.println("NumbersUtils.isMathematicalInteger(double), values all magnitudes, took "+TestUtils.nsToSRounded(b-a)+" s");
+                System.out.println("Loop on NumbersUtils.isMathematicalInteger(double), values of all magnitudes, took "+TestUtils.nsToSRounded(b-a)+" s");
             }
         }
 
@@ -319,47 +323,40 @@ public class NumbersUtilsPerf {
     }
     
     private void bench_isEquidistant_float() {
-        final int nbrOfRuns = NBR_OF_RUNS;
-        final int nbrOfCalls = NBR_OF_CALLS;
-
         final Random random = new Random(123456789L);
         
-        System.out.println("");
+        System.out.println();
         
         int dummy = Integer.MIN_VALUE;
 
         {
-            final int n = Integer.highestOneBit(NBR_OF_CALLS);
-            final int mask = n-1;
-            final float[] values = new float[n];
-            for (int i=0;i<n;i++) {
+            final float[] values = new float[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
                 values[i] = (1-2*random.nextFloat()) * 100.0f;
             }
-            for (int k=0;k<nbrOfRuns;k++) {
+            for (int k=0;k<NBR_OF_RUNS;k++) {
                 long a = System.nanoTime();
-                for (int i=0;i<nbrOfCalls;i++) {
-                    dummy += NumbersUtils.isEquidistant(values[i&mask]) ? 1 : -1;
+                for (int i=0;i<NBR_OF_CALLS;i++) {
+                    dummy += NumbersUtils.isEquidistant(values[i&(NBR_OF_VALUES-1)]) ? 1 : -1;
                 }
                 long b = System.nanoTime();
-                System.out.println("NumbersUtils.isEquidistant(float), values in [-100,100], took "+TestUtils.nsToSRounded(b-a)+" s");
+                System.out.println("Loop on NumbersUtils.isEquidistant(float), values in [-100,100], took "+TestUtils.nsToSRounded(b-a)+" s");
             }
         }
 
         {
-            final int n = Integer.highestOneBit(NBR_OF_CALLS);
-            final int mask = n-1;
-            final float[] values = new float[n];
-            for (int i=0;i<n;i++) {
+            final float[] values = new float[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
                 // possibly NaN or +-Infinity
                 values[i] = Float.intBitsToFloat(random.nextInt());
             }
-            for (int k=0;k<nbrOfRuns;k++) {
+            for (int k=0;k<NBR_OF_RUNS;k++) {
                 long a = System.nanoTime();
-                for (int i=0;i<nbrOfCalls;i++) {
-                    dummy += NumbersUtils.isEquidistant(values[i&mask]) ? 1 : -1;
+                for (int i=0;i<NBR_OF_CALLS;i++) {
+                    dummy += NumbersUtils.isEquidistant(values[i&(NBR_OF_VALUES-1)]) ? 1 : -1;
                 }
                 long b = System.nanoTime();
-                System.out.println("NumbersUtils.isEquidistant(float), values all magnitudes, took "+TestUtils.nsToSRounded(b-a)+" s");
+                System.out.println("Loop on NumbersUtils.isEquidistant(float), values of all magnitudes, took "+TestUtils.nsToSRounded(b-a)+" s");
             }
         }
 
@@ -369,47 +366,40 @@ public class NumbersUtilsPerf {
     }
 
     private void bench_isEquidistant_double() {
-        final int nbrOfRuns = NBR_OF_RUNS;
-        final int nbrOfCalls = NBR_OF_CALLS;
-
         final Random random = new Random(123456789L);
         
-        System.out.println("");
+        System.out.println();
         
         int dummy = Integer.MIN_VALUE;
 
         {
-            final int n = Integer.highestOneBit(NBR_OF_CALLS);
-            final int mask = n-1;
-            final double[] values = new double[n];
-            for (int i=0;i<n;i++) {
+            final double[] values = new double[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
                 values[i] = (1-2*random.nextDouble()) * 100.0;
             }
-            for (int k=0;k<nbrOfRuns;k++) {
+            for (int k=0;k<NBR_OF_RUNS;k++) {
                 long a = System.nanoTime();
-                for (int i=0;i<nbrOfCalls;i++) {
-                    dummy += NumbersUtils.isEquidistant(values[i&mask]) ? 1 : -1;
+                for (int i=0;i<NBR_OF_CALLS;i++) {
+                    dummy += NumbersUtils.isEquidistant(values[i&(NBR_OF_VALUES-1)]) ? 1 : -1;
                 }
                 long b = System.nanoTime();
-                System.out.println("NumbersUtils.isEquidistant(double), values in [-100,100], took "+TestUtils.nsToSRounded(b-a)+" s");
+                System.out.println("Loop on NumbersUtils.isEquidistant(double), values in [-100,100], took "+TestUtils.nsToSRounded(b-a)+" s");
             }
         }
 
         {
-            final int n = Integer.highestOneBit(NBR_OF_CALLS);
-            final int mask = n-1;
-            final double[] values = new double[n];
-            for (int i=0;i<n;i++) {
+            final double[] values = new double[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
                 // possibly NaN or +-Infinity
                 values[i] = Double.longBitsToDouble(random.nextLong());
             }
-            for (int k=0;k<nbrOfRuns;k++) {
+            for (int k=0;k<NBR_OF_RUNS;k++) {
                 long a = System.nanoTime();
-                for (int i=0;i<nbrOfCalls;i++) {
-                    dummy += NumbersUtils.isEquidistant(values[i&mask]) ? 1 : -1;
+                for (int i=0;i<NBR_OF_CALLS;i++) {
+                    dummy += NumbersUtils.isEquidistant(values[i&(NBR_OF_VALUES-1)]) ? 1 : -1;
                 }
                 long b = System.nanoTime();
-                System.out.println("NumbersUtils.isEquidistant(double), values all magnitudes, took "+TestUtils.nsToSRounded(b-a)+" s");
+                System.out.println("Loop on NumbersUtils.isEquidistant(double), values of all magnitudes, took "+TestUtils.nsToSRounded(b-a)+" s");
             }
         }
 
@@ -421,22 +411,131 @@ public class NumbersUtilsPerf {
     /*
      * 
      */
+
+    private void bench_floorPowerOfTwo_int() {
+        final Random random = new Random(123456789L);
+        
+        System.out.println();
+        
+        int dummy = Integer.MIN_VALUE;
+
+        {
+            final int[] values = new int[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
+                values[i] = (int)(1.0 + random.nextDouble() * Integer.MAX_VALUE);
+            }
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS;i++) {
+                    dummy += NumbersUtils.floorPowerOfTwo(values[i&(NBR_OF_VALUES-1)]);
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop on NumbersUtils.floorPowerOfTwo(int) took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+        }
+
+        if (dummy == 0) {
+            System.out.println("rare");
+        }
+    }
+
+    private void bench_floorPowerOfTwo_long() {
+        final Random random = new Random(123456789L);
+        
+        System.out.println();
+        
+        long dummy = Integer.MIN_VALUE;
+
+        {
+            final long[] values = new long[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
+                values[i] = (long)(1.0 + random.nextDouble() * Long.MAX_VALUE);
+            }
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS;i++) {
+                    dummy += NumbersUtils.floorPowerOfTwo(values[i&(NBR_OF_VALUES-1)]);
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop on NumbersUtils.floorPowerOfTwo(long) took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+        }
+
+        if (dummy == 0) {
+            System.out.println("rare");
+        }
+    }
+    
+    private void bench_ceilingPowerOfTwo_int() {
+        final Random random = new Random(123456789L);
+        
+        System.out.println();
+        
+        int dummy = Integer.MIN_VALUE;
+
+        {
+            final int[] values = new int[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
+                values[i] = (int)(random.nextDouble() * (1<<30));
+            }
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS;i++) {
+                    dummy += NumbersUtils.ceilingPowerOfTwo(values[i&(NBR_OF_VALUES-1)]);
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop on NumbersUtils.ceilingPowerOfTwo(int) took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+        }
+
+        if (dummy == 0) {
+            System.out.println("rare");
+        }
+    }
+
+    private void bench_ceilingPowerOfTwo_long() {
+        final Random random = new Random(123456789L);
+        
+        System.out.println();
+        
+        long dummy = Integer.MIN_VALUE;
+
+        {
+            final long[] values = new long[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
+                values[i] = (long)(random.nextDouble() * (1L<<62));
+            }
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS;i++) {
+                    dummy += NumbersUtils.ceilingPowerOfTwo(values[i&(NBR_OF_VALUES-1)]);
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop on NumbersUtils.ceilingPowerOfTwo(long) took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+        }
+
+        if (dummy == 0) {
+            System.out.println("rare");
+        }
+    }
+
+    /*
+     * 
+     */
     
     private static void bench(InterfaceToStringLengthProvider provider) {
-        final int nbrOfRuns = NBR_OF_RUNS;
-        final int nbrOfCalls = NBR_OF_CALLS;
-
         final String header = "Loop on ";
         
         int dummy = 0;
 
-        for (int k=0;k<nbrOfRuns;k++) {
+        for (int k=0;k<NBR_OF_RUNS;k++) {
             long a = System.nanoTime();
-            for (int i=0;i<nbrOfCalls;i++) {
+            for (int i=0;i<NBR_OF_CALLS;i++) {
                 dummy += provider.toStringLength(i);
             }
             long b = System.nanoTime();
-            System.out.println(header+provider.toString()+" took "+TestUtils.nsToSRounded(b-a)+" s");
+            System.out.println(header+provider+" took "+TestUtils.nsToSRounded(b-a)+" s");
         }
 
         if (dummy == 0) {
@@ -449,29 +548,26 @@ public class NumbersUtilsPerf {
      */
 
     private void bench_toString_int_int() {
-        final int nbrOfRuns = NBR_OF_RUNS;
-        final int nbrOfCalls = NBR_OF_CALLS;
-        
         final String header = "Loop on ";
 
         for (int radix : new int[]{2,10,11,16}) {
             int dummy = 0;
 
-            System.out.println("");
+            System.out.println();
             System.out.println("radix = "+radix);
 
-            for (int k=0;k<nbrOfRuns;k++) {
+            for (int k=0;k<NBR_OF_RUNS;k++) {
                 long a = System.nanoTime();
-                for (int i=0;i<nbrOfCalls;i++) {
+                for (int i=0;i<NBR_OF_CALLS;i++) {
                     dummy += Integer.toString(i, radix).length();
                 }
                 long b = System.nanoTime();
                 System.out.println(header+"Integer.toString(int,int) took "+TestUtils.nsToSRounded(b-a)+" s");
             }
 
-            for (int k=0;k<nbrOfRuns;k++) {
+            for (int k=0;k<NBR_OF_RUNS;k++) {
                 long a = System.nanoTime();
-                for (int i=0;i<nbrOfCalls;i++) {
+                for (int i=0;i<NBR_OF_CALLS;i++) {
                     dummy += NumbersUtils.toString(i, radix).length();
                 }
                 long b = System.nanoTime();
@@ -485,29 +581,26 @@ public class NumbersUtilsPerf {
     }
 
     private void bench_toString_long_int() {
-        final int nbrOfRuns = NBR_OF_RUNS;
-        final int nbrOfCalls = NBR_OF_CALLS;
-
         final String header = "Loop on ";
 
         for (int radix : new int[]{2,10,11,16}) {
             int dummy = 0;
 
-            System.out.println("");
+            System.out.println();
             System.out.println("radix = "+radix);
 
-            for (int k=0;k<nbrOfRuns;k++) {
+            for (int k=0;k<NBR_OF_RUNS;k++) {
                 long a = System.nanoTime();
-                for (int i=0;i<nbrOfCalls;i++) {
+                for (int i=0;i<NBR_OF_CALLS;i++) {
                     dummy += Long.toString((long)i, radix).length();
                 }
                 long b = System.nanoTime();
                 System.out.println(header+"Long.toString(long,int) took "+TestUtils.nsToSRounded(b-a)+" s");
             }
 
-            for (int k=0;k<nbrOfRuns;k++) {
+            for (int k=0;k<NBR_OF_RUNS;k++) {
                 long a = System.nanoTime();
-                for (int i=0;i<nbrOfCalls;i++) {
+                for (int i=0;i<NBR_OF_CALLS;i++) {
                     dummy += NumbersUtils.toString((long)i, radix).length();
                 }
                 long b = System.nanoTime();
@@ -521,50 +614,256 @@ public class NumbersUtilsPerf {
     }
 
     private void bench_toStringBits_byte() {
-        System.out.println("");
+        System.out.println();
         bench(new MyTSLP_toStringBits_byte());
     }
 
     private void bench_toStringBits_short() {
-        System.out.println("");
+        System.out.println();
         bench(new MyTSLP_toStringBits_short());
     }
 
     private void bench_toStringBits_int() {
-        System.out.println("");
+        System.out.println();
         bench(new MyTSLP_toStringBits_int());
     }
 
     private void bench_toStringBits_long() {
-        System.out.println("");
+        System.out.println();
         bench(new MyTSLP_toStringBits_long());
     }
     
     private void bench_toStringBits_byte_2int_2boolean() {
-        System.out.println("");
+        System.out.println();
         bench(new MyTSLP_toStringBits_byte_2int_2boolean(0,6,true,false));
         bench(new MyTSLP_toStringBits_byte_2int_2boolean(2,6,true,true));
         bench(new MyTSLP_toStringBits_byte_2int_2boolean(2,6,true,false));
     }
     
     private void bench_toStringBits_short_2int_2boolean() {
-        System.out.println("");
+        System.out.println();
         bench(new MyTSLP_toStringBits_short_2int_2boolean(0,14,true,false));
         bench(new MyTSLP_toStringBits_short_2int_2boolean(2,14,true,true));
         bench(new MyTSLP_toStringBits_short_2int_2boolean(2,14,true,false));
     }
     
     private void bench_toStringBits_int_2int_2boolean() {
-        System.out.println("");
+        System.out.println();
         bench(new MyTSLP_toStringBits_int_2int_2boolean(0,30,true,false));
         bench(new MyTSLP_toStringBits_int_2int_2boolean(2,30,true,true));
         bench(new MyTSLP_toStringBits_int_2int_2boolean(2,30,true,false));
     }
     
     private void bench_toStringBits_long_2int_2boolean() {
-        System.out.println("");
+        System.out.println();
         bench(new MyTSLP_toStringBits_long_2int_2boolean(0,62,true,false));
         bench(new MyTSLP_toStringBits_long_2int_2boolean(2,62,true,true));
         bench(new MyTSLP_toStringBits_long_2int_2boolean(2,62,true,false));
+    }
+    
+    /*
+     * 
+     */
+    
+    private void bench_toStringCSN_double() {
+        final Random random = new Random(123456789L);
+        
+        System.out.println();
+        
+        int dummy = Integer.MIN_VALUE;
+
+        /*
+         * 
+         */
+        
+        {
+            final double[] values = new double[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
+                values[i] = (random.nextInt()>>random.nextInt(32));
+            }
+
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS/100;i++) {
+                    dummy += Double.toString(values[i&(NBR_OF_VALUES-1)]).length();
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop(/100) on          Double.toString(double), values integers in int range, took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS/100;i++) {
+                    dummy += NumbersUtils.toStringCSN(values[i&(NBR_OF_VALUES-1)]).length();
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop(/100) on NumbersUtils.toStringCSN(double), values integers in int range, took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+        }
+
+        /*
+         * 
+         */
+        
+        {
+            final double[] values = new double[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
+                values[i] = (1.0 - 2.0 * random.nextDouble()) * 1E20;
+            }
+
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS/100;i++) {
+                    dummy += Double.toString(values[i&(NBR_OF_VALUES-1)]).length();
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop(/100) on          Double.toString(double), values in [-1E20,1E20], took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS/100;i++) {
+                    dummy += NumbersUtils.toStringCSN(values[i&(NBR_OF_VALUES-1)]).length();
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop(/100) on NumbersUtils.toStringCSN(double), values in [-1E20,1E20], took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+        }
+        
+        /*
+         * 
+         */
+        
+        {
+            final double[] values = new double[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
+                values[i] = Double.longBitsToDouble(random.nextLong());
+            }
+
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS/100;i++) {
+                    dummy += Double.toString(values[i&(NBR_OF_VALUES-1)]).length();
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop(/100) on          Double.toString(double), values of all magnitudes, took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS/100;i++) {
+                    dummy += NumbersUtils.toStringCSN(values[i&(NBR_OF_VALUES-1)]).length();
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop(/100) on NumbersUtils.toStringCSN(double), values of all magnitudes, took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+        }
+        
+        /*
+         * 
+         */
+
+        if (dummy == 0) {
+            System.out.println("rare");
+        }
+    }
+    
+    private void bench_toStringNoCSN_double() {
+        final Random random = new Random(123456789L);
+        
+        System.out.println();
+        
+        int dummy = Integer.MIN_VALUE;
+
+        /*
+         * 
+         */
+        
+        {
+            final double[] values = new double[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
+                values[i] = (random.nextInt()>>random.nextInt(32));
+            }
+
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS/100;i++) {
+                    dummy += Double.toString(values[i&(NBR_OF_VALUES-1)]).length();
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop(/100) on            Double.toString(double), values integers in int range, took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS/100;i++) {
+                    dummy += NumbersUtils.toStringNoCSN(values[i&(NBR_OF_VALUES-1)]).length();
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop(/100) on NumbersUtils.toStringNoCSN(double), values integers in int range, took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+        }
+
+        /*
+         * 
+         */
+        
+        {
+            final double[] values = new double[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
+                values[i] = (1.0 - 2.0 * random.nextDouble()) * 1E20;
+            }
+
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS/100;i++) {
+                    dummy += Double.toString(values[i&(NBR_OF_VALUES-1)]).length();
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop(/100) on            Double.toString(double), values in [-1E20,1E20], took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS/100;i++) {
+                    dummy += NumbersUtils.toStringNoCSN(values[i&(NBR_OF_VALUES-1)]).length();
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop(/100) on NumbersUtils.toStringNoCSN(double), values in [-1E20,1E20], took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+        }
+        
+        /*
+         * 
+         */
+
+        {
+            final double[] values = new double[NBR_OF_VALUES];
+            for (int i=0;i<NBR_OF_VALUES;i++) {
+                values[i] = Double.longBitsToDouble(random.nextLong());
+            }
+
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS/100;i++) {
+                    dummy += Double.toString(values[i&(NBR_OF_VALUES-1)]).length();
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop(/100) on            Double.toString(double), values of all magnitudes, took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+
+            for (int k=0;k<NBR_OF_RUNS;k++) {
+                long a = System.nanoTime();
+                for (int i=0;i<NBR_OF_CALLS/100;i++) {
+                    dummy += NumbersUtils.toStringNoCSN(values[i&(NBR_OF_VALUES-1)]).length();
+                }
+                long b = System.nanoTime();
+                System.out.println("Loop(/100) on NumbersUtils.toStringNoCSN(double), values of all magnitudes, took "+TestUtils.nsToSRounded(b-a)+" s");
+            }
+        }
+
+        if (dummy == 0) {
+            System.out.println("rare");
+        }
     }
 }

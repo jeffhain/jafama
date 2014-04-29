@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 Jeff Hain
+ * Copyright 2014 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 package net.jafama;
 
 /**
- * FastMath micro benchmarks.
+ * StrictFastMath micro benchmarks.
  */
-public class FastMathPerf extends AbstractFastMathPerf {
+public class StrictFastMathPerf extends AbstractFastMathPerf {
 
     /*
      * For each method with floating-point arguments, terminating with a
@@ -37,10 +37,10 @@ public class FastMathPerf extends AbstractFastMathPerf {
     }
 
     public static void newRun(String[] args) {
-        new FastMathPerf().run(args);
+        new StrictFastMathPerf().run(args);
     }
 
-    public FastMathPerf() {
+    public StrictFastMathPerf() {
     }
 
     //--------------------------------------------------------------------------
@@ -52,14 +52,14 @@ public class FastMathPerf extends AbstractFastMathPerf {
     }
 
     private void run(String[] args) {
-        System.out.println("--- "+FastMathPerf.class.getSimpleName()+"... ---");
+        System.out.println("--- "+StrictFastMathPerf.class.getSimpleName()+"... ---");
         System.out.println("number of calls = "+NBR_OF_CALLS);
         System.out.println("number of random values = "+NBR_OF_VALUES);
         printLoopOverhead();
 
         settle();
         testClassLoad();
-        
+
         /*
          * trigonometry
          */
@@ -320,7 +320,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
         settle();
         test_scalb_double_int();
 
-        System.out.println("--- ..."+FastMathPerf.class.getSimpleName()+" ---");
+        System.out.println("--- ..."+StrictFastMathPerf.class.getSimpleName()+" ---");
     }
 
     /*
@@ -330,7 +330,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
     private void testClassLoad() {
         int dummy = 0;
 
-        System.out.println("--- testing FastMath class load (if tables not loaded already) ---");
+        System.out.println("--- testing StrictFastMath class load (if tables not loaded already) ---");
 
         // Making sure Math and StrictMath are loaded already.
         if (Math.sin(0.0) != StrictMath.sin(0.0)) {
@@ -338,8 +338,8 @@ public class FastMathPerf extends AbstractFastMathPerf {
         }
 
         startTimer();
-        dummy += FastMath.abs(0);
-        System.out.println("FastMath class load took "+getElapsedSeconds()+" s");
+        dummy += StrictFastMath.abs(0);
+        System.out.println("StrictFastMath class load took "+getElapsedSeconds()+" s");
 
         useDummy(dummy);
     }
@@ -365,22 +365,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.sin(values[j]);
+            dummy += StrictMath.sin(values[j]);
             }
-            System.out.println("Loop on     Math.sin(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.sin(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.sin(values[j]);
+            dummy += StrictFastMath.sin(values[j]);
             }
-            System.out.println("Loop on FastMath.sin(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.sin(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.sin(values[j]);
+            dummy += StrictFastMath.sin(values[j]);
             }
         }
 
@@ -399,22 +399,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.sin(values[j]);
+            dummy += StrictMath.sin(values[j]);
             }
-            System.out.println("Loop on          Math.sin(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on          StrictMath.sin(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.sinQuick(values[j]);
+            dummy += StrictFastMath.sinQuick(values[j]);
             }
-            System.out.println("Loop on FastMath.sinQuick(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.sinQuick(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.sinQuick(values[j]);
+            dummy += StrictFastMath.sinQuick(values[j]);
             }
         }
 
@@ -438,22 +438,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.cos(values[j]);
+            dummy += StrictMath.cos(values[j]);
             }
-            System.out.println("Loop on     Math.cos(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.cos(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.cos(values[j]);
+            dummy += StrictFastMath.cos(values[j]);
             }
-            System.out.println("Loop on FastMath.cos(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.cos(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.cos(values[j]);
+            dummy += StrictFastMath.cos(values[j]);
             }
         }
 
@@ -472,22 +472,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.cos(values[j]);
+            dummy += StrictMath.cos(values[j]);
             }
-            System.out.println("Loop on          Math.cos(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on          StrictMath.cos(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.cosQuick(values[j]);
+            dummy += StrictFastMath.cosQuick(values[j]);
             }
-            System.out.println("Loop on FastMath.cosQuick(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.cosQuick(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.cosQuick(values[j]);
+            dummy += StrictFastMath.cosQuick(values[j]);
             }
         }
 
@@ -512,17 +512,17 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            double sine = FastMath.sinAndCos(values[j],cosine);
+            double sine = StrictFastMath.sinAndCos(values[j],cosine);
             dummy += sine + cosine.value;
             }
-            System.out.println("Loop on FastMath.sinAndCos(double,DoubleWrapper), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.sinAndCos(double,DoubleWrapper), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.sinAndCos(values[j],cosine);
+            dummy += StrictFastMath.sinAndCos(values[j],cosine);
             }
         }
 
@@ -546,22 +546,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.tan(values[j]);
+            dummy += StrictMath.tan(values[j]);
             }
-            System.out.println("Loop on     Math.tan(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.tan(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.tan(values[j]);
+            dummy += StrictFastMath.tan(values[j]);
             }
-            System.out.println("Loop on FastMath.tan(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.tan(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.tan(values[j]);
+            dummy += StrictFastMath.tan(values[j]);
             }
         }
 
@@ -582,22 +582,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.asin(values[j]);
+            dummy += StrictMath.asin(values[j]);
             }
-            System.out.println("Loop on     Math.asin(double) took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.asin(double) took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.asin(values[j]);
+            dummy += StrictFastMath.asin(values[j]);
             }
-            System.out.println("Loop on FastMath.asin(double) took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.asin(double) took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.asin(values[j]);
+            dummy += StrictFastMath.asin(values[j]);
             }
         }
 
@@ -618,22 +618,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.acos(values[j]);
+            dummy += StrictMath.acos(values[j]);
             }
-            System.out.println("Loop on     Math.acos(double) took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.acos(double) took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.acos(values[j]);
+            dummy += StrictFastMath.acos(values[j]);
             }
-            System.out.println("Loop on FastMath.acos(double) took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.acos(double) took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.acos(values[j]);
+            dummy += StrictFastMath.acos(values[j]);
             }
         }
 
@@ -654,22 +654,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.atan(values[j]);
+            dummy += StrictMath.atan(values[j]);
             }
-            System.out.println("Loop on     Math.atan(double) took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.atan(double) took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.atan(values[j]);
+            dummy += StrictFastMath.atan(values[j]);
             }
-            System.out.println("Loop on FastMath.atan(double) took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.atan(double) took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.atan(values[j]);
+            dummy += StrictFastMath.atan(values[j]);
             }
         }
 
@@ -689,22 +689,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.atan2(values[j],values[MASK-j]);
+            dummy += StrictMath.atan2(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on     Math.atan2(double,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.atan2(double,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.atan2(values[j],values[MASK-j]);
+            dummy += StrictFastMath.atan2(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.atan2(double,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.atan2(double,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.atan2(values[j],values[MASK-j]);
+            dummy += StrictFastMath.atan2(values[j],values[MASK-j]);
             }
         }
 
@@ -723,22 +723,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.toRadians(values[j]);
+            dummy += StrictMath.toRadians(values[j]);
             }
-            System.out.println("Loop on     Math.toRadians(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.toRadians(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.toRadians(values[j]);
+            dummy += StrictFastMath.toRadians(values[j]);
             }
-            System.out.println("Loop on FastMath.toRadians(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s... ");
+            System.out.println("Loop on StrictFastMath.toRadians(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s... ");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.toRadians(values[j]);
+            dummy += StrictFastMath.toRadians(values[j]);
             }
         }
 
@@ -757,22 +757,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.toDegrees(values[j]);
+            dummy += StrictMath.toDegrees(values[j]);
             }
-            System.out.println("Loop on     Math.toDegrees(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.toDegrees(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.toDegrees(values[j]);
+            dummy += StrictFastMath.toDegrees(values[j]);
             }
-            System.out.println("Loop on FastMath.toDegrees(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s... ");
+            System.out.println("Loop on StrictFastMath.toDegrees(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s... ");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.toDegrees(values[j]);
+            dummy += StrictFastMath.toDegrees(values[j]);
             }
         }
 
@@ -800,12 +800,12 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy &= FastMath.isInClockwiseDomain(
+            dummy &= StrictFastMath.isInClockwiseDomain(
                     values1[j],
                     values2[j],
                     values3[j]);
             }
-            System.out.println("Loop on FastMath.isInClockwiseDomain(double,double,double), args in "+toStringSmart(args1,args2,args3)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.isInClockwiseDomain(double,double,double), args in "+toStringSmart(args1,args2,args3)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
@@ -814,7 +814,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
             final double[] values2 = randomDoubleTabSmart(new double[]{});
             final double[] values3 = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy &= FastMath.isInClockwiseDomain(
+            dummy &= StrictFastMath.isInClockwiseDomain(
                     values1[j],
                     values2[j],
                     values3[j]);
@@ -844,22 +844,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.sinh(values[j]);
+            dummy += StrictMath.sinh(values[j]);
             }
-            System.out.println("Loop on     Math.sinh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.sinh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.sinh(values[j]);
+            dummy += StrictFastMath.sinh(values[j]);
             }
-            System.out.println("Loop on FastMath.sinh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.sinh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.sinh(values[j]);
+            dummy += StrictFastMath.sinh(values[j]);
             }
         }
 
@@ -882,22 +882,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.cosh(values[j]);
+            dummy += StrictMath.cosh(values[j]);
             }
-            System.out.println("Loop on     Math.cosh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.cosh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.cosh(values[j]);
+            dummy += StrictFastMath.cosh(values[j]);
             }
-            System.out.println("Loop on FastMath.cosh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.cosh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.cosh(values[j]);
+            dummy += StrictFastMath.cosh(values[j]);
             }
         }
 
@@ -920,16 +920,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.coshm1(values[j]);
+            dummy += StrictFastMath.coshm1(values[j]);
             }
-            System.out.println("Loop on FastMath.coshm1(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.coshm1(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.coshm1(values[j]);
+            dummy += StrictFastMath.coshm1(values[j]);
             }
         }
 
@@ -953,17 +953,17 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            double hsine = FastMath.sinhAndCosh(values[j],hcosine);
+            double hsine = StrictFastMath.sinhAndCosh(values[j],hcosine);
             dummy += hsine + hcosine.value;
             }
-            System.out.println("Loop on FastMath.sinhAndCosh(double,DoubleWrapper), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.sinhAndCosh(double,DoubleWrapper), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.sinhAndCosh(values[j],hcosine);
+            dummy += StrictFastMath.sinhAndCosh(values[j],hcosine);
             }
         }
 
@@ -986,22 +986,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.tanh(values[j]);
+            dummy += StrictMath.tanh(values[j]);
             }
-            System.out.println("Loop on     Math.tanh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.tanh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.tanh(values[j]);
+            dummy += StrictFastMath.tanh(values[j]);
             }
-            System.out.println("Loop on FastMath.tanh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.tanh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.tanh(values[j]);
+            dummy += StrictFastMath.tanh(values[j]);
             }
         }
 
@@ -1023,16 +1023,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.asinh(values[j]);
+            dummy += StrictFastMath.asinh(values[j]);
             }
-            System.out.println("Loop on FastMath.asinh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.asinh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.asinh(values[j]);
+            dummy += StrictFastMath.asinh(values[j]);
             }
         }
 
@@ -1053,16 +1053,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.acosh(values[j]);
+            dummy += StrictFastMath.acosh(values[j]);
             }
-            System.out.println("Loop on FastMath.acosh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.acosh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.acosh(values[j]);
+            dummy += StrictFastMath.acosh(values[j]);
             }
         }
 
@@ -1083,16 +1083,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.acosh1p(values[j]);
+            dummy += StrictFastMath.acosh1p(values[j]);
             }
-            System.out.println("Loop on FastMath.acosh1p(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.acosh1p(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.acosh1p(values[j]);
+            dummy += StrictFastMath.acosh1p(values[j]);
             }
         }
 
@@ -1112,16 +1112,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.atanh(values[j]);
+            dummy += StrictFastMath.atanh(values[j]);
             }
-            System.out.println("Loop on FastMath.atanh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.atanh(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.atanh(values[j]);
+            dummy += StrictFastMath.atanh(values[j]);
             }
         }
 
@@ -1148,22 +1148,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.exp(values[j]);
+            dummy += StrictMath.exp(values[j]);
             }
-            System.out.println("Loop on     Math.exp(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.exp(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.exp(values[j]);
+            dummy += StrictFastMath.exp(values[j]);
             }
-            System.out.println("Loop on FastMath.exp(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.exp(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.exp(values[j]);
+            dummy += StrictFastMath.exp(values[j]);
             }
         }
 
@@ -1184,22 +1184,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.exp(values[j]);
+            dummy += StrictMath.exp(values[j]);
             }
-            System.out.println("Loop on          Math.exp(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on          StrictMath.exp(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.expQuick(values[j]);
+            dummy += StrictFastMath.expQuick(values[j]);
             }
-            System.out.println("Loop on FastMath.expQuick(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.expQuick(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.expQuick(values[j]);
+            dummy += StrictFastMath.expQuick(values[j]);
             }
         }
 
@@ -1222,22 +1222,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.expm1(values[j]);
+            dummy += StrictMath.expm1(values[j]);
             }
-            System.out.println("Loop on     Math.expm1(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.expm1(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.expm1(values[j]);
+            dummy += StrictFastMath.expm1(values[j]);
             }
-            System.out.println("Loop on FastMath.expm1(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.expm1(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.expm1(values[j]);
+            dummy += StrictFastMath.expm1(values[j]);
             }
         }
 
@@ -1261,22 +1261,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.log(values[j]);
+            dummy += StrictMath.log(values[j]);
             }
-            System.out.println("Loop on     Math.log(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.log(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.log(values[j]);
+            dummy += StrictFastMath.log(values[j]);
             }
-            System.out.println("Loop on FastMath.log(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.log(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.log(values[j]);
+            dummy += StrictFastMath.log(values[j]);
             }
         }
 
@@ -1296,22 +1296,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.log(values[j]);
+            dummy += StrictMath.log(values[j]);
             }
-            System.out.println("Loop on          Math.log(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on          StrictMath.log(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.logQuick(values[j]);
+            dummy += StrictFastMath.logQuick(values[j]);
             }
-            System.out.println("Loop on FastMath.logQuick(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.logQuick(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.logQuick(values[j]);
+            dummy += StrictFastMath.logQuick(values[j]);
             }
         }
 
@@ -1331,22 +1331,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.log10(values[j]);
+            dummy += StrictMath.log10(values[j]);
             }
-            System.out.println("Loop on     Math.log10(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.log10(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.log10(values[j]);
+            dummy += StrictFastMath.log10(values[j]);
             }
-            System.out.println("Loop on FastMath.log10(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.log10(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.log10(values[j]);
+            dummy += StrictFastMath.log10(values[j]);
             }
         }
 
@@ -1366,22 +1366,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.log1p(values[j]);
+            dummy += StrictMath.log1p(values[j]);
             }
-            System.out.println("Loop on     Math.log1p(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.log1p(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.log1p(values[j]);
+            dummy += StrictFastMath.log1p(values[j]);
             }
-            System.out.println("Loop on FastMath.log1p(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.log1p(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.log1p(values[j]);
+            dummy += StrictFastMath.log1p(values[j]);
             }
         }
 
@@ -1400,9 +1400,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.log2(values[j]);
+            dummy += StrictFastMath.log2(values[j]);
             }
-            System.out.println("Loop on FastMath.log2(int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.log2(int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -1420,9 +1420,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.log2(values[j]);
+            dummy += StrictFastMath.log2(values[j]);
             }
-            System.out.println("Loop on FastMath.log2(long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.log2(long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -1450,22 +1450,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.pow(values1[j],values2[j]);
+            dummy += StrictMath.pow(values1[j],values2[j]);
             }
-            System.out.println("Loop on     Math.pow(double,double), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.pow(double,double), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.pow(values1[j],values2[j]);
+            dummy += StrictFastMath.pow(values1[j],values2[j]);
             }
-            System.out.println("Loop on FastMath.pow(double,double), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.pow(double,double), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.pow(values[j],values[MASK-j]);
+            dummy += StrictFastMath.pow(values[j],values[MASK-j]);
             }
         }
 
@@ -1489,22 +1489,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.pow(values1[j],values2[j]);
+            dummy += StrictMath.pow(values1[j],values2[j]);
             }
-            System.out.println("Loop on          Math.pow(double,double), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on          StrictMath.pow(double,double), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.powQuick(values1[j],values2[j]);
+            dummy += StrictFastMath.powQuick(values1[j],values2[j]);
             }
-            System.out.println("Loop on FastMath.powQuick(double,double), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.powQuick(double,double), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.powQuick(values[j],values[MASK-j]);
+            dummy += StrictFastMath.powQuick(values[j],values[MASK-j]);
             }
         }
 
@@ -1531,15 +1531,15 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.pow(values1[j],(double)values2[j]);
+            dummy += StrictMath.pow(values1[j],(double)values2[j]);
             }
-            System.out.println("Loop on      Math.pow(double,double), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on      StrictMath.pow(double,double), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.powFast(values1[j],values2[j]);
+            dummy += StrictFastMath.powFast(values1[j],values2[j]);
             }
-            System.out.println("Loop on FastMath.powFast(double,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.powFast(double,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
@@ -1547,7 +1547,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
             final double[] values1 = randomDoubleTabSmart(new double[]{});
             final int[] values2 = randomIntTabSmart(new int[]{0});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.powFast(values1[j],values2[j]);
+            dummy += StrictFastMath.powFast(values1[j],values2[j]);
             }
         }
 
@@ -1567,15 +1567,15 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.pow(2.0,(double)values[j]);
+            dummy += StrictMath.pow(2.0,(double)values[j]);
             }
             System.out.println("Loop on Math.pow(2.0,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.twoPow(values[j]);
+            dummy += StrictFastMath.twoPow(values[j]);
             }
-            System.out.println("Loop on FastMath.twoPow(int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.twoPow(int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -1599,22 +1599,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.sqrt(values[j]);
+            dummy += StrictMath.sqrt(values[j]);
             }
-            System.out.println("Loop on     Math.sqrt(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.sqrt(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.sqrt(values[j]);
+            dummy += StrictFastMath.sqrt(values[j]);
             }
-            System.out.println("Loop on FastMath.sqrt(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.sqrt(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.sqrt(values[j]);
+            dummy += StrictFastMath.sqrt(values[j]);
             }
         }
 
@@ -1633,22 +1633,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.sqrt(values[j]);
+            dummy += StrictMath.sqrt(values[j]);
             }
-            System.out.println("Loop on          Math.sqrt(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on          StrictMath.sqrt(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.sqrtQuick(values[j]);
+            dummy += StrictFastMath.sqrtQuick(values[j]);
             }
-            System.out.println("Loop on FastMath.sqrtQuick(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.sqrtQuick(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.sqrtQuick(values[j]);
+            dummy += StrictFastMath.sqrtQuick(values[j]);
             }
         }
 
@@ -1673,16 +1673,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.invSqrtQuick(values[j]);
+            dummy += StrictFastMath.invSqrtQuick(values[j]);
             }
-            System.out.println("Loop on FastMath.invSqrtQuick(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.invSqrtQuick(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.invSqrtQuick(values[j]);
+            dummy += StrictFastMath.invSqrtQuick(values[j]);
             }
         }
 
@@ -1703,22 +1703,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.cbrt(values[j]);
+            dummy += StrictMath.cbrt(values[j]);
             }
-            System.out.println("Loop on     Math.cbrt(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.cbrt(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.cbrt(values[j]);
+            dummy += StrictFastMath.cbrt(values[j]);
             }
-            System.out.println("Loop on FastMath.cbrt(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.cbrt(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.cbrt(values[j]);
+            dummy += StrictFastMath.cbrt(values[j]);
             }
         }
 
@@ -1754,15 +1754,15 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
                 startTimer();
                 for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-                dummy += Math.hypot(valuesX[j],valuesY[j]);
+                dummy += StrictMath.hypot(valuesX[j],valuesY[j]);
                 }
-                System.out.println("Loop on     Math.hypot(double,double), args in "+toStringSmart(args)+bonus+", took "+getElapsedSeconds()+" s");
+                System.out.println("Loop on     StrictMath.hypot(double,double), args in "+toStringSmart(args)+bonus+", took "+getElapsedSeconds()+" s");
 
                 startTimer();
                 for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-                dummy += FastMath.hypot(valuesX[j],valuesY[j]);
+                dummy += StrictFastMath.hypot(valuesX[j],valuesY[j]);
                 }
-                System.out.println("Loop on FastMath.hypot(double,double), args in "+toStringSmart(args)+bonus+", took "+getElapsedSeconds()+" s");
+                System.out.println("Loop on StrictFastMath.hypot(double,double), args in "+toStringSmart(args)+bonus+", took "+getElapsedSeconds()+" s");
             }
         }
 
@@ -1770,7 +1770,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.hypot(values[j],values[MASK-j]);
+            dummy += StrictFastMath.hypot(values[j],values[MASK-j]);
             }
         }
 
@@ -1821,9 +1821,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
                 startTimer();
                 for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-                dummy += FastMath.hypot(valuesX[j],valuesY[j],valuesZ[j]);
+                dummy += StrictFastMath.hypot(valuesX[j],valuesY[j],valuesZ[j]);
                 }
-                System.out.println("Loop on FastMath.hypot(double,double,double), args in "+toStringSmart(args)+bonus+", took "+getElapsedSeconds()+" s");
+                System.out.println("Loop on StrictFastMath.hypot(double,double,double), args in "+toStringSmart(args)+bonus+", took "+getElapsedSeconds()+" s");
             }
         }
 
@@ -1831,7 +1831,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.hypot(values[j],values[MASK-j],values[MASK-(j/2)]);
+            dummy += StrictFastMath.hypot(values[j],values[MASK-j],values[MASK-(j/2)]);
             }
         }
 
@@ -1854,15 +1854,15 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.abs(values[j]);
+            dummy += StrictMath.abs(values[j]);
             }
-            System.out.println("Loop on     Math.abs(int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.abs(int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.abs(values[j]);
+            dummy += StrictFastMath.abs(values[j]);
             }
-            System.out.println("Loop on FastMath.abs(int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.abs(int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -1880,15 +1880,15 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.abs(values[j]);
+            dummy += StrictMath.abs(values[j]);
             }
-            System.out.println("Loop on     Math.abs(long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.abs(long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.abs(values[j]);
+            dummy += StrictFastMath.abs(values[j]);
             }
-            System.out.println("Loop on FastMath.abs(long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.abs(long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -1913,16 +1913,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.floor(values[j]);
+            dummy += StrictFastMath.floor(values[j]);
             }
-            System.out.println("Loop on FastMath.floor(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.floor(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final float[] values = randomFloatTabSmart(new float[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.floor(values[j]);
+            dummy += StrictFastMath.floor(values[j]);
             }
         }
 
@@ -1944,22 +1944,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.floor(values[j]);
+            dummy += StrictMath.floor(values[j]);
             }
-            System.out.println("Loop on     Math.floor(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.floor(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.floor(values[j]);
+            dummy += StrictFastMath.floor(values[j]);
             }
-            System.out.println("Loop on FastMath.floor(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.floor(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.floor(values[j]);
+            dummy += StrictFastMath.floor(values[j]);
             }
         }
 
@@ -1981,16 +1981,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.ceil(values[j]);
+            dummy += StrictFastMath.ceil(values[j]);
             }
-            System.out.println("Loop on FastMath.ceil(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.ceil(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final float[] values = randomFloatTabSmart(new float[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.ceil(values[j]);
+            dummy += StrictFastMath.ceil(values[j]);
             }
         }
 
@@ -2012,22 +2012,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.ceil(values[j]);
+            dummy += StrictMath.ceil(values[j]);
             }
-            System.out.println("Loop on     Math.ceil(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.ceil(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.ceil(values[j]);
+            dummy += StrictFastMath.ceil(values[j]);
             }
-            System.out.println("Loop on FastMath.ceil(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.ceil(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.ceil(values[j]);
+            dummy += StrictFastMath.ceil(values[j]);
             }
         }
 
@@ -2049,22 +2049,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.round(values[j]);
+            dummy += StrictMath.round(values[j]);
             }
-            System.out.println("Loop on     Math.round(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.round(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.round(values[j]);
+            dummy += StrictFastMath.round(values[j]);
             }
-            System.out.println("Loop on FastMath.round(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.round(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final float[] values = randomFloatTabSmart(new float[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.round(values[j]);
+            dummy += StrictFastMath.round(values[j]);
             }
         }
 
@@ -2086,22 +2086,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.round(values[j]);
+            dummy += StrictMath.round(values[j]);
             }
-            System.out.println("Loop on     Math.round(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.round(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.round(values[j]);
+            dummy += StrictFastMath.round(values[j]);
             }
-            System.out.println("Loop on FastMath.round(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.round(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.round(values[j]);
+            dummy += StrictFastMath.round(values[j]);
             }
         }
 
@@ -2123,22 +2123,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.round(values[j]);
+            dummy += StrictMath.round(values[j]);
             }
-            System.out.println("Loop on         Math.round(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on         StrictMath.round(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.roundEven(values[j]);
+            dummy += StrictFastMath.roundEven(values[j]);
             }
-            System.out.println("Loop on FastMath.roundEven(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.roundEven(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final float[] values = randomFloatTabSmart(new float[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.roundEven(values[j]);
+            dummy += StrictFastMath.roundEven(values[j]);
             }
         }
 
@@ -2160,22 +2160,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.round(values[j]);
+            dummy += StrictMath.round(values[j]);
             }
-            System.out.println("Loop on         Math.round(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on         StrictMath.round(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.roundEven(values[j]);
+            dummy += StrictFastMath.roundEven(values[j]);
             }
-            System.out.println("Loop on FastMath.roundEven(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.roundEven(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.roundEven(values[j]);
+            dummy += StrictFastMath.roundEven(values[j]);
             }
         }
 
@@ -2197,16 +2197,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.rint(values[j]);
+            dummy += StrictFastMath.rint(values[j]);
             }
-            System.out.println("Loop on FastMath.rint(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.rint(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final float[] values = randomFloatTabSmart(new float[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.rint(values[j]);
+            dummy += StrictFastMath.rint(values[j]);
             }
         }
 
@@ -2228,22 +2228,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.rint(values[j]);
+            dummy += StrictMath.rint(values[j]);
             }
-            System.out.println("Loop on     Math.rint(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.rint(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.rint(values[j]);
+            dummy += StrictFastMath.rint(values[j]);
             }
-            System.out.println("Loop on FastMath.rint(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.rint(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.rint(values[j]);
+            dummy += StrictFastMath.rint(values[j]);
             }
         }
 
@@ -2266,9 +2266,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.addExact(values[j],values[MASK-j]);
+            dummy += StrictFastMath.addExact(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.addExact(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.addExact(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2286,9 +2286,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.addExact(values[j],values[MASK-j]);
+            dummy += StrictFastMath.addExact(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.addExact(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.addExact(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2306,9 +2306,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.addBounded(values[j],values[MASK-j]);
+            dummy += StrictFastMath.addBounded(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.addBounded(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.addBounded(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2326,9 +2326,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.addBounded(values[j],values[MASK-j]);
+            dummy += StrictFastMath.addBounded(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.addBounded(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.addBounded(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2346,9 +2346,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.subtractExact(values[j],values[MASK-j]);
+            dummy += StrictFastMath.subtractExact(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.subtractExact(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.subtractExact(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2366,9 +2366,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.subtractExact(values[j],values[MASK-j]);
+            dummy += StrictFastMath.subtractExact(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.subtractExact(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.subtractExact(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2386,9 +2386,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.subtractBounded(values[j],values[MASK-j]);
+            dummy += StrictFastMath.subtractBounded(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.subtractBounded(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.subtractBounded(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2406,9 +2406,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.subtractBounded(values[j],values[MASK-j]);
+            dummy += StrictFastMath.subtractBounded(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.subtractBounded(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.subtractBounded(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2426,9 +2426,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.multiplyExact(values[j],values[MASK-j]);
+            dummy += StrictFastMath.multiplyExact(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.multiplyExact(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.multiplyExact(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2446,9 +2446,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.multiplyExact(values[j],values[MASK-j]);
+            dummy += StrictFastMath.multiplyExact(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.multiplyExact(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.multiplyExact(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2466,9 +2466,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.multiplyBounded(values[j],values[MASK-j]);
+            dummy += StrictFastMath.multiplyBounded(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.multiplyBounded(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.multiplyBounded(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2486,9 +2486,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.multiplyBounded(values[j],values[MASK-j]);
+            dummy += StrictFastMath.multiplyBounded(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.multiplyBounded(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.multiplyBounded(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2517,9 +2517,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.floorDiv(values1[j],values2[j]);
+            dummy += StrictFastMath.floorDiv(values1[j],values2[j]);
             }
-            System.out.println("Loop on FastMath.floorDiv(int,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.floorDiv(int,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2544,9 +2544,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.floorDiv(values1[j],values2[j]);
+            dummy += StrictFastMath.floorDiv(values1[j],values2[j]);
             }
-            System.out.println("Loop on FastMath.floorDiv(long,long), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.floorDiv(long,long), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2571,9 +2571,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.floorMod(values1[j],values2[j]);
+            dummy += StrictFastMath.floorMod(values1[j],values2[j]);
             }
-            System.out.println("Loop on FastMath.floorMod(int,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.floorMod(int,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2598,9 +2598,9 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.floorMod(values1[j],values2[j]);
+            dummy += StrictFastMath.floorMod(values1[j],values2[j]);
             }
-            System.out.println("Loop on FastMath.floorMod(long,long), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.floorMod(long,long), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2621,22 +2621,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.IEEEremainder(values[j],values[MASK-j]);
+            dummy += StrictMath.IEEEremainder(values[j],values[MASK-j]);
             }
             System.out.println("Loop on Math.IEEEremainder(double,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.remainder(values[j],values[MASK-j]);
+            dummy += StrictFastMath.remainder(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.remainder(double,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.remainder(double,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.remainder(values[j],values[MASK-j]);
+            dummy += StrictFastMath.remainder(values[j],values[MASK-j]);
             }
         }
 
@@ -2659,16 +2659,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.normalizeMinusPiPi(values[j]);
+            dummy += StrictFastMath.normalizeMinusPiPi(values[j]);
             }
-            System.out.println("Loop on FastMath.normalizeMinusPiPi(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.normalizeMinusPiPi(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.normalizeMinusPiPi(values[j]);
+            dummy += StrictFastMath.normalizeMinusPiPi(values[j]);
             }
         }
 
@@ -2691,16 +2691,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.normalizeMinusPiPiFast(values[j]);
+            dummy += StrictFastMath.normalizeMinusPiPiFast(values[j]);
             }
-            System.out.println("Loop on FastMath.normalizeMinusPiPiFast(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.normalizeMinusPiPiFast(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.normalizeMinusPiPiFast(values[j]);
+            dummy += StrictFastMath.normalizeMinusPiPiFast(values[j]);
             }
         }
 
@@ -2723,16 +2723,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.normalizeZeroTwoPi(values[j]);
+            dummy += StrictFastMath.normalizeZeroTwoPi(values[j]);
             }
-            System.out.println("Loop on FastMath.normalizeZeroTwoPi(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.normalizeZeroTwoPi(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.normalizeZeroTwoPi(values[j]);
+            dummy += StrictFastMath.normalizeZeroTwoPi(values[j]);
             }
         }
 
@@ -2755,16 +2755,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.normalizeZeroTwoPiFast(values[j]);
+            dummy += StrictFastMath.normalizeZeroTwoPiFast(values[j]);
             }
-            System.out.println("Loop on FastMath.normalizeZeroTwoPiFast(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.normalizeZeroTwoPiFast(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.normalizeZeroTwoPiFast(values[j]);
+            dummy += StrictFastMath.normalizeZeroTwoPiFast(values[j]);
             }
         }
 
@@ -2787,16 +2787,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.normalizeMinusHalfPiHalfPi(values[j]);
+            dummy += StrictFastMath.normalizeMinusHalfPiHalfPi(values[j]);
             }
-            System.out.println("Loop on FastMath.normalizeMinusHalfPiHalfPi(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.normalizeMinusHalfPiHalfPi(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.normalizeMinusHalfPiHalfPi(values[j]);
+            dummy += StrictFastMath.normalizeMinusHalfPiHalfPi(values[j]);
             }
         }
 
@@ -2819,16 +2819,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.normalizeMinusHalfPiHalfPiFast(values[j]);
+            dummy += StrictFastMath.normalizeMinusHalfPiHalfPiFast(values[j]);
             }
-            System.out.println("Loop on FastMath.normalizeMinusHalfPiHalfPiFast(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.normalizeMinusHalfPiHalfPiFast(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.normalizeMinusHalfPiHalfPiFast(values[j]);
+            dummy += StrictFastMath.normalizeMinusHalfPiHalfPiFast(values[j]);
             }
         }
 
@@ -2851,22 +2851,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.getExponent(values[j]);
+            dummy += StrictMath.getExponent(values[j]);
             }
-            System.out.println("Loop on     Math.getExponent(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.getExponent(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.getExponent(values[j]);
+            dummy += StrictFastMath.getExponent(values[j]);
             }
-            System.out.println("Loop on FastMath.getExponent(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s... ");
+            System.out.println("Loop on StrictFastMath.getExponent(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s... ");
         }
 
         // NaN-crash test.
         {
             final float[] values = randomFloatTabSmart(new float[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.getExponent(values[j]);
+            dummy += StrictFastMath.getExponent(values[j]);
             }
         }
 
@@ -2885,22 +2885,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.getExponent(values[j]);
+            dummy += StrictMath.getExponent(values[j]);
             }
-            System.out.println("Loop on     Math.getExponent(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.getExponent(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.getExponent(values[j]);
+            dummy += StrictFastMath.getExponent(values[j]);
             }
-            System.out.println("Loop on FastMath.getExponent(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s... ");
+            System.out.println("Loop on StrictFastMath.getExponent(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s... ");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.getExponent(values[j]);
+            dummy += StrictFastMath.getExponent(values[j]);
             }
         }
 
@@ -2919,22 +2919,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.signum(values[j]);
+            dummy += StrictMath.signum(values[j]);
             }
-            System.out.println("Loop on     Math.signum(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.signum(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.signum(values[j]);
+            dummy += StrictFastMath.signum(values[j]);
             }
-            System.out.println("Loop on FastMath.signum(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.signum(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final float[] values = randomFloatTabSmart(new float[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.signum(values[j]);
+            dummy += StrictFastMath.signum(values[j]);
             }
         }
 
@@ -2953,22 +2953,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.signum(values[j]);
+            dummy += StrictMath.signum(values[j]);
             }
-            System.out.println("Loop on     Math.signum(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.signum(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.signum(values[j]);
+            dummy += StrictFastMath.signum(values[j]);
             }
-            System.out.println("Loop on FastMath.signum(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.signum(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.signum(values[j]);
+            dummy += StrictFastMath.signum(values[j]);
             }
         }
 
@@ -2987,16 +2987,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.signFromBit(values[j]);
+            dummy += StrictFastMath.signFromBit(values[j]);
             }
-            System.out.println("Loop on FastMath.signFromBit(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.signFromBit(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final float[] values = randomFloatTabSmart(new float[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.signFromBit(values[j]);
+            dummy += StrictFastMath.signFromBit(values[j]);
             }
         }
 
@@ -3015,16 +3015,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.signFromBit(values[j]);
+            dummy += StrictFastMath.signFromBit(values[j]);
             }
-            System.out.println("Loop on FastMath.signFromBit(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.signFromBit(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.signFromBit(values[j]);
+            dummy += StrictFastMath.signFromBit(values[j]);
             }
         }
 
@@ -3043,22 +3043,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.copySign(values[j],values[MASK-j]);
+            dummy += StrictMath.copySign(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on     Math.copySign(float,float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.copySign(float,float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.copySign(values[j],values[MASK-j]);
+            dummy += StrictFastMath.copySign(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.copySign(float,float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.copySign(float,float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final float[] values = randomFloatTabSmart(new float[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.copySign(values[j],values[MASK-j]);
+            dummy += StrictFastMath.copySign(values[j],values[MASK-j]);
             }
         }
 
@@ -3077,22 +3077,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.copySign(values[j],values[MASK-j]);
+            dummy += StrictMath.copySign(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on     Math.copySign(double,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.copySign(double,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.copySign(values[j],values[MASK-j]);
+            dummy += StrictFastMath.copySign(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.copySign(double,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.copySign(double,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.copySign(values[j],values[MASK-j]);
+            dummy += StrictFastMath.copySign(values[j],values[MASK-j]);
             }
         }
 
@@ -3111,22 +3111,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.ulp(values[j]);
+            dummy += StrictMath.ulp(values[j]);
             }
-            System.out.println("Loop on     Math.ulp(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.ulp(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.ulp(values[j]);
+            dummy += StrictFastMath.ulp(values[j]);
             }
-            System.out.println("Loop on FastMath.ulp(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.ulp(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final float[] values = randomFloatTabSmart(new float[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.ulp(values[j]);
+            dummy += StrictFastMath.ulp(values[j]);
             }
         }
 
@@ -3145,22 +3145,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.ulp(values[j]);
+            dummy += StrictMath.ulp(values[j]);
             }
-            System.out.println("Loop on     Math.ulp(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.ulp(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.ulp(values[j]);
+            dummy += StrictFastMath.ulp(values[j]);
             }
-            System.out.println("Loop on FastMath.ulp(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.ulp(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.ulp(values[j]);
+            dummy += StrictFastMath.ulp(values[j]);
             }
         }
 
@@ -3181,15 +3181,15 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.nextAfter(values1[j],values2[j]);
+            dummy += StrictMath.nextAfter(values1[j],values2[j]);
             }
-            System.out.println("Loop on     Math.nextAfter(float,double), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.nextAfter(float,double), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.nextAfter(values1[j],values2[j]);
+            dummy += StrictFastMath.nextAfter(values1[j],values2[j]);
             }
-            System.out.println("Loop on FastMath.nextAfter(float,double), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.nextAfter(float,double), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
@@ -3197,7 +3197,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
             final float[] values1 = randomFloatTabSmart(new float[]{});
             final double[] values2 = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.nextAfter(values1[j],values2[j]);
+            dummy += StrictFastMath.nextAfter(values1[j],values2[j]);
             }
         }
 
@@ -3216,15 +3216,15 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.nextAfter(values[j],values[MASK-j]);
+            dummy += StrictMath.nextAfter(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on     Math.nextAfter(double,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.nextAfter(double,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.nextAfter(values[j],values[MASK-j]);
+            dummy += StrictFastMath.nextAfter(values[j],values[MASK-j]);
             }
-            System.out.println("Loop on FastMath.nextAfter(double,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.nextAfter(double,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
@@ -3232,7 +3232,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
             final double[] values1 = randomDoubleTabSmart(new double[]{});
             final double[] values2 = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.nextAfter(values1[j],values2[j]);
+            dummy += StrictFastMath.nextAfter(values1[j],values2[j]);
             }
         }
 
@@ -3251,16 +3251,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.nextDown(values[j]);
+            dummy += StrictFastMath.nextDown(values[j]);
             }
-            System.out.println("Loop on FastMath.nextDown(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.nextDown(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final float[] values = randomFloatTabSmart(new float[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.nextDown(values[j]);
+            dummy += StrictFastMath.nextDown(values[j]);
             }
         }
 
@@ -3279,16 +3279,16 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.nextDown(values[j]);
+            dummy += StrictFastMath.nextDown(values[j]);
             }
-            System.out.println("Loop on FastMath.nextDown(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.nextDown(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.nextDown(values[j]);
+            dummy += StrictFastMath.nextDown(values[j]);
             }
         }
 
@@ -3307,22 +3307,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.nextUp(values[j]);
+            dummy += StrictMath.nextUp(values[j]);
             }
-            System.out.println("Loop on     Math.nextUp(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.nextUp(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.nextUp(values[j]);
+            dummy += StrictFastMath.nextUp(values[j]);
             }
-            System.out.println("Loop on FastMath.nextUp(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.nextUp(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final float[] values = randomFloatTabSmart(new float[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.nextUp(values[j]);
+            dummy += StrictFastMath.nextUp(values[j]);
             }
         }
 
@@ -3341,22 +3341,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.nextUp(values[j]);
+            dummy += StrictMath.nextUp(values[j]);
             }
-            System.out.println("Loop on     Math.nextUp(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on     StrictMath.nextUp(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.nextUp(values[j]);
+            dummy += StrictFastMath.nextUp(values[j]);
             }
-            System.out.println("Loop on FastMath.nextUp(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on StrictFastMath.nextUp(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
         {
             final double[] values = randomDoubleTabSmart(new double[]{});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.nextUp(values[j]);
+            dummy += StrictFastMath.nextUp(values[j]);
             }
         }
 
@@ -3381,15 +3381,15 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
                 startTimer();
                 for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-                dummy += Math.scalb(values1[j],values2[j]);
+                dummy += StrictMath.scalb(values1[j],values2[j]);
                 }
-                System.out.println("Loop on     Math.scalb(float,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+                System.out.println("Loop on     StrictMath.scalb(float,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
 
                 startTimer();
                 for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-                dummy += FastMath.scalb(values1[j],values2[j]);
+                dummy += StrictFastMath.scalb(values1[j],values2[j]);
                 }
-                System.out.println("Loop on FastMath.scalb(float,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+                System.out.println("Loop on StrictFastMath.scalb(float,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
             }
         }
 
@@ -3398,7 +3398,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
             final float[] values1 = randomFloatTabSmart(new float[]{});
             final int[] values2 = randomIntTabSmart(new int[]{0});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.scalb(values1[j],values2[j]);
+            dummy += StrictFastMath.scalb(values1[j],values2[j]);
             }
         }
 
@@ -3423,15 +3423,15 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
                 startTimer();
                 for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-                dummy += Math.scalb(values1[j],values2[j]);
+                dummy += StrictMath.scalb(values1[j],values2[j]);
                 }
-                System.out.println("Loop on     Math.scalb(double,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+                System.out.println("Loop on     StrictMath.scalb(double,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
 
                 startTimer();
                 for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-                dummy += FastMath.scalb(values1[j],values2[j]);
+                dummy += StrictFastMath.scalb(values1[j],values2[j]);
                 }
-                System.out.println("Loop on FastMath.scalb(double,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
+                System.out.println("Loop on StrictFastMath.scalb(double,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
             }
         }
 
@@ -3440,7 +3440,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
             final double[] values1 = randomDoubleTabSmart(new double[]{});
             final int[] values2 = randomIntTabSmart(new int[]{0});
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += FastMath.scalb(values1[j],values2[j]);
+            dummy += StrictFastMath.scalb(values1[j],values2[j]);
             }
         }
 

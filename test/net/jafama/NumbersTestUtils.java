@@ -43,6 +43,16 @@ public class NumbersTestUtils {
     // MEMBERS
     //--------------------------------------------------------------------------
     
+    /**
+     * Double.MIN_NORMAL since Java 6.
+     */
+    private static final double DOUBLE_MIN_NORMAL = Double.longBitsToDouble(0x0010000000000000L); // 2.2250738585072014E-308
+
+    /**
+     * Float.MIN_NORMAL since Java 6.
+     */
+    private static final float FLOAT_MIN_NORMAL = Float.intBitsToFloat(0x00800000); // 1.17549435E-38f
+
     private final Random random;
     
     //--------------------------------------------------------------------------
@@ -148,8 +158,8 @@ public class NumbersTestUtils {
         }
         
         final double maxMag = Math.max(Math.abs(a), Math.abs(b));
-        if (maxMag < Double.MIN_NORMAL) {
-            delta *= (maxMag/Double.MIN_NORMAL);
+        if (maxMag < DOUBLE_MIN_NORMAL) {
+            delta *= (maxMag/DOUBLE_MIN_NORMAL);
         }
         
         return delta;
@@ -269,7 +279,6 @@ public class NumbersTestUtils {
             final long signBit = ((long)this.random.nextInt())<<63;
             final long exponentBits = this.randomLongUniformMasked(11, 0.0)<<52;
             final long mantissaBits = this.randomLongUniformMasked(52, 0.0);
-            
             tmp = Double.longBitsToDouble(signBit|exponentBits|mantissaBits);
         } while (Double.isNaN(tmp) || Double.isInfinite(tmp));
         return tmp;
@@ -420,7 +429,7 @@ public class NumbersTestUtils {
                 final int maxBoundExponent = ((maxBoundBits>>23)&0xFF)-127;
                 
                 // Using +-1 on exponents to make sure random mantissa
-                // doesn't get us our of range.
+                // doesn't get us out of range.
                 final int resultMinExponent;
                 final int resultMaxExponent;
                 if (positiveSide) {
@@ -514,7 +523,7 @@ public class NumbersTestUtils {
                 final int maxBoundExponent = ((int)(maxBoundBits>>52)&0x7FF)-1023;
                 
                 // Using +-1 on exponents to make sure random mantissa
-                // doesn't get us our of range.
+                // doesn't get us out of range.
                 final int resultMinExponent;
                 final int resultMaxExponent;
                 if (positiveSide) {
@@ -653,7 +662,7 @@ public class NumbersTestUtils {
                 float value = utils.randomFloatUniMag();
                 if (value == 0.0) {
                     zeroCounter++;
-                } else if (Math.abs(value) < Float.MIN_NORMAL) {
+                } else if (Math.abs(value) < FLOAT_MIN_NORMAL) {
                     subnormalCounter++;
                 } else {
                     otherCounter++;
@@ -673,7 +682,7 @@ public class NumbersTestUtils {
                 double value = utils.randomDoubleUniMag();
                 if (value == 0.0) {
                     zeroCounter++;
-                } else if (Math.abs(value) < Double.MIN_NORMAL) {
+                } else if (Math.abs(value) < DOUBLE_MIN_NORMAL) {
                     subnormalCounter++;
                 } else {
                     otherCounter++;
@@ -760,7 +769,7 @@ public class NumbersTestUtils {
                     pinfCounter++;
                 } else if (value == 0.0) {
                     zeroCounter++;
-                } else if (Math.abs(value) < Float.MIN_NORMAL) {
+                } else if (Math.abs(value) < FLOAT_MIN_NORMAL) {
                     subnormalCounter++;
                 } else {
                     if ((Math.abs(value) >= 0.5f) && (Math.abs(value) < (1<<23))) {
@@ -810,7 +819,7 @@ public class NumbersTestUtils {
                     pinfCounter++;
                 } else if (value == 0.0) {
                     zeroCounter++;
-                } else if (Math.abs(value) < Double.MIN_NORMAL) {
+                } else if (Math.abs(value) < DOUBLE_MIN_NORMAL) {
                     subnormalCounter++;
                 } else {
                     if ((Math.abs(value) >= 0.5) && (Math.abs(value) < (1L<<52))) {

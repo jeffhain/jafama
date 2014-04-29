@@ -1,4 +1,61 @@
 ################################################################################
+Jafama 2.1, 2014/04/30
+
+Changes since version 2.0:
+
+- FastMath:
+  - Added hypot(double,double,double), which computes sqrt(x^2+y^2+z^2) without
+    intermediate overflow or underflow.
+  - Made reduction more accurate for angles of large magnitudes, by using
+    reduction in [-PI/4,PI/4] and quadrant information stored in two useless
+    bits of exponent, rather than reduction in [-PI,PI].
+  - Added use of TWOPI_LO and TWOPI_HI in some normalization methods, to make
+    them more accurate for results near quadrants limits.
+  - Corrected the spec about range of reliable accuracy for sinQuick(double).
+  - Little optimization for large angles reduction for tan(double).
+  - For round(float) and round(double), now using algorithm by Dmitry Nadezhin
+    (http://mail.openjdk.java.net/pipermail/core-libs-dev/2013-August/020247.html).
+  - scalb(double) is now faster for non-huge values of scale factor
+    (the same optimization, didn't seem to be worth it for float case).
+
+- Added StrictFastMath, a strict version of FastMath (and not a fast version of
+  StrictMath!), and related versions of FastMath properties:
+  - jafama.strict.usejdk,
+  - jafama.strict.fastlog,
+  - jafama.strict.fastsqrt.
+  Note that now, to avoid look-up tables and their initialization overhead,
+  you must set both jafama.usejdk (which only applies to FastMath) and
+  jafama.strict.usejdk to true.
+
+- NumbersUtils:
+  - Added DOUBLE_MIN_NORMAL and FLOAT_MIN_NORMAL constants (Double.MIN_NORMAL
+    and Float.MIN_NORMAL being available only from Java 6).
+  - Added methods:
+    - absNeg(int) (returns -abs(value), exact even for Integer.MIN_VALUE)
+    - absNeg(long) (returns -abs(value), exact even for Long.MIN_VALUE)
+    - pow2_strict(float)
+    - pow2_strict(double)
+    - pow3_strict(float)
+    - pow3_strict(double)
+    - plus2PI(double)
+    - plus2PI_strict(double)
+    - minus2PI(double)
+    - minus2PI_strict(double)
+    - plusPI(double)
+    - plusPI_strict(double)
+    - minusPI(double)
+    - minusPI_strict(double)
+    - plusPIO2(double)
+    - plusPIO2_strict(double)
+    - minusPIO2(double)
+    - minusPIO2_strict(double)
+    - toStringCSN(double) (to get "1.5E1" or "1.0E-1", instead of "15.0" or
+      "0.1")
+    - toStringNoCSN(double) (to get "123456789.0" or "0.0001", instead of
+      "1.23456789E8" or "1.0E-4")
+  - Optimized floorPowerOfTwo(int) and ceilingPowerOfTwo(int).
+
+################################################################################
 Jafama 2.0, 2013/02/20
 
 Changes since version 1.2:

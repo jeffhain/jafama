@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 Jeff Hain
+ * Copyright 2014 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,76 +28,63 @@
 package net.jafama;
 
 /**
- * Class providing math treatments that:
- * - are meant to be faster than java.lang.Math class equivalents (if any),
- * - are still somehow accurate and robust (handling of NaN and such),
- * - do not (or not directly) generate objects at run time (no "new").
+ * Strict version of FastMath (and not a fast version of StrictMath,
+ * which would rather be called FastStrictMath), through delegation
+ * to StrictMath (instead of Math) and use of strictfp.
  * 
- * Other than optimized treatments, a valuable feature of this class is the
- * presence of angles normalization methods, derived from those used in
- * java.lang.Math (for which, sadly, no API is provided, letting everyone
- * with the terrible responsibility of writing their own ones).
+ * We use strictfp for the whole class:
+ * - for simplicity,
+ * - to reduce strictfp/non-strictfp switching, which can add overhead,
+ *   when these treatments are used from within strictfp code,
+ * - to make sure that we only use and return non-extended values,
+ *   else if strictfp gets added later to some treatments they might then
+ *   behave differently due to no longer being inlinable into FP-wide
+ *   expressions,
+ * - to make sure we don't mistakenly not use it.
  * 
- * Non-redefined methods of Math are also available, for easy replacement,
- * except incrementExact/decrementExact/negateExact on int and long, for our
- * implementations wouldn't be intrinsified.
+ * Unlike StrictMath, StrictFastMath is not supposed to behave identically
+ * across versions, and even for a same version it might behave differently
+ * depending on its configuration (properties).
+ * It is just supposed to behave identically for a same version and
+ * configuration, which can still be useful, for example for racily computed
+ * cached values in immutable instances.
  * 
- * Use of look-up tables: around 1 Mo total, and initialized on class load.
- * 
- * Depending on JVM, or JVM options, these treatments can actually be slower
- * than Math ones.
- * In particular, they can be slower if not optimized by the JIT, which you
- * can see with -Xint JVM option.
- * Another cause of slowness can be cache-misses on look-up tables.
- * Also, look-up tables initialization, done on class load, typically
- * takes multiple hundreds of milliseconds (and is about twice slower
- * in J6 than in J5, and in J7 than in J6, possibly due to intrinsifications
- * preventing optimizations such as use of hardware sqrt, and Math delegating
- * to StrictMath with JIT optimizations not yet up during class load).
- * As a result, you might want to make these treatments not use tables,
- * and delegate to corresponding Math methods, when they are available in the
- * lowest supported Java version, by using the appropriate property (see below).
- * 
- * Methods with same signature than Math ones, are meant to return
- * "good" approximations on all range.
- * Methods terminating with "Fast" are meant to return "good" approximation
- * on a reduced range only.
- * Methods terminating with "Quick" are meant to be quick, but do not
- * return a good approximation, and might only work on a reduced range.
+ * Other than strictness and usually lower performances due to strictfp
+ * overhead, the only differences with FastMath are its properties, and
+ * copySign(float,float) and copySign(double,double) semantics.
  * 
  * Properties:
  * 
- * - jafama.usejdk (boolean, default is false):
+ * - jafama.strict.usejdk (boolean, default is false):
  *   If true, for redefined methods, as well as their "Fast" or "Quick"
  *   terminated counterparts, instead of using redefined computations,
- *   delegating to Math, when available in required Java version.
+ *   delegating to StrictMath, when available in required Java version.
  * 
- * - jafama.fastlog (boolean, default is false):
+ * - jafama.strict.fastlog (boolean, default is true):
  *   If true, using redefined computations for log(double) and
- *   log10(double), else they delegate to Math.log(double) and
- *   Math.log10(double).
- *   False by default because Math.log(double) and Math.log10(double)
- *   seem usually fast (redefined log(double) might be even faster,
- *   but is less accurate).
+ *   log10(double), else they delegate to StrictMath.log(double) and
+ *   StrictMath.log10(double).
+ *   True by default because StrictMath.log(double) and
+ *   StrictMath.log10(double) can be quite slow.
  * 
- * - jafama.fastsqrt (boolean, default is false):
+ * - jafama.strict.fastsqrt (boolean, default is false):
  *   If true, using redefined computation for sqrt(double),
- *   else it delegates to Math.sqrt(double).
- *   False by default because Math.sqrt(double) seems usually fast.
+ *   else it delegates to StrictMath.sqrt(double).
+ *   False by default because StrictMath.sqrt(double) seems usually fast.
  */
-public final class FastMath extends AbstractFastMath {
+public final strictfp class StrictFastMath extends AbstractFastMath {
 
     //--------------------------------------------------------------------------
     // CONFIGURATION
     //--------------------------------------------------------------------------
 
-    private static final boolean USE_JDK_MATH = FM_USE_JDK_MATH;
+    private static final boolean USE_JDK_MATH = SFM_USE_JDK_MATH;
 
-    private static final boolean USE_REDEFINED_LOG = FM_USE_REDEFINED_LOG;
+    private static final boolean USE_REDEFINED_LOG = SFM_USE_REDEFINED_LOG;
 
-    private static final boolean USE_REDEFINED_SQRT = FM_USE_REDEFINED_SQRT;
+    private static final boolean USE_REDEFINED_SQRT = SFM_USE_REDEFINED_SQRT;
 
-    private static final boolean USE_POWTABS_FOR_ASIN = FM_USE_POWTABS_FOR_ASIN;
+    private static final boolean USE_POWTABS_FOR_ASIN = SFM_USE_POWTABS_FOR_ASIN;
 
     //--------------------------------------------------------------------------
     // PUBLIC TREATMENTS
@@ -113,7 +100,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double sin(double angle) {
         if (USE_JDK_MATH) {
-            return Math.sin(angle);
+            return StrictMath.sin(angle);
         }
         boolean negateResult = false;
         if (angle < 0.0) {
@@ -169,7 +156,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double sinQuick(double angle) {
         if (USE_JDK_MATH) {
-            return Math.sin(angle);
+            return StrictMath.sin(angle);
         }
         return cosTab[((int)(Math.abs(angle-Math.PI/2) * SIN_COS_INDEXER + 0.5)) & (SIN_COS_TABS_SIZE-2)];
     }
@@ -180,7 +167,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double cos(double angle) {
         if (USE_JDK_MATH) {
-            return Math.cos(angle);
+            return StrictMath.cos(angle);
         }
         angle = Math.abs(angle);
         if (angle > SIN_COS_MAX_VALUE_FOR_INT_MODULO) {
@@ -229,7 +216,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double cosQuick(double angle) {
         if (USE_JDK_MATH) {
-            return Math.cos(angle);
+            return StrictMath.cos(angle);
         }
         return cosTab[((int)(Math.abs(angle) * SIN_COS_INDEXER + 0.5)) & (SIN_COS_TABS_SIZE-2)];
     }
@@ -243,8 +230,8 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double sinAndCos(double angle, DoubleWrapper cosine) {
         if (USE_JDK_MATH) {
-            cosine.value = Math.cos(angle);
-            return Math.sin(angle);
+            cosine.value = StrictMath.cos(angle);
+            return StrictMath.sin(angle);
         }
         // Using the same algorithm than sin(double) method,
         // and computing also cosine at the end.
@@ -303,7 +290,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double tan(double angle) {
         if (USE_JDK_MATH) {
-            return Math.tan(angle);
+            return StrictMath.tan(angle);
         }
         boolean negateResult = false;
         if (angle < 0.0) {
@@ -346,7 +333,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double asin(double value) {
         if (USE_JDK_MATH) {
-            return Math.asin(value);
+            return StrictMath.asin(value);
         }
         boolean negateResult = false;
         if (value < 0.0) {
@@ -405,7 +392,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double acos(double value) {
         if (USE_JDK_MATH) {
-            return Math.acos(value);
+            return StrictMath.acos(value);
         }
         return Math.PI/2 - asin(value);
     }
@@ -433,7 +420,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double atan(double value) {
         if (USE_JDK_MATH) {
-            return Math.atan(value);
+            return StrictMath.atan(value);
         }
         boolean negateResult = false;
         if (value < 0.0) {
@@ -470,7 +457,7 @@ public final class FastMath extends AbstractFastMath {
 
     /**
      * For special values for which multiple conventions could be adopted,
-     * behaves like Math.atan2(double,double).
+     * behaves like StrictMath.atan2(double,double).
      * 
      * @param y Coordinate on y axis.
      * @param x Coordinate on x axis.
@@ -479,7 +466,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double atan2(double y, double x) {
         if (USE_JDK_MATH) {
-            return Math.atan2(y,x);
+            return StrictMath.atan2(y,x);
         }
         /*
          * Using sub-methods, to make method lighter for general case,
@@ -514,7 +501,7 @@ public final class FastMath extends AbstractFastMath {
     }
 
     /**
-     * Gives same result as Math.toRadians for some particular values
+     * Gives same result as StrictMath.toRadians for some particular values
      * like 90.0, 180.0 or 360.0, but is faster (no division).
      * 
      * @param angdeg Angle value in degrees.
@@ -522,13 +509,13 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double toRadians(double angdeg) {
         if (USE_JDK_MATH) {
-            return Math.toRadians(angdeg);
+            return StrictMath.toRadians(angdeg);
         }
         return angdeg * (Math.PI/180);
     }
 
     /**
-     * Gives same result as Math.toDegrees for some particular values
+     * Gives same result as StrictMath.toDegrees for some particular values
      * like Math.PI/2, Math.PI or 2*Math.PI, but is faster (no division).
      * 
      * @param angrad Angle value in radians.
@@ -536,7 +523,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double toDegrees(double angrad) {
         if (USE_JDK_MATH) {
-            return Math.toDegrees(angrad);
+            return StrictMath.toDegrees(angrad);
         }
         return angrad * (180/Math.PI);
     }
@@ -641,7 +628,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double sinh(double value) {
         if (USE_JDK_MATH) {
-            return Math.sinh(value);
+            return StrictMath.sinh(value);
         }
         // sinh(x) = (exp(x)-exp(-x))/2
         double h;
@@ -689,7 +676,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double cosh(double value) {
         if (USE_JDK_MATH) {
-            return Math.cosh(value);
+            return StrictMath.cosh(value);
         }
         // cosh(x) = (exp(x)+exp(-x))/2
         if (value < 0.0) {
@@ -777,8 +764,8 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double sinhAndCosh(double value, DoubleWrapper hcosine) {
         if (USE_JDK_MATH) {
-            hcosine.value = Math.cosh(value);
-            return Math.sinh(value);
+            hcosine.value = StrictMath.cosh(value);
+            return StrictMath.sinh(value);
         }
         // Mixup of sinh and cosh treatments: if you modify them,
         // you might want to also modify this.
@@ -837,7 +824,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double tanh(double value) {
         if (USE_JDK_MATH) {
-            return Math.tanh(value);
+            return StrictMath.tanh(value);
         }
         // tanh(x) = sinh(x)/cosh(x)
         //         = (exp(x)-exp(-x))/(exp(x)+exp(-x))
@@ -1047,7 +1034,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double exp(double value) {
         if (USE_JDK_MATH) {
-            return Math.exp(value);
+            return StrictMath.exp(value);
         }
         // exp(x) = exp([x])*exp(y)
         // with [x] the integer part of x, and y = x-[x]
@@ -1101,7 +1088,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double expQuick(double value) {
         if (USE_JDK_MATH) {
-            return Math.exp(value);
+            return StrictMath.exp(value);
         }
         /*
          * Cast of double values, even in long range, into long, is slower than
@@ -1126,7 +1113,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double expm1(double value) {
         if (USE_JDK_MATH) {
-            return Math.expm1(value);
+            return StrictMath.expm1(value);
         }
         // If value is far from zero, we use exp(value)-1.
         //
@@ -1158,7 +1145,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double log(double value) {
         if (USE_JDK_MATH || (!USE_REDEFINED_LOG)) {
-            return Math.log(value);
+            return StrictMath.log(value);
         }
         if (value > 0.0) {
             if (value == Double.POSITIVE_INFINITY) {
@@ -1231,7 +1218,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double logQuick(double value) {
         if (USE_JDK_MATH) {
-            return Math.log(value);
+            return StrictMath.log(value);
         }
         /*
          * Inverse of Schraudolph's method for exp, is very inaccurate near 1,
@@ -1269,7 +1256,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double log10(double value) {
         if (USE_JDK_MATH || (!USE_REDEFINED_LOG)) {
-            return Math.log10(value);
+            return StrictMath.log10(value);
         }
         // INV_LOG_10 is < 1, but there is no risk of log(double)
         // overflow (positive or negative) while the end result shouldn't,
@@ -1287,7 +1274,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double log1p(double value) {
         if (USE_JDK_MATH) {
-            return Math.log1p(value);
+            return StrictMath.log1p(value);
         }
         if (false) {
             // This also works. Simpler but a bit slower.
@@ -1383,7 +1370,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double pow(double value, double power) {
         if (USE_JDK_MATH) {
-            return Math.pow(value,power);
+            return StrictMath.pow(value,power);
         }
         if (power == 0.0) {
             return 1.0;
@@ -1454,7 +1441,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double powQuick(double value, double power) {
         if (USE_JDK_MATH) {
-            return Math.pow(value,power);
+            return StrictMath.pow(value,power);
         }
         return exp(power*logQuick(value));
     }
@@ -1470,7 +1457,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double powFast(double value, int power) {
         if (USE_JDK_MATH) {
-            return Math.pow(value,power);
+            return StrictMath.pow(value,power);
         }
         if (power > 5) { // Most common case first.
             double oddRemains = 1.0;
@@ -1621,7 +1608,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double sqrt(double value) {
         if (USE_JDK_MATH || (!USE_REDEFINED_SQRT)) {
-            return Math.sqrt(value);
+            return StrictMath.sqrt(value);
         }
         // See cbrt for comments, sqrt uses the same ideas.
 
@@ -1666,7 +1653,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double sqrtQuick(double value) {
         if (USE_JDK_MATH) {
-            return Math.sqrt(value);
+            return StrictMath.sqrt(value);
         }
         final long bits = Double.doubleToRawLongBits(value);
         /*
@@ -1697,7 +1684,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double invSqrtQuick(double value) {
         if (USE_JDK_MATH) {
-            return 1/Math.sqrt(value);
+            return 1/StrictMath.sqrt(value);
         }
         /*
          * http://en.wikipedia.org/wiki/Fast_inverse_square_root
@@ -1723,7 +1710,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double cbrt(double value) {
         if (USE_JDK_MATH) {
-            return Math.cbrt(value);
+            return StrictMath.cbrt(value);
         }
         double h;
         if (value < 0.0) {
@@ -1817,7 +1804,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double hypot(double x, double y) {
         if (USE_JDK_MATH) {
-            return Math.hypot(x,y);
+            return StrictMath.hypot(x,y);
         }
         x = Math.abs(x);
         y = Math.abs(y);
@@ -1944,7 +1931,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static int abs(int value) {
         if (USE_JDK_MATH) {
-            return Math.abs(value);
+            return StrictMath.abs(value);
         }
         return NumbersUtils.abs(value);
     }
@@ -1955,7 +1942,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static long abs(long value) {
         if (USE_JDK_MATH) {
-            return Math.abs(value);
+            return StrictMath.abs(value);
         }
         return NumbersUtils.abs(value);
     }
@@ -2016,7 +2003,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double floor(double value) {
         if (USE_JDK_MATH) {
-            return Math.floor(value);
+            return StrictMath.floor(value);
         }
         if (ANTI_SLOW_CASTS) {
             double valueAbs = Math.abs(value);
@@ -2092,13 +2079,13 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double ceil(double value) {
         if (USE_JDK_MATH) {
-            return Math.ceil(value);
+            return StrictMath.ceil(value);
         }
         return -floor(-value);
     }
 
     /**
-     * Might have different semantics than Math.round(float),
+     * Might have different semantics than StrictMath.round(float),
      * see bugs 6430675 and 8010430.
      * 
      * @param value A double value.
@@ -2137,7 +2124,7 @@ public final class FastMath extends AbstractFastMath {
     }
 
     /**
-     * Might have different semantics than Math.round(double),
+     * Might have different semantics than StrictMath.round(double),
      * see bugs 6430675 and 8010430.
      * 
      * @param value A double value.
@@ -2245,7 +2232,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double rint(double value) {
         if (USE_JDK_MATH) {
-            return Math.rint(value);
+            return StrictMath.rint(value);
         }
         final int sign = (int)signFromBit(value);
         value = Math.abs(value);
@@ -2506,7 +2493,7 @@ public final class FastMath extends AbstractFastMath {
      * closest to dividend/divisor.
      * If dividend/divisor is equally close to surrounding integers,
      * we choose n to be the integer of smallest magnitude, which makes
-     * this treatment differ from Math.IEEEremainder(double,double),
+     * this treatment differ from StrictMath.IEEEremainder(double,double),
      * where n is chosen to be the even integer.
      * Note that the choice of n is not done considering the double
      * approximation of dividend/divisor, because it could cause
@@ -2516,8 +2503,8 @@ public final class FastMath extends AbstractFastMath {
      * sign as) the dividend.
      * Ex. :
      * - for (-3.0,2.0), this method returns -1.0,
-     *   whereas Math.IEEEremainder returns 1.0.
-     * - for (-5.0,2.0), both this method and Math.IEEEremainder return -1.0.
+     *   whereas StrictMath.IEEEremainder returns 1.0.
+     * - for (-5.0,2.0), both this method and StrictMath.IEEEremainder return -1.0.
      * 
      * If the remainder is zero, its sign is the same as the sign of the first argument.
      * If either argument is NaN, or the first argument is infinite,
@@ -2687,7 +2674,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static float signum(float value) {
         if (USE_JDK_MATH) {
-            return Math.signum(value);
+            return StrictMath.signum(value);
         }
         if ((value == 0.0f) || (value != value)) {
             return value;
@@ -2702,7 +2689,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double signum(double value) {
         if (USE_JDK_MATH) {
-            return Math.signum(value);
+            return StrictMath.signum(value);
         }
         if ((value == 0.0) || (value != value)) {
             return value;
@@ -2732,7 +2719,7 @@ public final class FastMath extends AbstractFastMath {
     }
 
     /**
-     * A sign of NaN can be interpreted as positive or negative.
+     * A sign of NaN is interpreted as positive.
      *
      * @param magnitude A float value.
      * @param sign A float value.
@@ -2741,12 +2728,12 @@ public final class FastMath extends AbstractFastMath {
      */
     public static float copySign(float magnitude, float sign) {
         return Float.intBitsToFloat(
-                (Float.floatToRawIntBits(sign) & Integer.MIN_VALUE)
+                (Float.floatToRawIntBits((sign != sign) ? 1.0f : sign) & Integer.MIN_VALUE)
                 | (Float.floatToRawIntBits(magnitude) & Integer.MAX_VALUE));
     }
 
     /**
-     * A sign of NaN can be interpreted as positive or negative.
+     * A sign of NaN is interpreted as positive.
      *
      * @param magnitude A double value.
      * @param sign A double value.
@@ -2755,7 +2742,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double copySign(double magnitude, double sign) {
         return Double.longBitsToDouble(
-                (Double.doubleToRawLongBits(sign) & Long.MIN_VALUE)
+                (Double.doubleToRawLongBits((sign != sign) ? 1.0 : sign) & Long.MIN_VALUE)
                 | (Double.doubleToRawLongBits(magnitude) & Long.MAX_VALUE));
     }
 
@@ -2770,7 +2757,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static float ulp(float value) {
         if (USE_JDK_MATH) {
-            return Math.ulp(value);
+            return StrictMath.ulp(value);
         }
         /*
          * Look-up table not really worth it in micro-benchmark,
@@ -2805,7 +2792,7 @@ public final class FastMath extends AbstractFastMath {
      */
     public static double ulp(double value) {
         if (USE_JDK_MATH) {
-            return Math.ulp(value);
+            return StrictMath.ulp(value);
         }
         /*
          * Look-up table not really worth it in micro-benchmark,
@@ -3037,46 +3024,46 @@ public final class FastMath extends AbstractFastMath {
     }
 
     /*
-     * Non-redefined Math public values and treatments.
+     * Non-redefined StrictMath public values and treatments.
      */
 
-    public static final double E = Math.E;
-    public static final double PI = Math.PI;
+    public static final double E = StrictMath.E;
+    public static final double PI = StrictMath.PI;
     public static float abs(float a) {
-        return Math.abs(a);
+        return StrictMath.abs(a);
     }
     public static double abs(double a) {
-        return Math.abs(a);
+        return StrictMath.abs(a);
     }
     public static int min(int a, int b) {
-        return Math.min(a,b);
+        return StrictMath.min(a,b);
     }
     public static long min(long a, long b) {
-        return Math.min(a,b);
+        return StrictMath.min(a,b);
     }
     public static float min(float a, float b) {
-        return Math.min(a,b);
+        return StrictMath.min(a,b);
     }
     public static double min(double a, double b) {
-        return Math.min(a,b);
+        return StrictMath.min(a,b);
     }
     public static int max(int a, int b) {
-        return Math.max(a,b);
+        return StrictMath.max(a,b);
     }
     public static long max(long a, long b) {
-        return Math.max(a,b);
+        return StrictMath.max(a,b);
     }
     public static float max(float a, float b) {
-        return Math.max(a,b);
+        return StrictMath.max(a,b);
     }
     public static double max(double a, double b) {
-        return Math.max(a,b);
+        return StrictMath.max(a,b);
     }
     public static double IEEEremainder(double f1, double f2) {
-        return Math.IEEEremainder(f1,f2);
+        return StrictMath.IEEEremainder(f1,f2);
     }
     public static double random() {
-        return Math.random();
+        return StrictMath.random();
     }
 
     //--------------------------------------------------------------------------
@@ -3086,9 +3073,9 @@ public final class FastMath extends AbstractFastMath {
     /**
      * Non-instantiable.
      */
-    private FastMath() {
+    private StrictFastMath() {
     }
-    
+
     /*
      * Remainders (accurate).
      */

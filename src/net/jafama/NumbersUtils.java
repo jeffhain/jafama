@@ -36,6 +36,16 @@ public final class NumbersUtils {
     //--------------------------------------------------------------------------
     // MEMBERS
     //--------------------------------------------------------------------------
+    
+    /**
+     * Double.MIN_NORMAL since Java 6.
+     */
+    public static final double DOUBLE_MIN_NORMAL = Double.longBitsToDouble(0x0010000000000000L); // 2.2250738585072014E-308
+
+    /**
+     * Float.MIN_NORMAL since Java 6.
+     */
+    public static final float FLOAT_MIN_NORMAL = Float.intBitsToFloat(0x00800000); // 1.17549435E-38f
 
     private static final int MIN_DOUBLE_EXPONENT = -1074;
     private static final int MAX_DOUBLE_EXPONENT = 1023;
@@ -85,6 +95,16 @@ public final class NumbersUtils {
             MAX_NBR_OF_NEG_LONG_DIGITS_BY_RADIX[radix] = Long.toString(Long.MIN_VALUE, radix).length()-1;
         }
     }
+    
+    static final double NO_CSN_MIN_BOUND_INCL = 1e-3;
+    static final double NO_CSN_MAX_BOUND_EXCL = 1e7;
+    
+    private static final double PIO2_HI = Double.longBitsToDouble(0x3FF921FB54400000L); // 1.57079632673412561417e+00 first 33 bits of pi/2
+    private static final double PIO2_LO = Double.longBitsToDouble(0x3DD0B4611A626331L); // 6.07710050650619224932e-11 pi/2 - PIO2_HI
+    private static final double PI_HI = 2*PIO2_HI;
+    private static final double PI_LO = 2*PIO2_LO;
+    private static final double TWOPI_HI = 4*PIO2_HI;
+    private static final double TWOPI_LO = 4*PIO2_LO;
 
     //--------------------------------------------------------------------------
     // PUBLIC METHODS
@@ -207,7 +227,7 @@ public final class NumbersUtils {
      * @return True if the specified value is NaN or +-Infinity, false otherwise.
      */
     public static boolean isNaNOrInfinite(float a) {
-        // a-a is not equal to 0.0f (and is NaN) <-> a is NaN or +-infinity
+        // a-a is not equal to 0.0f (and is NaN) <-> a is NaN or +-Infinity
         return !(a-a == 0.0f);
     }
 
@@ -216,7 +236,7 @@ public final class NumbersUtils {
      * @return True if the specified value is NaN or +-Infinity, false otherwise.
      */
     public static boolean isNaNOrInfinite(double a) {
-        // a-a is not equal to 0.0 (and is NaN) <-> a is NaN or +-infinity
+        // a-a is not equal to 0.0 (and is NaN) <-> a is NaN or +-Infinity
         return !(a-a == 0.0);
     }
 
@@ -958,7 +978,7 @@ public final class NumbersUtils {
         if (a <= 0) {
             throw new IllegalArgumentException("a ["+a+"] must be > 0");
         }
-        return 1 << (31 - Integer.numberOfLeadingZeros(a));
+        return Integer.highestOneBit(a);
     }
 
     /**
@@ -969,6 +989,8 @@ public final class NumbersUtils {
         if (a <= 0) {
             throw new IllegalArgumentException("a ["+a+"] must be > 0");
         }
+        // Faster than copying int method
+        // (less computations on long).
         return 1L << (63 - Long.numberOfLeadingZeros(a));
     }
 
@@ -978,8 +1000,7 @@ public final class NumbersUtils {
      */
     public static int ceilingPowerOfTwo(int a) {
         checkIsInRange(0, (1<<30), a);
-        // From Hacker's Delight, Chapter 3, Harry S. Warren Jr.
-        return 1 << (32 - Integer.numberOfLeadingZeros(a - 1));
+        return (a >= 2) ? Integer.highestOneBit((a-1)<<1) : 1;
     }
 
     /**
@@ -988,6 +1009,8 @@ public final class NumbersUtils {
      */
     public static long ceilingPowerOfTwo(long a) {
         checkIsInRange(0L, (1L<<62), a);
+        // Faster than copying int method
+        // (less computations on long).
         return 1L << (64 - Long.numberOfLeadingZeros(a - 1));
     }
 
@@ -1146,6 +1169,20 @@ public final class NumbersUtils {
     }
 
     /**
+     * @return The negative of the absolute value (always exact).
+     */
+    public static int absNeg(int a) {
+        return (a>>31)-(a^(a>>31));
+    }
+
+    /**
+     * @return The negative of the absolute value (always exact).
+     */
+    public static long absNeg(long a) {
+        return (a>>63)-(a^(a>>63));
+    }
+
+    /**
      * Returns the exact result, provided it's in double range,
      * i.e. if power is in [-1074,1023].
      * 
@@ -1165,7 +1202,7 @@ public final class NumbersUtils {
             return Double.longBitsToDouble(((long)(power+MAX_DOUBLE_EXPONENT))<<52);
         }
     }
-
+    
     /**
      * If the specified value is in int range, the returned value is identical.
      * 
@@ -1427,10 +1464,30 @@ public final class NumbersUtils {
     }
 
     /**
+     * Strict version.
+     * 
+     * @param a A value.
+     * @return a*a.
+     */
+    public static strictfp float pow2_strict(float a) {
+        return a*a;
+    }
+
+    /**
      * @param a A value.
      * @return a*a.
      */
     public static double pow2(double a) {
+        return a*a;
+    }
+
+    /**
+     * Strict version.
+     * 
+     * @param a A value.
+     * @return a*a.
+     */
+    public static strictfp double pow2_strict(double a) {
         return a*a;
     }
 
@@ -1459,11 +1516,215 @@ public final class NumbersUtils {
     }
 
     /**
+     * Strict version.
+     * 
+     * @param a A value.
+     * @return a*a*a.
+     */
+    public static strictfp float pow3_strict(float a) {
+        return a*a*a;
+    }
+
+    /**
      * @param a A value.
      * @return a*a*a.
      */
     public static double pow3(double a) {
         return a*a*a;
+    }
+
+    /**
+     * Strict version.
+     * 
+     * @param a A value.
+     * @return a*a*a.
+     */
+    public static strictfp double pow3_strict(double a) {
+        return a*a*a;
+    }
+
+    /*
+     * Accurate +-m*PI/n.
+     */
+    
+    /**
+     * @param angRad An angle, in radians.
+     * @return angRad + 2*PI, accurately computed.
+     */
+    public static double plus2PI(double angRad) {
+        if (angRad > -Math.PI) {
+            // LO then HI, for better accuracy (if starting near 0).
+            return (angRad + TWOPI_LO) + TWOPI_HI;
+        } else {
+            // HI then LO, for better accuracy (if ending near 0).
+            return (angRad + TWOPI_HI) + TWOPI_LO;
+        }
+    }
+
+    /**
+     * Strict version.
+     * 
+     * @param angRad An angle, in radians.
+     * @return angRad + 2*PI, accurately computed.
+     */
+    public static strictfp double plus2PI_strict(double angRad) {
+        if (angRad > -Math.PI) {
+            // LO then HI, for better accuracy (if starting near 0).
+            return (angRad + TWOPI_LO) + TWOPI_HI;
+        } else {
+            // HI then LO, for better accuracy (if ending near 0).
+            return (angRad + TWOPI_HI) + TWOPI_LO;
+        }
+    }
+
+    /**
+     * @param angRad An angle, in radians.
+     * @return angRad - 2*PI, accurately computed.
+     */
+    public static double minus2PI(double angRad) {
+        if (angRad < Math.PI) {
+            // LO then HI, for better accuracy (if starting near 0).
+            return (angRad - TWOPI_LO) - TWOPI_HI;
+        } else {
+            // HI then LO, for better accuracy (if ending near 0).
+            return (angRad - TWOPI_HI) - TWOPI_LO;
+        }
+    }
+
+    /**
+     * Strict version.
+     * 
+     * @param angRad An angle, in radians.
+     * @return angRad - 2*PI, accurately computed.
+     */
+    public static strictfp double minus2PI_strict(double angRad) {
+        if (angRad < Math.PI) {
+            // LO then HI, for better accuracy (if starting near 0).
+            return (angRad - TWOPI_LO) - TWOPI_HI;
+        } else {
+            // HI then LO, for better accuracy (if ending near 0).
+            return (angRad - TWOPI_HI) - TWOPI_LO;
+        }
+    }
+
+    /**
+     * @param angRad An angle, in radians.
+     * @return angRad + PI, accurately computed.
+     */
+    public static double plusPI(double angRad) {
+        if (angRad > -Math.PI/2) {
+            // LO then HI, for better accuracy (if starting near 0).
+            return (angRad + PI_LO) + PI_HI;
+        } else {
+            // HI then LO, for better accuracy (if ending near 0).
+            return (angRad + PI_HI) + PI_LO;
+        }
+    }
+
+    /**
+     * Strict version.
+     * 
+     * @param angRad An angle, in radians.
+     * @return angRad + PI, accurately computed.
+     */
+    public static strictfp double plusPI_strict(double angRad) {
+        if (angRad > -Math.PI/2) {
+            // LO then HI, for better accuracy (if starting near 0).
+            return (angRad + PI_LO) + PI_HI;
+        } else {
+            // HI then LO, for better accuracy (if ending near 0).
+            return (angRad + PI_HI) + PI_LO;
+        }
+    }
+
+    /**
+     * @param angRad An angle, in radians.
+     * @return angRad - PI, accurately computed.
+     */
+    public static double minusPI(double angRad) {
+        if (angRad < Math.PI/2) {
+            // LO then HI, for better accuracy (if starting near 0).
+            return (angRad - PI_LO) - PI_HI;
+        } else {
+            // HI then LO, for better accuracy (if ending near 0).
+            return (angRad - PI_HI) - PI_LO;
+        }
+    }
+
+    /**
+     * Strict version.
+     * 
+     * @param angRad An angle, in radians.
+     * @return angRad - PI, accurately computed.
+     */
+    public static strictfp double minusPI_strict(double angRad) {
+        if (angRad < Math.PI/2) {
+            // LO then HI, for better accuracy (if starting near 0).
+            return (angRad - PI_LO) - PI_HI;
+        } else {
+            // HI then LO, for better accuracy (if ending near 0).
+            return (angRad - PI_HI) - PI_LO;
+        }
+    }
+
+    /**
+     * @param angRad An angle, in radians.
+     * @return angRad + PI/2, accurately computed.
+     */
+    public static double plusPIO2(double angRad) {
+        if (angRad > -Math.PI/4) {
+            // LO then HI, for better accuracy (if starting near 0).
+            return (angRad + PIO2_LO) + PIO2_HI;
+        } else {
+            // HI then LO, for better accuracy (if ending near 0).
+            return (angRad + PIO2_HI) + PIO2_LO;
+        }
+    }
+
+    /**
+     * Strict version.
+     * 
+     * @param angRad An angle, in radians.
+     * @return angRad + PI/2, accurately computed.
+     */
+    public static strictfp double plusPIO2_strict(double angRad) {
+        if (angRad > -Math.PI/4) {
+            // LO then HI, for better accuracy (if starting near 0).
+            return (angRad + PIO2_LO) + PIO2_HI;
+        } else {
+            // HI then LO, for better accuracy (if ending near 0).
+            return (angRad + PIO2_HI) + PIO2_LO;
+        }
+    }
+
+    /**
+     * @param angRad An angle, in radians.
+     * @return angRad - PI/2, accurately computed.
+     */
+    public static double minusPIO2(double angRad) {
+        if (angRad < Math.PI/4) {
+            // LO then HI, for better accuracy (if starting near 0).
+            return (angRad - PIO2_LO) - PIO2_HI;
+        } else {
+            // HI then LO, for better accuracy (if ending near 0).
+            return (angRad - PIO2_HI) - PIO2_LO;
+        }
+    }
+
+    /**
+     * Strict version.
+     * 
+     * @param angRad An angle, in radians.
+     * @return angRad - PI/2, accurately computed.
+     */
+    public static strictfp double minusPIO2_strict(double angRad) {
+        if (angRad < Math.PI/4) {
+            // LO then HI, for better accuracy (if starting near 0).
+            return (angRad - PIO2_LO) - PIO2_HI;
+        } else {
+            // HI then LO, for better accuracy (if ending near 0).
+            return (angRad - PIO2_HI) - PIO2_LO;
+        }
     }
 
     /*
@@ -1955,11 +2216,224 @@ public final class NumbersUtils {
             return new String(chars);
         }
     }
+    
+    /*
+     * toString (floating points)
+     * 
+     * toStringCSN(double) and toStringNoCSN(double)
+     * could be made faster, by using directly internals
+     * of Double.toString(double), but this would require
+     * copy-paste of much tricky code from JDK, and
+     * the overhead of our little rework is relatively
+     * negligible.
+     */
+    
+    /**
+     * @param value A double value.
+     * @return String representing the specified value,
+     *         using "computerized scientific notation",
+     *         which Double.toString(double) uses for non-infinite
+     *         values, when |value| < 1e-3 or |value| >= 1e7.
+     */
+    public static String toStringCSN(double value) {
+        // Quick case (also to get rid of +-0.0,
+        // for which Double.toString(double) doesn't use CSN).
+        if (value == 0.0) {
+            if (Double.doubleToRawLongBits(value) < 0) {
+                return "-0.0E0";
+            } else {
+                return "0.0E0";
+            }
+        }
+
+        final double abs = Math.abs(value);
+        if ((abs >= NO_CSN_MIN_BOUND_INCL) && (abs < NO_CSN_MAX_BOUND_EXCL)) {
+            final boolean neg = (value < 0.0);
+            
+            final String rawAbs = Double.toString(abs);
+            if (abs >= 1.0) {
+                /*
+                 * 0123456
+                 * 12.3456 ===> 1.23456E1
+                 * 123.0   ===> 1.23E2
+                 */
+                final int dotIndex = rawAbs.indexOf((int)'.');
+                final int powerOfTen = dotIndex-1;
+                final StringBuilder sb = new StringBuilder();
+                if (neg) {
+                    sb.append('-');
+                }
+                // Adding unit-or-above digits, with dot after first one.
+                sb.append(rawAbs.charAt(0));
+                sb.append('.');
+                sb.append(rawAbs,1,dotIndex);
+                if ((value != (int)value) || (abs < 10.0)) {
+                    // Adding below-unit digits (possibly just 0 if abs < 10.0,
+                    // to end up for example with "3.0E0" instead of "3.E0").
+                    sb.append(rawAbs,dotIndex+1,rawAbs.length());
+                }
+                sb.append('E');
+                sb.append(CHAR_BY_DIGIT[powerOfTen]);
+                return sb.toString();
+            } else {
+                /*
+                 * 012345678
+                 * 0.0123456 ===> 1.23456E-2
+                 * 0.01      ===> 1.0E-2
+                 */
+                int nonZeroIndex = 1;
+                while (rawAbs.charAt(++nonZeroIndex) == '0') {
+                }
+                // Negative.
+                final int powerOfTen = 1-nonZeroIndex;
+                final int nbrOfSignificantDigitsPastDot = (rawAbs.length() - (nonZeroIndex+1));
+                final StringBuilder sb = new StringBuilder();
+                if (neg) {
+                    sb.append('-');
+                }
+                sb.append(rawAbs.charAt(nonZeroIndex));
+                sb.append('.');
+                if (nbrOfSignificantDigitsPastDot > 0) {
+                    // If bug 4428022 make rawAbs being something like "0.0010",
+                    // we add the last '0' here after the dot, which is fine.
+                    sb.append(rawAbs,nonZeroIndex+1,rawAbs.length());
+                } else {
+                    sb.append('0');
+                }
+                sb.append("E-");
+                sb.append(CHAR_BY_DIGIT[-powerOfTen]);
+                return sb.toString();
+            }
+        } else {
+            return Double.toString(value);
+        }
+    }
+    
+    /**
+     * @param value A double value.
+     * @return String representing the specified value,
+     *         not in "computerized scientific notation",
+     *         which Double.toString(double) uses for non-infinite
+     *         values, when |value| < 1e-3 or |value| >= 1e7.
+     */
+    public static String toStringNoCSN(double value) {
+        // Quick case.
+        // Should also work with long instead of int,
+        // but less obvious (due to roundings...),
+        // and we just want to speed up the more common
+        // case of "small" integer values.
+        final int intValue = (int)value;
+        if (value == intValue) {
+            if (value == 0.0) {
+                if (Double.doubleToRawLongBits(value) < 0) {
+                    return "-0.0";
+                } else {
+                    return "0.0";
+                }
+            } else {
+                return Integer.toString(intValue)+".0";
+            }
+        }
+
+        final String raw = Double.toString(value);
+        final double abs = Math.abs(value);
+        if (abs >= NO_CSN_MAX_BOUND_EXCL) {
+            if (abs == Double.POSITIVE_INFINITY) {
+                return raw;
+            }
+            /*
+             * 0123456789
+             * 1.234567E5 ===> 123456.7
+             * 1.23456E5  ===> 123456.0 (adding 0)
+             * 1.23E5     ===> 123000.0
+             * 1.0E5      ===> 100000.0
+             */
+            // "." close to start, so using indexOf.
+            final int dotIndex = raw.indexOf((int)'.');
+            // "E" close to end, so using lastIndexOf.
+            final int eIndex = raw.lastIndexOf((int)'E');
+            final int powerOfTen = Integer.parseInt(raw.substring(eIndex+1));
+            final int nbrOfSignificantLoDigits = (eIndex - dotIndex - 1);
+            final int nbrOfZerosToAddBeforeDot = (powerOfTen - nbrOfSignificantLoDigits);
+
+            int start;
+            int end;
+
+            final StringBuilder sb = new StringBuilder();
+            sb.append(raw,0,dotIndex);
+            if (nbrOfZerosToAddBeforeDot >= 0) {
+                // Can copy all digits that were between '.' and 'E'.
+                sb.append(raw,dotIndex+1,eIndex);
+                for (int i=0;i<nbrOfZerosToAddBeforeDot;i++) {
+                    sb.append('0');
+                }
+                sb.append(".0");
+            } else {
+                start = dotIndex+1;
+                sb.append(raw,start,end = start+powerOfTen);
+                
+                sb.append('.');
+                
+                start = end;
+                sb.append(raw,start,end = eIndex);
+            }
+            return sb.toString();
+        } else if (abs < NO_CSN_MIN_BOUND_INCL) {
+            // Not +-0.0 since already handled.
+            /*
+             * 01234567
+             * 1.234E-4 ===> 0.0001234
+             * 1.0E-4   ===> 0.0001
+             */
+            // "." close to start, so using indexOf.
+            final int dotIndex = raw.indexOf((int)'.');
+            // "E" close to end, so using lastIndexOf.
+            final int eIndex = raw.lastIndexOf((int)'E');
+            // Negative.
+            final int powerOfTen = Integer.parseInt(raw.substring(eIndex+1));
+            final int nbrOfZerosToAddAfterDot = (-powerOfTen-1);
+            
+            final StringBuilder sb = new StringBuilder();
+            if (value < 0.0) {
+                sb.append("-0.");
+            } else {
+                sb.append("0.");
+            }
+            for (int i=0;i<nbrOfZerosToAddAfterDot;i++) {
+                sb.append('0');
+            }
+            // First raw digit.
+            sb.append(raw,dotIndex-1,dotIndex);
+            if ((eIndex == dotIndex + 2) && (raw.charAt(dotIndex+1) == '0')) {
+                // Char past dot is alone and '0': no need to add it.
+            } else {
+                // Raw digits that were past dot.
+                sb.append(raw,dotIndex+1,eIndex);
+            }
+            return sb.toString();
+        } else {
+            // abs in [0.001,1e7[.
+            if ((abs < 1.0) && (raw.charAt(raw.length()-1) == '0')) {
+                // Workaround for bug 4428022 (Double.toString(0.004) returns
+                // "0.0040", same with 0.001 etc.).
+                return raw.substring(0, raw.length()-1);
+            } else {
+                return raw;
+            }
+        }
+    }
 
     //--------------------------------------------------------------------------
     // PRIVATE METHODS
     //--------------------------------------------------------------------------
 
+    private NumbersUtils() {
+    }
+    
+    /*
+     * 
+     */
+    
     /**
      * Had such isInXXX methods, and corresponding checkXXX methods,
      * but they seem actually slower in practice, so just keeping this

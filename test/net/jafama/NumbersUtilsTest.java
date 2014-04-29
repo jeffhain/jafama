@@ -28,8 +28,13 @@ public class NumbersUtilsTest extends TestCase {
     // CONFIGURATION
     //--------------------------------------------------------------------------
 
-    private static final int NBR_OF_VALUES = 1000 * 1000;
+    private static final int NBR_OF_VALUES_BIG = 1000 * 1000;
+
+    private static final int NBR_OF_VALUES_SMALL = 10 * 1000;
     
+    private static final double ACCURATE_PI_OP_SIN_EPSILON = 1e-10;
+    private static final double ACCURATE_PI_OP_DEFAULT_EPSILON = 3e-15;
+
     //--------------------------------------------------------------------------
     // MEMBERS
     //--------------------------------------------------------------------------
@@ -152,7 +157,7 @@ public class NumbersUtilsTest extends TestCase {
             assertFalse(NumbersUtils.isMathematicalInteger(matIntPUlp));
         }
 
-        for (int i=0;i<NBR_OF_VALUES;i++) {
+        for (int i=0;i<NBR_OF_VALUES_BIG;i++) {
             int matInt = this.utils.randomIntUniMag();
             float value = (float)matInt;
             assertTrue(NumbersUtils.isMathematicalInteger(value));
@@ -179,7 +184,7 @@ public class NumbersUtilsTest extends TestCase {
             assertFalse(NumbersUtils.isMathematicalInteger(matIntPUlp));
         }
 
-        for (int i=0;i<NBR_OF_VALUES;i++) {
+        for (int i=0;i<NBR_OF_VALUES_BIG;i++) {
             long matInt = this.utils.randomLongUniMag();
             double value = (double)matInt;
             assertTrue(NumbersUtils.isMathematicalInteger(value));
@@ -206,7 +211,7 @@ public class NumbersUtilsTest extends TestCase {
             assertFalse(NumbersUtils.isEquidistant(equiPUlp));
         }
 
-        for (int i=0;i<NBR_OF_VALUES;i++) {
+        for (int i=0;i<NBR_OF_VALUES_BIG;i++) {
             int matInt = this.utils.randomIntUniMag();
             float value = (float)matInt;
             // Not equidistant since mathematical integer.
@@ -238,7 +243,7 @@ public class NumbersUtilsTest extends TestCase {
             assertFalse(NumbersUtils.isEquidistant(equiPUlp));
         }
 
-        for (int i=0;i<NBR_OF_VALUES;i++) {
+        for (int i=0;i<NBR_OF_VALUES_BIG;i++) {
             long matInt = this.utils.randomLongUniMag();
             double value = (double)matInt;
             // Not equidistant since mathematical integer.
@@ -263,7 +268,7 @@ public class NumbersUtilsTest extends TestCase {
         assertTrue(NumbersUtils.isNaNOrInfinite(Float.POSITIVE_INFINITY));
         
         assertFalse(NumbersUtils.isNaNOrInfinite(Float.MIN_VALUE));
-        assertFalse(NumbersUtils.isNaNOrInfinite(Float.MIN_NORMAL));
+        assertFalse(NumbersUtils.isNaNOrInfinite(NumbersUtils.FLOAT_MIN_NORMAL));
         assertFalse(NumbersUtils.isNaNOrInfinite(Float.MAX_VALUE));
         assertFalse(NumbersUtils.isNaNOrInfinite(-1.1f));
         assertFalse(NumbersUtils.isNaNOrInfinite(-1.0f));
@@ -281,7 +286,7 @@ public class NumbersUtilsTest extends TestCase {
         assertTrue(NumbersUtils.isNaNOrInfinite(Double.POSITIVE_INFINITY));
         
         assertFalse(NumbersUtils.isNaNOrInfinite(Double.MIN_VALUE));
-        assertFalse(NumbersUtils.isNaNOrInfinite(Double.MIN_NORMAL));
+        assertFalse(NumbersUtils.isNaNOrInfinite(NumbersUtils.DOUBLE_MIN_NORMAL));
         assertFalse(NumbersUtils.isNaNOrInfinite(Double.MAX_VALUE));
         assertFalse(NumbersUtils.isNaNOrInfinite(-1.1));
         assertFalse(NumbersUtils.isNaNOrInfinite(-1.0));
@@ -2069,46 +2074,74 @@ public class NumbersUtilsTest extends TestCase {
     }
 
     public void test_abs_int() {
-        ArrayList<Integer> values = new ArrayList<Integer>();
-        values.add(Integer.MIN_VALUE);
-        values.add(Integer.MIN_VALUE+1);
-        values.add(Integer.MIN_VALUE+2);
-        values.add(Integer.MIN_VALUE+3);
-        values.add(-3);
-        values.add(-2);
-        values.add(-1);
-        values.add(0);
-        values.add(1);
-        values.add(2);
-        values.add(3);
-        values.add(Integer.MAX_VALUE-1);
-        values.add(Integer.MAX_VALUE-2);
-        values.add(Integer.MAX_VALUE-3);
-        values.add(Integer.MAX_VALUE);
-        for (Integer value : values) {
+        for (int value : new int[]{
+                Integer.MIN_VALUE,
+                Integer.MIN_VALUE+1,
+                -1,
+                0,
+                1,
+                Integer.MAX_VALUE-1,
+                Integer.MAX_VALUE
+        }) {
+            assertEquals(Math.abs(value), NumbersUtils.abs(value));
+        }
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            final int value = this.utils.randomIntWhatever();
             assertEquals(Math.abs(value), NumbersUtils.abs(value));
         }
     }
 
     public void test_abs_long() {
-        ArrayList<Long> values = new ArrayList<Long>();
-        values.add(Long.MIN_VALUE);
-        values.add(Long.MIN_VALUE+1);
-        values.add(Long.MIN_VALUE+2);
-        values.add(Long.MIN_VALUE+3);
-        values.add(-3L);
-        values.add(-2L);
-        values.add(-1L);
-        values.add(0L);
-        values.add(1L);
-        values.add(2L);
-        values.add(3L);
-        values.add(Long.MAX_VALUE-1);
-        values.add(Long.MAX_VALUE-2);
-        values.add(Long.MAX_VALUE-3);
-        values.add(Long.MAX_VALUE);
-        for (Long value : values) {
+        for (long value : new long[]{
+                Long.MIN_VALUE,
+                Long.MIN_VALUE+1,
+                -1L,
+                0L,
+                1L,
+                Long.MAX_VALUE-1,
+                Long.MAX_VALUE
+        }) {
             assertEquals(Math.abs(value), NumbersUtils.abs(value));
+        }
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            final long value = this.utils.randomLongWhatever();
+            assertEquals(Math.abs(value), NumbersUtils.abs(value));
+        }
+    }
+
+    public void test_absNeg_int() {
+        for (int value : new int[]{
+                Integer.MIN_VALUE,
+                Integer.MIN_VALUE+1,
+                -1,
+                0,
+                1,
+                Integer.MAX_VALUE-1,
+                Integer.MAX_VALUE
+        }) {
+            assertEquals(-Math.abs(value), NumbersUtils.absNeg(value));
+        }
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            final int value = this.utils.randomIntWhatever();
+            assertEquals(-Math.abs(value), NumbersUtils.absNeg(value));
+        }
+    }
+
+    public void test_absNeg_long() {
+        for (long value : new long[]{
+                Long.MIN_VALUE,
+                Long.MIN_VALUE+1,
+                -1L,
+                0L,
+                1L,
+                Long.MAX_VALUE-1,
+                Long.MAX_VALUE
+        }) {
+            assertEquals(-Math.abs(value), NumbersUtils.absNeg(value));
+        }
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            final long value = this.utils.randomLongWhatever();
+            assertEquals(-Math.abs(value), NumbersUtils.absNeg(value));
         }
     }
 
@@ -2625,32 +2658,48 @@ public class NumbersUtilsTest extends TestCase {
     }
 
     public void test_pow2_float() {
+        this.test_pow2_float(false);
+    }
+
+    public void test_pow2_strict_float() {
+        this.test_pow2_float(true);
+    }
+
+    public void test_pow2_float(boolean strict) {
         ArrayList<Float> values = new ArrayList<Float>();
         values.add(0.0f);
         values.add(0.1f);
         values.add(Float.MIN_VALUE);
-        values.add(Float.MIN_NORMAL);
+        values.add(NumbersUtils.FLOAT_MIN_NORMAL);
         values.add(Float.MAX_VALUE);
         values.add(Float.NaN);
         values.add(Float.NEGATIVE_INFINITY);
         values.add(Float.POSITIVE_INFINITY);
         for (Float value : values) {
-            assertEquals(value * value, NumbersUtils.pow2(value));
+            assertEquals(value * value, (strict ? NumbersUtils.pow2_strict(value) : NumbersUtils.pow2(value)));
         }
     }
 
     public void test_pow2_double() {
+        this.test_pow2_double(false);
+    }
+    
+    public void test_pow2_strict_double() {
+        this.test_pow2_double(true);
+    }
+    
+    public void test_pow2_double(boolean strict) {
         ArrayList<Double> values = new ArrayList<Double>();
         values.add(0.0);
         values.add(0.1);
         values.add(Double.MIN_VALUE);
-        values.add(Double.MIN_NORMAL);
+        values.add(NumbersUtils.DOUBLE_MIN_NORMAL);
         values.add(Double.MAX_VALUE);
         values.add(Double.NaN);
         values.add(Double.NEGATIVE_INFINITY);
         values.add(Double.POSITIVE_INFINITY);
         for (Double value : values) {
-            assertEquals(value * value, NumbersUtils.pow2(value));
+            assertEquals(value * value, (strict ? NumbersUtils.pow2_strict(value) : NumbersUtils.pow2(value)));
         }
     }
 
@@ -2677,32 +2726,368 @@ public class NumbersUtilsTest extends TestCase {
     }
 
     public void test_pow3_float() {
+        this.test_pow3_float(false);
+    }
+    
+    public void test_pow3_strict_float() {
+        this.test_pow3_float(true);
+    }
+    
+    public void test_pow3_float(boolean strict) {
         ArrayList<Float> values = new ArrayList<Float>();
         values.add(0.0f);
         values.add(0.1f);
         values.add(Float.MIN_VALUE);
-        values.add(Float.MIN_NORMAL);
+        values.add(NumbersUtils.FLOAT_MIN_NORMAL);
         values.add(Float.MAX_VALUE);
         values.add(Float.NaN);
         values.add(Float.NEGATIVE_INFINITY);
         values.add(Float.POSITIVE_INFINITY);
         for (Float value : values) {
-            assertEquals(value * value * value, NumbersUtils.pow3(value));
+            assertEquals(value * value * value, (strict ? NumbersUtils.pow3_strict(value) : NumbersUtils.pow3(value)));
         }
     }
 
     public void test_pow3_double() {
+        this.test_pow3_double(false);
+    }
+    
+    public void test_pow3_strict_double() {
+        this.test_pow3_double(true);
+    }
+    
+    public void test_pow3_double(boolean strict) {
         ArrayList<Double> values = new ArrayList<Double>();
         values.add(0.0);
         values.add(0.1);
         values.add(Double.MIN_VALUE);
-        values.add(Double.MIN_NORMAL);
+        values.add(NumbersUtils.DOUBLE_MIN_NORMAL);
         values.add(Double.MAX_VALUE);
         values.add(Double.NaN);
         values.add(Double.NEGATIVE_INFINITY);
         values.add(Double.POSITIVE_INFINITY);
         for (Double value : values) {
-            assertEquals(value * value * value, NumbersUtils.pow3(value));
+            assertEquals(value * value * value, (strict ? NumbersUtils.pow3_strict(value) : NumbersUtils.pow3(value)));
+        }
+    }
+    
+    /*
+     * 
+     */
+
+    public void test_plus2PI_double() {
+        this.test_plus2PI_double(false);
+    }
+    
+    public void test_plus2PI_strict_double() {
+        this.test_plus2PI_double(true);
+    }
+    
+    public void test_plus2PI_double(boolean strict) {
+        {
+            // Using StrictMath.sin as a measure of the angle, since
+            // around PI we have sin(x) ~= x.
+            // 2* because at 2*Math.PI we have twice the ULP of Math.PI.
+            final double expected = 2*StrictMath.sin(Math.PI);
+            final double value = -2*Math.PI;
+            final double actual = (strict ? NumbersUtils.plus2PI_strict(value) : NumbersUtils.plus2PI(value));
+            final double relDelta = NumbersTestUtils.relDelta(expected, actual);
+            assertEquals(0.0, relDelta, ACCURATE_PI_OP_SIN_EPSILON);
+        }
+        if (strict) {
+            assertEquals(2*Math.PI, NumbersUtils.plus2PI_strict(0.0));
+            assertEquals(3*Math.PI, NumbersUtils.plus2PI_strict(Math.PI));
+        } else {
+            assertEquals(2*Math.PI, NumbersUtils.plus2PI(0.0));
+            assertEquals(3*Math.PI, NumbersUtils.plus2PI(Math.PI));
+        }
+        
+        // Testing monotonicity around threshold.
+        if (strict) {
+            double a = NumbersUtils.plus2PI_strict(Math.nextAfter(-Math.PI, Double.NEGATIVE_INFINITY));
+            double b = NumbersUtils.plus2PI_strict(-Math.PI);
+            double c = NumbersUtils.plus2PI_strict(Math.nextAfter(-Math.PI, Double.POSITIVE_INFINITY));
+            assertTrue(a <= b);
+            assertTrue(b <= c);
+        } else {
+            double a = NumbersUtils.plus2PI(Math.nextAfter(-Math.PI, Double.NEGATIVE_INFINITY));
+            double b = NumbersUtils.plus2PI(-Math.PI);
+            double c = NumbersUtils.plus2PI(Math.nextAfter(-Math.PI, Double.POSITIVE_INFINITY));
+            assertTrue(a <= b);
+            assertTrue(b <= c);
+        }
+        
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            final double value = this.utils.randomDoubleWhatever();
+            final double ref = value + 2*Math.PI;
+            final double actual = (strict ? NumbersUtils.plus2PI_strict(value) : NumbersUtils.plus2PI(value));
+            
+            // Testing is close to +2*Math.PI.
+            final double minDelta = NumbersTestUtils.minDelta(ref, actual);
+            assertEquals(0.0, minDelta, ACCURATE_PI_OP_DEFAULT_EPSILON);
+        }
+    }
+
+    public void test_minus2PI_double() {
+        this.test_minus2PI_double(false);
+    }
+    
+    public void test_minus2PI_strict_double() {
+        this.test_minus2PI_double(true);
+    }
+    
+    public void test_minus2PI_double(boolean strict) {
+        {
+            // Using StrictMath.sin as a measure of the angle, since
+            // around PI we have sin(x) ~= x.
+            // 2* because at 2*Math.PI we have twice the ULP of Math.PI.
+            final double expected = -2*StrictMath.sin(Math.PI);
+            final double value = 2*Math.PI;
+            final double actual = (strict ? NumbersUtils.minus2PI_strict(value) : NumbersUtils.minus2PI(value));
+            final double relDelta = NumbersTestUtils.relDelta(expected, actual);
+            assertEquals(0.0, relDelta, ACCURATE_PI_OP_SIN_EPSILON);
+        }
+        if (strict) {
+            assertEquals(-2*Math.PI, NumbersUtils.minus2PI_strict(0.0));
+            assertEquals(-3*Math.PI, NumbersUtils.minus2PI_strict(-Math.PI));
+        } else {
+            assertEquals(-2*Math.PI, NumbersUtils.minus2PI(0.0));
+            assertEquals(-3*Math.PI, NumbersUtils.minus2PI(-Math.PI));
+        }
+        
+        // Testing monotonicity around threshold.
+        if (strict) {
+            double a = NumbersUtils.minus2PI_strict(Math.nextAfter(Math.PI, Double.NEGATIVE_INFINITY));
+            double b = NumbersUtils.minus2PI_strict(Math.PI);
+            double c = NumbersUtils.minus2PI_strict(Math.nextAfter(Math.PI, Double.POSITIVE_INFINITY));
+            assertTrue(a <= b);
+            assertTrue(b <= c);
+        } else {
+            double a = NumbersUtils.minus2PI(Math.nextAfter(Math.PI, Double.NEGATIVE_INFINITY));
+            double b = NumbersUtils.minus2PI(Math.PI);
+            double c = NumbersUtils.minus2PI(Math.nextAfter(Math.PI, Double.POSITIVE_INFINITY));
+            assertTrue(a <= b);
+            assertTrue(b <= c);
+        }
+        
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            final double value = this.utils.randomDoubleWhatever();
+            final double ref = value - 2*Math.PI;
+            final double actual = (strict ? NumbersUtils.minus2PI_strict(value) : NumbersUtils.minus2PI(value));
+            
+            // Testing is close to -2*Math.PI.
+            final double minDelta = NumbersTestUtils.minDelta(ref, actual);
+            assertEquals(0.0, minDelta, ACCURATE_PI_OP_DEFAULT_EPSILON);
+        }
+    }
+    
+    public void test_plusPI_double() {
+        this.test_plusPI_double(false);
+    }
+    
+    public void test_plusPI_strict_double() {
+        this.test_plusPI_double(true);
+    }
+    
+    public void test_plusPI_double(boolean strict) {
+        {
+            // Using StrictMath.sin as a measure of the angle, since
+            // around PI we have sin(x) ~= x.
+            final double expected = StrictMath.sin(Math.PI);
+            final double value = -Math.PI;
+            final double actual = (strict ? NumbersUtils.plusPI_strict(value) : NumbersUtils.plusPI(value));
+            final double relDelta = NumbersTestUtils.relDelta(expected, actual);
+            assertEquals(0.0, relDelta, ACCURATE_PI_OP_SIN_EPSILON);
+        }
+        if (strict) {
+            assertEquals(Math.PI, NumbersUtils.plusPI_strict(0.0));
+            assertEquals(2*Math.PI, NumbersUtils.plusPI_strict(Math.PI));
+        } else {
+            assertEquals(Math.PI, NumbersUtils.plusPI(0.0));
+            assertEquals(2*Math.PI, NumbersUtils.plusPI(Math.PI));
+        }
+        
+        // Testing monotonicity around threshold.
+        if (strict) {
+            double a = NumbersUtils.plusPI_strict(Math.nextAfter(-Math.PI/2, Double.NEGATIVE_INFINITY));
+            double b = NumbersUtils.plusPI_strict(-Math.PI/2);
+            double c = NumbersUtils.plusPI_strict(Math.nextAfter(-Math.PI/2, Double.POSITIVE_INFINITY));
+            assertTrue(a <= b);
+            assertTrue(b <= c);
+        } else {
+            double a = NumbersUtils.plusPI(Math.nextAfter(-Math.PI/2, Double.NEGATIVE_INFINITY));
+            double b = NumbersUtils.plusPI(-Math.PI/2);
+            double c = NumbersUtils.plusPI(Math.nextAfter(-Math.PI/2, Double.POSITIVE_INFINITY));
+            assertTrue(a <= b);
+            assertTrue(b <= c);
+        }
+        
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            final double value = this.utils.randomDoubleWhatever();
+            final double ref = value + Math.PI;
+            final double actual = (strict ? NumbersUtils.plusPI_strict(value) : NumbersUtils.plusPI(value));
+            
+            // Testing is close to +Math.PI.
+            final double minDelta = NumbersTestUtils.minDelta(ref, actual);
+            assertEquals(0.0, minDelta, ACCURATE_PI_OP_DEFAULT_EPSILON);
+        }
+    }
+    
+    public void test_minusPI_double() {
+        this.test_minusPI_double(false);
+    }
+    
+    public void test_minusPI_strict_double() {
+        this.test_minusPI_double(true);
+    }
+    
+    public void test_minusPI_double(boolean strict) {
+        {
+            // Using StrictMath.sin as a measure of the angle, since
+            // around PI we have sin(x) ~= x.
+            final double expected = -StrictMath.sin(Math.PI);
+            final double value = Math.PI;
+            final double actual = (strict ? NumbersUtils.minusPI_strict(value) : NumbersUtils.minusPI(value));
+            final double relDelta = NumbersTestUtils.relDelta(expected, actual);
+            assertEquals(0.0, relDelta, ACCURATE_PI_OP_SIN_EPSILON);
+        }
+        if (strict) {
+            assertEquals(-Math.PI, NumbersUtils.minusPI_strict(0.0));
+            assertEquals(-2*Math.PI, NumbersUtils.minusPI_strict(-Math.PI));
+        } else {
+            assertEquals(-Math.PI, NumbersUtils.minusPI(0.0));
+            assertEquals(-2*Math.PI, NumbersUtils.minusPI(-Math.PI));
+        }
+        
+        // Testing monotonicity around threshold.
+        if (strict) {
+            double a = NumbersUtils.minusPI_strict(Math.nextAfter(Math.PI/2, Double.NEGATIVE_INFINITY));
+            double b = NumbersUtils.minusPI_strict(Math.PI/2);
+            double c = NumbersUtils.minusPI_strict(Math.nextAfter(Math.PI/2, Double.POSITIVE_INFINITY));
+            assertTrue(a <= b);
+            assertTrue(b <= c);
+        } else {
+            double a = NumbersUtils.minusPI(Math.nextAfter(Math.PI/2, Double.NEGATIVE_INFINITY));
+            double b = NumbersUtils.minusPI(Math.PI/2);
+            double c = NumbersUtils.minusPI(Math.nextAfter(Math.PI/2, Double.POSITIVE_INFINITY));
+            assertTrue(a <= b);
+            assertTrue(b <= c);
+        }
+        
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            final double value = this.utils.randomDoubleWhatever();
+            final double ref = value - Math.PI;
+            final double actual = (strict ? NumbersUtils.minusPI_strict(value) : NumbersUtils.minusPI(value));
+            
+            // Testing is close to -Math.PI.
+            final double minDelta = NumbersTestUtils.minDelta(ref, actual);
+            assertEquals(0.0, minDelta, ACCURATE_PI_OP_DEFAULT_EPSILON);
+        }
+    }
+
+    public void test_plusPIO2_double() {
+        this.test_plusPIO2_double(false);
+    }
+    
+    public void test_plusPIO2_strict_double() {
+        this.test_plusPIO2_double(true);
+    }
+    
+    public void test_plusPIO2_double(boolean strict) {
+        {
+            // Using StrictMath.sin as a measure of the angle, since
+            // around PI we have sin(x) ~= x.
+            // 0.5* because at Math.PI/2 we have half the ULP of Math.PI.
+            final double expected = 0.5*StrictMath.sin(Math.PI);
+            final double value = -Math.PI/2;
+            final double actual = (strict ? NumbersUtils.plusPIO2_strict(value) : NumbersUtils.plusPIO2(value));
+            final double relDelta = NumbersTestUtils.relDelta(expected, actual);
+            assertEquals(0.0, relDelta, ACCURATE_PI_OP_SIN_EPSILON);
+        }
+        if (strict) {
+            assertEquals(Math.PI/2, NumbersUtils.plusPIO2_strict(0.0));
+            assertEquals(Math.PI, NumbersUtils.plusPIO2_strict(Math.PI/2));
+        } else {
+            assertEquals(Math.PI/2, NumbersUtils.plusPIO2(0.0));
+            assertEquals(Math.PI, NumbersUtils.plusPIO2(Math.PI/2));
+        }
+        
+        // Testing monotonicity around threshold.
+        if (strict) {
+            double a = NumbersUtils.plusPIO2_strict(Math.nextAfter(-Math.PI/4, Double.NEGATIVE_INFINITY));
+            double b = NumbersUtils.plusPIO2_strict(-Math.PI/4);
+            double c = NumbersUtils.plusPIO2_strict(Math.nextAfter(-Math.PI/4, Double.POSITIVE_INFINITY));
+            assertTrue(a <= b);
+            assertTrue(b <= c);
+        } else {
+            double a = NumbersUtils.plusPIO2(Math.nextAfter(-Math.PI/4, Double.NEGATIVE_INFINITY));
+            double b = NumbersUtils.plusPIO2(-Math.PI/4);
+            double c = NumbersUtils.plusPIO2(Math.nextAfter(-Math.PI/4, Double.POSITIVE_INFINITY));
+            assertTrue(a <= b);
+            assertTrue(b <= c);
+        }
+        
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            final double value = this.utils.randomDoubleWhatever();
+            final double ref = value + Math.PI/2;
+            final double actual = (strict ? NumbersUtils.plusPIO2_strict(value) : NumbersUtils.plusPIO2(value));
+            
+            // Testing is close to +Math.PI/2.
+            final double minDelta = NumbersTestUtils.minDelta(ref, actual);
+            assertEquals(0.0, minDelta, ACCURATE_PI_OP_DEFAULT_EPSILON);
+        }
+    }
+    
+    public void test_minusPIO2_double() {
+        this.test_minusPIO2_double(false);
+    }
+    
+    public void test_minusPIO2_strict_double() {
+        this.test_minusPIO2_double(true);
+    }
+    
+    public void test_minusPIO2_double(boolean strict) {
+        {
+            // Using StrictMath.sin as a measure of the angle, since
+            // around PI we have sin(x) ~= x.
+            // 0.5* because at Math.PI/2 we have half the ULP of Math.PI.
+            final double expected = -0.5*StrictMath.sin(Math.PI);
+            final double value = Math.PI/2;
+            final double actual = (strict ? NumbersUtils.minusPIO2_strict(value) : NumbersUtils.minusPIO2(value));
+            final double relDelta = NumbersTestUtils.relDelta(expected, actual);
+            assertEquals(0.0, relDelta, ACCURATE_PI_OP_SIN_EPSILON);
+        }
+        if (strict) {
+            assertEquals(-Math.PI/2, NumbersUtils.minusPIO2_strict(0.0));
+            assertEquals(-Math.PI, NumbersUtils.minusPIO2_strict(-Math.PI/2));
+        } else {
+            assertEquals(-Math.PI/2, NumbersUtils.minusPIO2(0.0));
+            assertEquals(-Math.PI, NumbersUtils.minusPIO2(-Math.PI/2));
+        }
+        
+        // Testing monotonicity around threshold.
+        if (strict) {
+            double a = NumbersUtils.minusPIO2_strict(Math.nextAfter(Math.PI/4, Double.NEGATIVE_INFINITY));
+            double b = NumbersUtils.minusPIO2_strict(Math.PI/4);
+            double c = NumbersUtils.minusPIO2_strict(Math.nextAfter(Math.PI/4, Double.POSITIVE_INFINITY));
+            assertTrue(a <= b);
+            assertTrue(b <= c);
+        } else {
+            double a = NumbersUtils.minusPIO2(Math.nextAfter(Math.PI/4, Double.NEGATIVE_INFINITY));
+            double b = NumbersUtils.minusPIO2(Math.PI/4);
+            double c = NumbersUtils.minusPIO2(Math.nextAfter(Math.PI/4, Double.POSITIVE_INFINITY));
+            assertTrue(a <= b);
+            assertTrue(b <= c);
+        }
+        
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            final double value = this.utils.randomDoubleWhatever();
+            final double ref = value - Math.PI/2;
+            final double actual = (strict ? NumbersUtils.minusPIO2_strict(value) : NumbersUtils.minusPIO2(value));
+            
+            // Testing is close to -Math.PI/2.
+            final double minDelta = NumbersTestUtils.minDelta(ref, actual);
+            assertEquals(0.0, minDelta, ACCURATE_PI_OP_DEFAULT_EPSILON);
         }
     }
 
@@ -2726,7 +3111,7 @@ public class NumbersUtilsTest extends TestCase {
     }
 
     public void test_computeNbrOfChars_int_int() {
-        for (int i=0;i<1000;i++) {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             final int value = random.nextInt();
             final int radix = Character.MIN_RADIX + random.nextInt(Character.MAX_RADIX-Character.MIN_RADIX+1);
             final int expected = Integer.toString(value, radix).length();
@@ -2735,7 +3120,7 @@ public class NumbersUtilsTest extends TestCase {
     }
     
     public void test_computeNbrOfChars_long_int() {
-        for (int i=0;i<1000;i++) {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             final long value = random.nextLong();
             final int radix = Character.MIN_RADIX + random.nextInt(Character.MAX_RADIX-Character.MIN_RADIX+1);
             final int expected = Long.toString(value, radix).length();
@@ -2744,7 +3129,7 @@ public class NumbersUtilsTest extends TestCase {
     }
     
     public void test_computeNbrOfChars_int_int_int() {
-        for (int i=0;i<1000;i++) {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             final int value = random.nextInt();
             final int radix = Character.MIN_RADIX + random.nextInt(Character.MAX_RADIX-Character.MIN_RADIX+1);
             final int nbrOfChars = Integer.toString(value, radix).length();
@@ -2757,7 +3142,7 @@ public class NumbersUtilsTest extends TestCase {
     }
     
     public void test_computeNbrOfChars_long_int_int() {
-        for (int i=0;i<1000;i++) {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             final long value = random.nextLong();
             final int radix = Character.MIN_RADIX + random.nextInt(Character.MAX_RADIX-Character.MIN_RADIX+1);
             final int nbrOfChars = Long.toString(value, radix).length();
@@ -2770,7 +3155,7 @@ public class NumbersUtilsTest extends TestCase {
     }
     
     public void test_computeNbrOfDigits_int_int() {
-        for (int i=0;i<1000;i++) {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             final int value = random.nextInt();
             final int radix = Character.MIN_RADIX + random.nextInt(Character.MAX_RADIX-Character.MIN_RADIX+1);
             final int nbrOfChars = Integer.toString(value, radix).length();
@@ -2781,7 +3166,7 @@ public class NumbersUtilsTest extends TestCase {
     }
     
     public void test_computeNbrOfDigits_long_int() {
-        for (int i=0;i<1000;i++) {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             final long value = random.nextLong();
             final int radix = Character.MIN_RADIX + random.nextInt(Character.MAX_RADIX-Character.MIN_RADIX+1);
             final int nbrOfChars = Long.toString(value, radix).length();
@@ -2792,7 +3177,7 @@ public class NumbersUtilsTest extends TestCase {
     }
     
     public void test_computeNbrOfDigits_int_int_int() {
-        for (int i=0;i<1000;i++) {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             final int value = random.nextInt();
             final int radix = Character.MIN_RADIX + random.nextInt(Character.MAX_RADIX-Character.MIN_RADIX+1);
             final int nbrOfChars = Integer.toString(value, radix).length();
@@ -2805,7 +3190,7 @@ public class NumbersUtilsTest extends TestCase {
     }
 
     public void test_computeNbrOfDigits_long_int_int() {
-        for (int i=0;i<1000;i++) {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             final long value = random.nextLong();
             final int radix = Character.MIN_RADIX + random.nextInt(Character.MAX_RADIX-Character.MIN_RADIX+1);
             final int nbrOfChars = Long.toString(value, radix).length();
@@ -2818,7 +3203,7 @@ public class NumbersUtilsTest extends TestCase {
     }
 
     public void test_toString_int() {
-        for (int i=0;i<1000;i++) {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             final int value = random.nextInt();
             final String expected = Integer.toString(value);
             assertEquals(expected,NumbersUtils.toString(value));
@@ -2826,7 +3211,7 @@ public class NumbersUtilsTest extends TestCase {
     }
 
     public void test_toString_long() {
-        for (int i=0;i<1000;i++) {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             final long value = random.nextLong();
             final String expected = Long.toString(value);
             assertEquals(expected,NumbersUtils.toString(value));
@@ -2839,7 +3224,7 @@ public class NumbersUtilsTest extends TestCase {
             assertEquals(Integer.toString(Integer.MAX_VALUE, radix).toUpperCase(),NumbersUtils.toString(Integer.MAX_VALUE, radix));
         }
         
-        for (int i=0;i<1000;i++) {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             final int value = random.nextInt();
             final int radix = Character.MIN_RADIX + random.nextInt(Character.MAX_RADIX-Character.MIN_RADIX+1);
             final String expected = Integer.toString(value, radix).toUpperCase();
@@ -2853,7 +3238,7 @@ public class NumbersUtilsTest extends TestCase {
             assertEquals(Long.toString(Long.MAX_VALUE, radix).toUpperCase(),NumbersUtils.toString(Long.MAX_VALUE, radix));
         }
         
-        for (int i=0;i<1000;i++) {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             final long value = random.nextLong();
             final int radix = Character.MIN_RADIX + random.nextInt(Character.MAX_RADIX-Character.MIN_RADIX+1);
             final String expected = Long.toString(value, radix).toUpperCase();
@@ -3107,6 +3492,101 @@ public class NumbersUtilsTest extends TestCase {
         assertEquals("0100100000000000000000000000000000000000000000000000000000000000",NumbersUtils.toStringBits(bits, first = 0, lastExcl = maxBitPosExcl, bigEndian = false, padding = false));
         assertEquals("_1001000000000000000000000000000000000000000000000000000000000__",NumbersUtils.toStringBits(bits, first = 1, lastExcl = maxBitPosExcl-2, bigEndian = false, padding = true));
         assertEquals("1001000000000000000000000000000000000000000000000000000000000",NumbersUtils.toStringBits(bits, first = 1, lastExcl = maxBitPosExcl-2, bigEndian = false, padding = false));
+    }
+    
+    /*
+     * 
+     */
+    
+    public void test_toStringCSN_double() {
+        
+        /*
+         * Testing that bounds are correctly handled
+         * (errors like < instead of <= could make it not so).
+         */
+        
+        assertEquals("1.0E-3",NumbersUtils.toStringCSN(NumbersUtils.NO_CSN_MIN_BOUND_INCL));
+        assertEquals("1.0E7",NumbersUtils.toStringCSN(NumbersUtils.NO_CSN_MAX_BOUND_EXCL));
+
+        /*
+         * zeros
+         */
+
+        assertEquals("0.0E0",NumbersUtils.toStringCSN(0.0));
+        assertEquals("-0.0E0",NumbersUtils.toStringCSN(-0.0));
+
+        /*
+         * 
+         */
+        
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            final double value = this.utils.randomDoubleWhatever();
+            
+            final String resString = NumbersUtils.toStringCSN(value);
+            final boolean quickCheckOK =
+                (resString.contains("E") || Double.isNaN(value) || Double.isInfinite(value))
+                && (!resString.startsWith("."))
+                && (!resString.contains(".E"));
+            if (!quickCheckOK) {
+                System.out.println("value =     "+value);
+                System.out.println("resString = "+resString);
+            }
+            assertTrue(quickCheckOK);
+            
+            final double resValue = Double.parseDouble(resString);
+            if (!NumbersUtils.equal(value, resValue)) {
+                System.out.println("value =     "+value);
+                System.out.println("resString = "+resString);
+                System.out.println("resValue =  "+resValue);
+            }
+            assertEquals(value, resValue);
+        }
+    }
+    
+    public void test_toStringNoCSN_double() {
+        
+        /*
+         * Testing that bounds are correctly handled
+         * (errors like < instead of <= could make it not so).
+         */
+        
+        // Does not have bug 4428022 (does not return "0.0010").
+        assertEquals("0.001",NumbersUtils.toStringNoCSN(NumbersUtils.NO_CSN_MIN_BOUND_INCL));
+        assertEquals("10000000.0",NumbersUtils.toStringNoCSN(NumbersUtils.NO_CSN_MAX_BOUND_EXCL));
+        
+        /*
+         * zeros
+         */
+
+        assertEquals("0.0",NumbersUtils.toStringNoCSN(0.0));
+        assertEquals("-0.0",NumbersUtils.toStringNoCSN(-0.0));
+
+        /*
+         * 
+         */
+        
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            final double value = this.utils.randomDoubleWhatever();
+            
+            final String resString = NumbersUtils.toStringNoCSN(value);
+            final boolean quickCheckOK =
+                (!resString.contains("E"))
+                && (!resString.startsWith("."))
+                && (!resString.endsWith("."));
+            if (!quickCheckOK) {
+                System.out.println("value =     "+value);
+                System.out.println("resString = "+resString);
+            }
+            assertTrue(quickCheckOK);
+            
+            final double resValue = Double.parseDouble(resString);
+            if (!NumbersUtils.equal(value, resValue)) {
+                System.out.println("value =     "+value);
+                System.out.println("resString = "+resString);
+                System.out.println("resValue =  "+resValue);
+            }
+            assertEquals(value, resValue);
+        }
     }
 
     //--------------------------------------------------------------------------

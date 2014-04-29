@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 Jeff Hain
+ * Copyright 2014 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,11 @@
  */
 package net.jafama;
 
-public class FastMathTest extends AbstractFastMathTezt {
+/**
+ * Copy-paste from FastMathTest, replacing FastMath with StrictFastMath
+ * and updating copySign tests.
+ */
+public class StrictFastMathTest extends AbstractFastMathTezt {
 
     //--------------------------------------------------------------------------
     // PUBLIC METHODS
@@ -32,7 +36,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             double value = randomDoubleWhateverOrPiIsh();
             value = knownBadValues_trigNorm(i, value);
             double ref = StrictMath.sin(value);
-            double res = FastMath.sin(value);
+            double res = StrictFastMath.sin(value);
             double refValueNormalizedMPP = StrictMath.atan2(StrictMath.sin(value),StrictMath.cos(value));
             boolean is_0_1 = Math.abs(refValueNormalizedMPP) < oneDegRad;
             boolean is_179_180 = Math.abs(Math.abs(refValueNormalizedMPP) - Math.PI) < oneDegRad;
@@ -53,7 +57,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = randomDoubleUniform(-bound,bound);
             double ref = StrictMath.sin(value);
-            double res = FastMath.sinQuick(value);
+            double res = StrictFastMath.sinQuick(value);
             helper.process(
                     ref,
                     res,
@@ -72,7 +76,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             double value = randomDoubleWhateverOrPiIsh();
             value = knownBadValues_trigNorm(i, value);
             double ref = StrictMath.cos(value);
-            double res = FastMath.cos(value);
+            double res = StrictFastMath.cos(value);
             double refValueNormalizedMPP = StrictMath.atan2(StrictMath.sin(value),StrictMath.cos(value));
             boolean is_89_91 = Math.abs(Math.abs(refValueNormalizedMPP) - Math.PI/2) < oneDegRad;
             helper.process(
@@ -92,7 +96,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = randomDoubleUniform(-bound,bound);
             double ref = StrictMath.cos(value);
-            double res = FastMath.cosQuick(value);
+            double res = StrictFastMath.cosQuick(value);
             helper.process(
                     ref,
                     res,
@@ -103,7 +107,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         }
         helper.finalLogIfNeeded();
     }
-
+    
     public void test_sinAndCos_double_DoubleWrapper() {
         final DoubleWrapper tmpCos = new DoubleWrapper();
         final double oneDegRad = StrictMath.toRadians(1.0);
@@ -114,7 +118,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             value = knownBadValues_trigNorm(i, value);
             double refSin = StrictMath.sin(value);
             double refCos = StrictMath.cos(value);
-            double resSin = FastMath.sinAndCos(value, tmpCos);
+            double resSin = StrictFastMath.sinAndCos(value, tmpCos);
             double resCos = tmpCos.value;
             double refValueNormalizedMPP = StrictMath.atan2(StrictMath.sin(value),StrictMath.cos(value));
             boolean is_0_1 = Math.abs(refValueNormalizedMPP) < oneDegRad;
@@ -145,7 +149,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             double value = randomDoubleWhateverOrPiIsh();
             value = knownBadValues_trigNorm(i, value);
             double ref = StrictMath.tan(value);
-            double res = FastMath.tan(value);
+            double res = StrictFastMath.tan(value);
             final double relTol;
             if (Math.abs(ref) < 1e-5) {
                 relTol = TOL_SIN_COS_REL_BAD;
@@ -172,17 +176,17 @@ public class FastMathTest extends AbstractFastMathTezt {
     }
 
     public void test_asin_double() {
-        assertEquals(Math.PI/2, FastMath.asin(1.0));
-        assertEquals(-Math.PI/2, FastMath.asin(-1.0));
-        assertEquals(Double.NaN, FastMath.asin(-1.1));
-        assertEquals(Double.NaN, FastMath.asin(1.1));
-        assertEquals(Double.NaN, FastMath.asin(Double.NaN));
+        assertEquals(Math.PI/2, StrictFastMath.asin(1.0));
+        assertEquals(-Math.PI/2, StrictFastMath.asin(-1.0));
+        assertEquals(Double.NaN, StrictFastMath.asin(-1.1));
+        assertEquals(Double.NaN, StrictFastMath.asin(1.1));
+        assertEquals(Double.NaN, StrictFastMath.asin(Double.NaN));
         
         final MyDoubleResHelper helper = new MyDoubleResHelper();
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = this.randomDoubleWhatever(-1.0, 1.0);
             double ref = StrictMath.asin(value);
-            double res = FastMath.asin(value);
+            double res = StrictFastMath.asin(value);
             helper.process(
                     ref,
                     res,
@@ -195,25 +199,25 @@ public class FastMathTest extends AbstractFastMathTezt {
     }
 
     public void test_asinInRange_double() {
-        assertEquals(-Math.PI/2, FastMath.asinInRange(-1.1));
-        assertEquals(Math.PI/2, FastMath.asinInRange(1.1));
-        assertEquals(FastMath.asin(-0.1), FastMath.asinInRange(-0.1));
-        assertEquals(FastMath.asin(0.1), FastMath.asinInRange(0.1));
-        assertEquals(Double.NaN, FastMath.asinInRange(Double.NaN));
+        assertEquals(-Math.PI/2, StrictFastMath.asinInRange(-1.1));
+        assertEquals(Math.PI/2, StrictFastMath.asinInRange(1.1));
+        assertEquals(StrictFastMath.asin(-0.1), StrictFastMath.asinInRange(-0.1));
+        assertEquals(StrictFastMath.asin(0.1), StrictFastMath.asinInRange(0.1));
+        assertEquals(Double.NaN, StrictFastMath.asinInRange(Double.NaN));
     }
 
     public void test_acos_double() {
-        assertEquals(0.0, FastMath.acos(1.0));
-        assertEquals(Math.PI, FastMath.acos(-1.0));
-        assertEquals(Double.NaN, FastMath.acos(-1.1));
-        assertEquals(Double.NaN, FastMath.acos(1.1));
-        assertEquals(Double.NaN, FastMath.acos(Double.NaN));
+        assertEquals(0.0, StrictFastMath.acos(1.0));
+        assertEquals(Math.PI, StrictFastMath.acos(-1.0));
+        assertEquals(Double.NaN, StrictFastMath.acos(-1.1));
+        assertEquals(Double.NaN, StrictFastMath.acos(1.1));
+        assertEquals(Double.NaN, StrictFastMath.acos(Double.NaN));
         
         final MyDoubleResHelper helper = new MyDoubleResHelper();
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = this.randomDoubleWhatever(-1.0, 1.0);
             double ref = StrictMath.acos(value);
-            double res = FastMath.acos(value);
+            double res = StrictFastMath.acos(value);
             helper.process(
                     ref,
                     res,
@@ -226,22 +230,22 @@ public class FastMathTest extends AbstractFastMathTezt {
     }
 
     public void test_acosInRange_double() {
-        assertEquals(Math.PI, FastMath.acosInRange(-1.1));
-        assertEquals(0.0, FastMath.acosInRange(1.1));
-        assertEquals(FastMath.acos(-0.1), FastMath.acosInRange(-0.1));
-        assertEquals(FastMath.acos(0.1), FastMath.acosInRange(0.1));
-        assertEquals(Double.NaN, FastMath.acosInRange(Double.NaN));
+        assertEquals(Math.PI, StrictFastMath.acosInRange(-1.1));
+        assertEquals(0.0, StrictFastMath.acosInRange(1.1));
+        assertEquals(StrictFastMath.acos(-0.1), StrictFastMath.acosInRange(-0.1));
+        assertEquals(StrictFastMath.acos(0.1), StrictFastMath.acosInRange(0.1));
+        assertEquals(Double.NaN, StrictFastMath.acosInRange(Double.NaN));
     }
 
     public void test_atan_double() {
-        assertEquals(Math.PI/4, FastMath.atan(1.0));
-        assertEquals(-Math.PI/4, FastMath.atan(-1.0));
+        assertEquals(Math.PI/4, StrictFastMath.atan(1.0));
+        assertEquals(-Math.PI/4, StrictFastMath.atan(-1.0));
         
         final MyDoubleResHelper helper = new MyDoubleResHelper();
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = randomDoubleWhatever();
             double ref = StrictMath.atan(value);
-            double res = FastMath.atan(value);
+            double res = StrictFastMath.atan(value);
             helper.process(
                     ref,
                     res,
@@ -259,7 +263,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             double y = randomDoubleWhatever();
             double x = randomDoubleWhatever();
             double ref = StrictMath.atan2(y,x);
-            double res = FastMath.atan2(y,x);
+            double res = StrictFastMath.atan2(y,x);
             helper.process(
                     ref,
                     res,
@@ -277,7 +281,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = randomDoubleWhatever();
             double ref = StrictMath.toRadians(value);
-            double res = FastMath.toRadians(value);
+            double res = StrictFastMath.toRadians(value);
             if ((ref == 0.0) && (Math.abs(res) > 0.0)) {
                 // Might underflow before us, due to its
                 // computation being done in two steps.
@@ -300,7 +304,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = randomDoubleWhatever();
             double ref = StrictMath.toDegrees(value);
-            double res = FastMath.toDegrees(value);
+            double res = StrictFastMath.toDegrees(value);
             if (Double.isInfinite(ref) && (!Double.isInfinite(res))) {
                 // Might overflow before us, due to its
                 // computation being done in two steps.
@@ -318,7 +322,7 @@ public class FastMathTest extends AbstractFastMathTezt {
     }
 
     public void test_toRadians_boolean_2int_double() {
-        final double before60 = FastMath.nextDown(60.0);
+        final double before60 = StrictFastMath.nextDown(60.0);
         final MyDoubleResHelper helper = new MyDoubleResHelper();
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             boolean sign = this.random.nextBoolean();
@@ -326,7 +330,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             int minutes = this.random.nextInt(60);
             double seconds = randomDoubleUniform(0.0, before60);
             double ref = (sign ? 1 : -1) * StrictMath.toRadians(degrees + (1.0/60) * (minutes + (1.0/60) * seconds));
-            double res = FastMath.toRadians(sign, degrees, minutes, seconds);
+            double res = StrictFastMath.toRadians(sign, degrees, minutes, seconds);
             helper.process(
                     ref,
                     res,
@@ -342,7 +346,7 @@ public class FastMathTest extends AbstractFastMathTezt {
     }
 
     public void test_toDegrees_boolean_2int_double() {
-        final double before60 = FastMath.nextDown(60.0);
+        final double before60 = StrictFastMath.nextDown(60.0);
         final MyDoubleResHelper helper = new MyDoubleResHelper();
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             boolean sign = this.random.nextBoolean();
@@ -350,7 +354,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             int minutes = this.random.nextInt(60);
             double seconds = randomDoubleUniform(0.0, before60);
             double ref = (sign ? 1 : -1) * (degrees + (1.0/60) * (minutes + (1.0/60) * seconds));
-            double res = FastMath.toDegrees(sign, degrees, minutes, seconds);
+            double res = StrictFastMath.toDegrees(sign, degrees, minutes, seconds);
             helper.process(
                     ref,
                     res,
@@ -372,16 +376,16 @@ public class FastMathTest extends AbstractFastMathTezt {
         IntWrapper resDegrees = new IntWrapper();
         IntWrapper resMinutes = new IntWrapper();
         DoubleWrapper resSeconds = new DoubleWrapper();
-        final double before60 = FastMath.nextDown(60.0);
+        final double before60 = StrictFastMath.nextDown(60.0);
         final MyDoubleResHelper helper = new MyDoubleResHelper();
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             boolean refSign = this.random.nextBoolean();
             int refDegrees = this.random.nextInt(181);
             int refMinutes = this.random.nextInt(60);
             double refSeconds = randomDoubleUniform(0.0, before60);
-            double value = FastMath.toRadians(refSign, refDegrees, refMinutes, refSeconds);
-            boolean resSign = FastMath.toDMS(value, resDegrees, resMinutes, resSeconds);
-            double resRad = FastMath.toRadians(resSign, resDegrees.value, resMinutes.value, resSeconds.value);
+            double value = StrictFastMath.toRadians(refSign, refDegrees, refMinutes, refSeconds);
+            boolean resSign = StrictFastMath.toDMS(value, resDegrees, resMinutes, resSeconds);
+            double resRad = StrictFastMath.toRadians(resSign, resDegrees.value, resMinutes.value, resSeconds.value);
             double refRad = refMod(value, resRad, 2*Math.PI);
             boolean log = helper.process(
                     refRad,
@@ -405,20 +409,20 @@ public class FastMathTest extends AbstractFastMathTezt {
     }
 
     public void test_isInClockwiseDomain_3double() {
-        assertTrue(FastMath.isInClockwiseDomain(0.0, 2*Math.PI, 0.0));
-        assertTrue(FastMath.isInClockwiseDomain(0.0, 2*Math.PI, -Math.PI));
-        assertTrue(FastMath.isInClockwiseDomain(0.0, 2*Math.PI, Math.PI));
-        assertTrue(FastMath.isInClockwiseDomain(0.0, 2*Math.PI, 2*Math.PI));
-        assertTrue(FastMath.isInClockwiseDomain(-Math.PI, 2*Math.PI, -Math.PI));
-        assertTrue(FastMath.isInClockwiseDomain(-Math.PI, 2*Math.PI, 0.0));
-        assertTrue(FastMath.isInClockwiseDomain(-Math.PI, 2*Math.PI, Math.PI));
+        assertTrue(StrictFastMath.isInClockwiseDomain(0.0, 2*Math.PI, 0.0));
+        assertTrue(StrictFastMath.isInClockwiseDomain(0.0, 2*Math.PI, -Math.PI));
+        assertTrue(StrictFastMath.isInClockwiseDomain(0.0, 2*Math.PI, Math.PI));
+        assertTrue(StrictFastMath.isInClockwiseDomain(0.0, 2*Math.PI, 2*Math.PI));
+        assertTrue(StrictFastMath.isInClockwiseDomain(-Math.PI, 2*Math.PI, -Math.PI));
+        assertTrue(StrictFastMath.isInClockwiseDomain(-Math.PI, 2*Math.PI, 0.0));
+        assertTrue(StrictFastMath.isInClockwiseDomain(-Math.PI, 2*Math.PI, Math.PI));
 
         // always in
         for (int i=-10;i<10;i++) {
             double startAngRad = StrictMath.toRadians(55.0*i);
             double spanAngRad = Math.PI/2;
             double angRad = startAngRad + Math.PI/3;
-            assertTrue(FastMath.isInClockwiseDomain(startAngRad, spanAngRad, angRad));
+            assertTrue(StrictFastMath.isInClockwiseDomain(startAngRad, spanAngRad, angRad));
         }
 
         // never in
@@ -426,23 +430,23 @@ public class FastMathTest extends AbstractFastMathTezt {
             double startAngRad = StrictMath.toRadians(55.0*i);
             double spanAngRad = Math.PI/3;
             double angRad = startAngRad + Math.PI/2;
-            assertFalse(FastMath.isInClockwiseDomain(startAngRad, spanAngRad, angRad));
+            assertFalse(StrictFastMath.isInClockwiseDomain(startAngRad, spanAngRad, angRad));
         }
 
         // small angular values
-        assertTrue(FastMath.isInClockwiseDomain(0.0, 2*Math.PI, -1e-10));
-        assertFalse(FastMath.isInClockwiseDomain(0.0, 2*Math.PI, -1e-20));
-        assertTrue(FastMath.isInClockwiseDomain(0.0, 2*FastMath.PI_SUP, -1e-20));
-        assertTrue(FastMath.isInClockwiseDomain(1e-10, 2*Math.PI, -1e-20));
-        assertFalse(FastMath.isInClockwiseDomain(1e-20, 2*Math.PI, -1e-20));
-        assertTrue(FastMath.isInClockwiseDomain(1e-20, 2*FastMath.PI_SUP, -1e-20));
+        assertTrue(StrictFastMath.isInClockwiseDomain(0.0, 2*Math.PI, -1e-10));
+        assertFalse(StrictFastMath.isInClockwiseDomain(0.0, 2*Math.PI, -1e-20));
+        assertTrue(StrictFastMath.isInClockwiseDomain(0.0, 2*StrictFastMath.PI_SUP, -1e-20));
+        assertTrue(StrictFastMath.isInClockwiseDomain(1e-10, 2*Math.PI, -1e-20));
+        assertFalse(StrictFastMath.isInClockwiseDomain(1e-20, 2*Math.PI, -1e-20));
+        assertTrue(StrictFastMath.isInClockwiseDomain(1e-20, 2*StrictFastMath.PI_SUP, -1e-20));
 
         // NaN
-        assertFalse(FastMath.isInClockwiseDomain(Double.NaN, Math.PI, Math.PI/2));
-        assertFalse(FastMath.isInClockwiseDomain(Double.NaN, 3*Math.PI, Math.PI/2));
-        assertFalse(FastMath.isInClockwiseDomain(0.0, Math.PI, Double.NaN));
-        assertFalse(FastMath.isInClockwiseDomain(0.0, 3*Math.PI, Double.NaN));
-        assertFalse(FastMath.isInClockwiseDomain(0.0, Double.NaN, Math.PI/2));
+        assertFalse(StrictFastMath.isInClockwiseDomain(Double.NaN, Math.PI, Math.PI/2));
+        assertFalse(StrictFastMath.isInClockwiseDomain(Double.NaN, 3*Math.PI, Math.PI/2));
+        assertFalse(StrictFastMath.isInClockwiseDomain(0.0, Math.PI, Double.NaN));
+        assertFalse(StrictFastMath.isInClockwiseDomain(0.0, 3*Math.PI, Double.NaN));
+        assertFalse(StrictFastMath.isInClockwiseDomain(0.0, Double.NaN, Math.PI/2));
     }
 
     /*
@@ -450,16 +454,16 @@ public class FastMathTest extends AbstractFastMathTezt {
      */
 
     public void test_sinh_double() {
-        assertEquals(Double.NEGATIVE_INFINITY, FastMath.sinh(-711.0));
-        assertEquals(Double.POSITIVE_INFINITY, FastMath.sinh(711.0));
-        assertEquals(Double.NaN, FastMath.sinh(Double.NaN));
+        assertEquals(Double.NEGATIVE_INFINITY, StrictFastMath.sinh(-711.0));
+        assertEquals(Double.POSITIVE_INFINITY, StrictFastMath.sinh(711.0));
+        assertEquals(Double.NaN, StrictFastMath.sinh(Double.NaN));
 
         final MyDoubleResHelper helper = new MyDoubleResHelper();
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = random.nextBoolean() ? randomDoubleWhatever() : randomDoubleWhatever(-711,711);
             value = knownBadValues_sinh_cosh_tanh(i, value);
             double ref = StrictMath.sinh(value);
-            double res = FastMath.sinh(value);
+            double res = StrictFastMath.sinh(value);
             helper.process(
                     ref,
                     res,
@@ -472,16 +476,16 @@ public class FastMathTest extends AbstractFastMathTezt {
     }
     
     public void test_cosh_double() {
-        assertEquals(Double.POSITIVE_INFINITY, FastMath.cosh(-711.0));
-        assertEquals(Double.POSITIVE_INFINITY, FastMath.cosh(711.0));
-        assertEquals(Double.NaN, FastMath.cosh(Double.NaN));
+        assertEquals(Double.POSITIVE_INFINITY, StrictFastMath.cosh(-711.0));
+        assertEquals(Double.POSITIVE_INFINITY, StrictFastMath.cosh(711.0));
+        assertEquals(Double.NaN, StrictFastMath.cosh(Double.NaN));
 
         final MyDoubleResHelper helper = new MyDoubleResHelper();
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = random.nextBoolean() ? randomDoubleWhatever() : randomDoubleWhatever(-711,711);
             value = knownBadValues_sinh_cosh_tanh(i, value);
             double ref = StrictMath.cosh(value);
-            double res = FastMath.cosh(value);
+            double res = StrictFastMath.cosh(value);
             helper.process(
                     ref,
                     res,
@@ -494,12 +498,12 @@ public class FastMathTest extends AbstractFastMathTezt {
     }
 
     public void test_coshm1_double() {
-        assertEquals(-0.0,FastMath.coshm1(-0.0));
-        assertEquals(0.0,FastMath.coshm1(0.0));
-        assertEquals(Double.NaN,FastMath.coshm1(Double.NaN));
+        assertEquals(-0.0,StrictFastMath.coshm1(-0.0));
+        assertEquals(0.0,StrictFastMath.coshm1(0.0));
+        assertEquals(Double.NaN,StrictFastMath.coshm1(Double.NaN));
         
         for (double tiny : new double[]{StrictMath.pow(2, -28),StrictMath.sqrt(2*Double.MIN_VALUE)}) {
-            assertEquals(0.5 * tiny*tiny,FastMath.coshm1(tiny));
+            assertEquals(0.5 * tiny*tiny,StrictFastMath.coshm1(tiny));
         }
         
         /*
@@ -511,7 +515,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = randomDoubleWhatever();
             double ref = StrictMath.cosh(value);
-            double res = FastMath.coshm1(value) + 1;
+            double res = StrictFastMath.coshm1(value) + 1;
             helper.process(
                     ref,
                     res,
@@ -532,7 +536,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             value = knownBadValues_sinh_cosh_tanh(i, value);
             double refSinh = StrictMath.sinh(value);
             double refCosh = StrictMath.cosh(value);
-            double resSinh = FastMath.sinhAndCosh(value, tmpCosh);
+            double resSinh = StrictFastMath.sinhAndCosh(value, tmpCosh);
             double resCosh = tmpCosh.value;
             sinhHelper.process(
                     refSinh,
@@ -559,7 +563,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             double value = randomDoubleWhatever();
             value = knownBadValues_sinh_cosh_tanh(i, value);
             double ref = StrictMath.tanh(value);
-            double res = FastMath.tanh(value);
+            double res = StrictFastMath.tanh(value);
             helper.process(
                     ref,
                     res,
@@ -572,11 +576,11 @@ public class FastMathTest extends AbstractFastMathTezt {
     }
 
     public void test_asinh_double() {
-        assertEquals(-0.0, FastMath.asinh(-0.0));
-        assertEquals(0.0, FastMath.asinh(0.0));
-        assertEquals(Double.NEGATIVE_INFINITY, FastMath.asinh(Double.NEGATIVE_INFINITY));
-        assertEquals(Double.POSITIVE_INFINITY, FastMath.asinh(Double.POSITIVE_INFINITY));
-        assertEquals(Double.NaN, FastMath.asinh(Double.NaN));
+        assertEquals(-0.0, StrictFastMath.asinh(-0.0));
+        assertEquals(0.0, StrictFastMath.asinh(0.0));
+        assertEquals(Double.NEGATIVE_INFINITY, StrictFastMath.asinh(Double.NEGATIVE_INFINITY));
+        assertEquals(Double.POSITIVE_INFINITY, StrictFastMath.asinh(Double.POSITIVE_INFINITY));
+        assertEquals(Double.NaN, StrictFastMath.asinh(Double.NaN));
         
         /*
          * Testing asinh(StrictMath.sinh(value)) ~= value.
@@ -589,7 +593,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             if (NumbersUtils.isNaNOrInfinite(sinhValue)) {
                 --i;continue;
             }
-            double asinhSinhValue = FastMath.asinh(sinhValue);
+            double asinhSinhValue = StrictFastMath.asinh(sinhValue);
             helper.process(
                     asinhSinhValue,
                     value,
@@ -602,13 +606,13 @@ public class FastMathTest extends AbstractFastMathTezt {
     }
     
     public void test_acosh_double() {
-        assertEquals(Double.NaN, FastMath.acosh(Double.NaN));
-        assertEquals(Double.NaN, FastMath.acosh(-10.0));
-        assertEquals(Double.NaN, FastMath.acosh(0.0));
-        assertEquals(Double.NaN, FastMath.acosh(0.9));
-        assertEquals(0.0, FastMath.acosh(1.0));
+        assertEquals(Double.NaN, StrictFastMath.acosh(Double.NaN));
+        assertEquals(Double.NaN, StrictFastMath.acosh(-10.0));
+        assertEquals(Double.NaN, StrictFastMath.acosh(0.0));
+        assertEquals(Double.NaN, StrictFastMath.acosh(0.9));
+        assertEquals(0.0, StrictFastMath.acosh(1.0));
         
-        assertEquals(Double.POSITIVE_INFINITY, FastMath.acosh(Double.POSITIVE_INFINITY));
+        assertEquals(Double.POSITIVE_INFINITY, StrictFastMath.acosh(Double.POSITIVE_INFINITY));
         
         /*
          * Testing
@@ -628,7 +632,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             if (NumbersUtils.isNaNOrInfinite(coshValue)) {
                 --i;continue;
             }
-            double acoshCoshValue = FastMath.acosh(coshValue);
+            double acoshCoshValue = StrictFastMath.acosh(coshValue);
             double coshAcoshCoshValue = StrictMath.cosh(acoshCoshValue);
             
             double relDelta1 = relDelta(value, acoshCoshValue);
@@ -655,9 +659,9 @@ public class FastMathTest extends AbstractFastMathTezt {
     }
 
     public void test_acosh1p_double() {
-        assertEquals(Double.NaN,FastMath.acosh1p(Double.NaN));
-        assertEquals(0.0,FastMath.acosh1p(0.0));
-        assertEquals(-0.0,FastMath.acosh1p(-0.0));
+        assertEquals(Double.NaN,StrictFastMath.acosh1p(Double.NaN));
+        assertEquals(0.0,StrictFastMath.acosh1p(0.0));
+        assertEquals(-0.0,StrictFastMath.acosh1p(-0.0));
         
         /*
          * Testing
@@ -676,7 +680,7 @@ public class FastMathTest extends AbstractFastMathTezt {
                 if (NumbersUtils.isNaNOrInfinite(coshValueM1)) {
                     --i;continue;
                 }
-                double acosh1pCoshValueM1 = FastMath.acosh1p(coshValueM1); // acosh(1+cosh(value)-1) = value
+                double acosh1pCoshValueM1 = StrictFastMath.acosh1p(coshValueM1); // acosh(1+cosh(value)-1) = value
                 double coshAcosh1pCoshValueM1M1 = StrictMath.cosh(acosh1pCoshValueM1)-1; // cosh(acosh(1+cosh(value)-1))-1 = cosh(value)-1
                 double relDelta1 = relDelta(value, acosh1pCoshValueM1);
                 double relDelta2 = relDelta(coshValueM1, coshAcosh1pCoshValueM1M1);
@@ -712,17 +716,17 @@ public class FastMathTest extends AbstractFastMathTezt {
             for (int i=0;i<NBR_OF_VALUES;i++) {
                 // Only using positive-x-half of cosh.
                 double value = randomDoubleWhatever(0.0, Double.MAX_VALUE);
-                double coshm1Value = FastMath.coshm1(value); // cosh(value)-1
+                double coshm1Value = StrictFastMath.coshm1(value); // cosh(value)-1
                 if ((coshm1Value == 0.0) || Double.isInfinite(coshm1Value)) {
                     // Underflow or overflow.
                     --i;continue;
                 }
-                double acosh1pCoshm1Value = FastMath.acosh1p(coshm1Value); // acosh(1+cosh(value)-1) = value
-                double coshm1Acosh1pCoshm1Value = FastMath.coshm1(acosh1pCoshm1Value); // cosh(acosh(1+cosh(value)-1))-1 = cosh(value)-1
+                double acosh1pCoshm1Value = StrictFastMath.acosh1p(coshm1Value); // acosh(1+cosh(value)-1) = value
+                double coshm1Acosh1pCoshm1Value = StrictFastMath.coshm1(acosh1pCoshm1Value); // cosh(acosh(1+cosh(value)-1))-1 = cosh(value)-1
                 double relDelta1 = relDelta(value, acosh1pCoshm1Value);
                 double relDelta2 = relDelta(coshm1Value, coshm1Acosh1pCoshm1Value);
                 boolean use1 = (relDelta1 < relDelta2);
-                
+
                 boolean log = helper.process(
                         (use1 ? value : coshm1Value),
                         (use1 ? acosh1pCoshm1Value : coshm1Acosh1pCoshm1Value),
@@ -744,13 +748,13 @@ public class FastMathTest extends AbstractFastMathTezt {
     }
 
     public void test_atanh_double() {
-        assertEquals(Double.NaN, FastMath.atanh(Double.NaN));
+        assertEquals(Double.NaN, StrictFastMath.atanh(Double.NaN));
         
-        assertEquals(Double.NaN, FastMath.atanh(-1.1));
-        assertEquals(Double.NEGATIVE_INFINITY, FastMath.atanh(-1.0));
+        assertEquals(Double.NaN, StrictFastMath.atanh(-1.1));
+        assertEquals(Double.NEGATIVE_INFINITY, StrictFastMath.atanh(-1.0));
         
-        assertEquals(Double.POSITIVE_INFINITY, FastMath.atanh(1.0));
-        assertEquals(Double.NaN, FastMath.atanh(1.1));
+        assertEquals(Double.POSITIVE_INFINITY, StrictFastMath.atanh(1.0));
+        assertEquals(Double.NaN, StrictFastMath.atanh(1.1));
         
         /*
          * Testing
@@ -770,7 +774,7 @@ public class FastMathTest extends AbstractFastMathTezt {
                 // NaN or limit.
                 --i;continue;
             }
-            double atanhTanhValue = FastMath.atanh(tanhValue);
+            double atanhTanhValue = StrictFastMath.atanh(tanhValue);
             double tanhAtanhTanhValue = StrictMath.tanh(atanhTanhValue);
             double relDelta1 = relDelta(value, atanhTanhValue);
             double relDelta2 = relDelta(tanhValue, tanhAtanhTanhValue);
@@ -804,7 +808,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = this.random.nextBoolean() ? randomDoubleWhatever() : randomDoubleWhatever(-746.0, 710.0);
             double ref = StrictMath.exp(value);
-            double res = FastMath.exp(value);
+            double res = StrictFastMath.exp(value);
             helper.process(
                     ref,
                     res,
@@ -822,7 +826,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             double value = randomDoubleWhatever(-700.0, 700.0);
             value = knownBadValues_expQuick_double(i, value);
             double ref = StrictMath.exp(value);
-            double res = FastMath.expQuick(value);
+            double res = StrictFastMath.expQuick(value);
             helper.process(
                     ref,
                     res,
@@ -839,7 +843,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = this.random.nextBoolean() ? randomDoubleWhatever() : randomDoubleWhatever(-746.0, 710.0);
             double ref = StrictMath.expm1(value);
-            double res = FastMath.expm1(value);
+            double res = StrictFastMath.expm1(value);
             helper.process(
                     ref,
                     res,
@@ -861,7 +865,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             double value = randomDoubleWhatever();
             value = knownBadValues_logQuick_double(i, value);
             double ref = StrictMath.log(value);
-            double res = FastMath.log(value);
+            double res = StrictFastMath.log(value);
             helper.process(
                     ref,
                     res,
@@ -878,7 +882,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = randomDoubleWhatever(DOUBLE_MIN_NORMAL, Double.MAX_VALUE);
             double ref = StrictMath.log(value);
-            double res = FastMath.logQuick(value);
+            double res = StrictFastMath.logQuick(value);
             helper.process(
                     ref,
                     res,
@@ -895,7 +899,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = randomDoubleWhatever();
             double ref = StrictMath.log10(value);
-            double res = FastMath.log10(value);
+            double res = StrictFastMath.log10(value);
             helper.process(
                     ref,
                     res,
@@ -912,7 +916,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = randomDoubleWhatever();
             double ref = StrictMath.log1p(value);
-            double res = FastMath.log1p(value);
+            double res = StrictFastMath.log1p(value);
             helper.process(
                     ref,
                     res,
@@ -927,7 +931,7 @@ public class FastMathTest extends AbstractFastMathTezt {
     public void test_log2_int() {
         for (int value : new int[]{Integer.MIN_VALUE,0}) {
             try {
-                FastMath.log2(value);
+                StrictFastMath.log2(value);
                 assertTrue(false);
             } catch (IllegalArgumentException e) {
                 // ok
@@ -938,12 +942,12 @@ public class FastMathTest extends AbstractFastMathTezt {
             int pot = (1<<p);
 
             if (p != 0) {
-                assertEquals(p-1, FastMath.log2(pot-1));
+                assertEquals(p-1, StrictFastMath.log2(pot-1));
             }
-            assertEquals(p, FastMath.log2(pot));
-            assertEquals(p, FastMath.log2(pot+pot-1));
+            assertEquals(p, StrictFastMath.log2(pot));
+            assertEquals(p, StrictFastMath.log2(pot+pot-1));
             if (p != 30) {
-                assertEquals(p+1, FastMath.log2(pot+pot));
+                assertEquals(p+1, StrictFastMath.log2(pot+pot));
             }
         }
     }
@@ -951,7 +955,7 @@ public class FastMathTest extends AbstractFastMathTezt {
     public void test_log2_long() {
         for (long value : new long[]{Long.MIN_VALUE,0}) {
             try {
-                FastMath.log2(value);
+                StrictFastMath.log2(value);
                 assertTrue(false);
             } catch (IllegalArgumentException e) {
                 // ok
@@ -962,12 +966,12 @@ public class FastMathTest extends AbstractFastMathTezt {
             long pot = (1L<<p);
 
             if (p != 0) {
-                assertEquals(p-1, FastMath.log2(pot-1));
+                assertEquals(p-1, StrictFastMath.log2(pot-1));
             }
-            assertEquals(p, FastMath.log2(pot));
-            assertEquals(p, FastMath.log2(pot+pot-1));
+            assertEquals(p, StrictFastMath.log2(pot));
+            assertEquals(p, StrictFastMath.log2(pot+pot-1));
             if (p != 62) {
-                assertEquals(p+1, FastMath.log2(pot+pot));
+                assertEquals(p+1, StrictFastMath.log2(pot+pot));
             }
         }
     }
@@ -977,27 +981,27 @@ public class FastMathTest extends AbstractFastMathTezt {
      */
     
     public void test_pow_2double() {
-        assertEquals(1.0, FastMath.pow(0.0,0.0));
-        assertEquals(0.0, FastMath.pow(0.0,2.0));
-        assertEquals(0.0, FastMath.pow(-0.0,2.0));
-        assertEquals(Double.POSITIVE_INFINITY, FastMath.pow(0.0,-2.0));
-        assertEquals(0.0, FastMath.pow(0.0,3.0));
-        assertEquals(-0.0, FastMath.pow(-0.0,3.0));
-        assertEquals(Double.POSITIVE_INFINITY, FastMath.pow(0.0,-3.0));
-        assertEquals(4.0, FastMath.pow(2.0,2.0), TOL_1EM15);
-        assertEquals(8.0, FastMath.pow(2.0,3.0), TOL_1EM15);
-        assertEquals(1.0/4.0, FastMath.pow(2.0,-2.0), TOL_1EM15);
-        assertEquals(1.0/8.0, FastMath.pow(2.0,-3.0), TOL_1EM15);
-        assertEquals(Double.POSITIVE_INFINITY, FastMath.pow(Double.NEGATIVE_INFINITY,2.0));
-        assertEquals(Double.NEGATIVE_INFINITY, FastMath.pow(Double.NEGATIVE_INFINITY,3.0));
-        assertEquals(0.0, FastMath.pow(Double.NEGATIVE_INFINITY,-2.0));
-        assertEquals(-0.0, FastMath.pow(Double.NEGATIVE_INFINITY,-3.0));
-        assertEquals(Double.POSITIVE_INFINITY, FastMath.pow(-2.0,(1L<<40))); // even power
-        assertEquals(Double.NEGATIVE_INFINITY, FastMath.pow(-2.0,(1L<<40)+1)); // odd power
-        assertEquals(Double.NaN, FastMath.pow(Double.NaN,1.0));
-        assertEquals(Double.NaN, FastMath.pow(1.0,Double.NaN));
-        assertEquals(Double.NaN, FastMath.pow(Double.NaN,-1.0));
-        assertEquals(Double.NaN, FastMath.pow(-1.0,Double.NaN));
+        assertEquals(1.0, StrictFastMath.pow(0.0,0.0));
+        assertEquals(0.0, StrictFastMath.pow(0.0,2.0));
+        assertEquals(0.0, StrictFastMath.pow(-0.0,2.0));
+        assertEquals(Double.POSITIVE_INFINITY, StrictFastMath.pow(0.0,-2.0));
+        assertEquals(0.0, StrictFastMath.pow(0.0,3.0));
+        assertEquals(-0.0, StrictFastMath.pow(-0.0,3.0));
+        assertEquals(Double.POSITIVE_INFINITY, StrictFastMath.pow(0.0,-3.0));
+        assertEquals(4.0, StrictFastMath.pow(2.0,2.0), TOL_1EM15);
+        assertEquals(8.0, StrictFastMath.pow(2.0,3.0), TOL_1EM15);
+        assertEquals(1.0/4.0, StrictFastMath.pow(2.0,-2.0), TOL_1EM15);
+        assertEquals(1.0/8.0, StrictFastMath.pow(2.0,-3.0), TOL_1EM15);
+        assertEquals(Double.POSITIVE_INFINITY, StrictFastMath.pow(Double.NEGATIVE_INFINITY,2.0));
+        assertEquals(Double.NEGATIVE_INFINITY, StrictFastMath.pow(Double.NEGATIVE_INFINITY,3.0));
+        assertEquals(0.0, StrictFastMath.pow(Double.NEGATIVE_INFINITY,-2.0));
+        assertEquals(-0.0, StrictFastMath.pow(Double.NEGATIVE_INFINITY,-3.0));
+        assertEquals(Double.POSITIVE_INFINITY, StrictFastMath.pow(-2.0,(1L<<40))); // even power
+        assertEquals(Double.NEGATIVE_INFINITY, StrictFastMath.pow(-2.0,(1L<<40)+1)); // odd power
+        assertEquals(Double.NaN, StrictFastMath.pow(Double.NaN,1.0));
+        assertEquals(Double.NaN, StrictFastMath.pow(1.0,Double.NaN));
+        assertEquals(Double.NaN, StrictFastMath.pow(Double.NaN,-1.0));
+        assertEquals(Double.NaN, StrictFastMath.pow(-1.0,Double.NaN));
 
         final MyDoubleResHelper helper = new MyDoubleResHelper();
         for (int i=0;i<NBR_OF_VALUES;i++) {
@@ -1006,7 +1010,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             a = knownBadValues_pow_2double_a(i, a);
             b = knownBadValues_pow_2double_b(i, b);
             double ref = StrictMath.pow(a,b);
-            double res = FastMath.pow(a,b);
+            double res = StrictFastMath.pow(a,b);
             helper.process(
                     ref,
                     res,
@@ -1027,7 +1031,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             a = knownBadValues_powQuick_2double_a(i, a);
             b = knownBadValues_powQuick_2double_b(i, b);
             double ref = StrictMath.pow(a, b);
-            double res = FastMath.powQuick(a,b);
+            double res = StrictFastMath.powQuick(a,b);
             double absRef = Math.abs(ref);
             final double relTol;
             if ((absRef > 1e-10) && (absRef < 1e10)) {
@@ -1050,16 +1054,16 @@ public class FastMathTest extends AbstractFastMathTezt {
     }
 
     public void test_powFast_double_int() {
-        assertEquals(1.0, FastMath.powFast(1.0,Integer.MIN_VALUE));
-        assertEquals(Double.POSITIVE_INFINITY, FastMath.powFast(Double.MIN_VALUE,Integer.MIN_VALUE));
-        assertEquals(Double.NaN, FastMath.powFast(Double.NaN,1));
+        assertEquals(1.0, StrictFastMath.powFast(1.0,Integer.MIN_VALUE));
+        assertEquals(Double.POSITIVE_INFINITY, StrictFastMath.powFast(Double.MIN_VALUE,Integer.MIN_VALUE));
+        assertEquals(Double.NaN, StrictFastMath.powFast(Double.NaN,1));
         
         final MyDoubleResHelper helper = new MyDoubleResHelper();
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double a = randomDoubleWhatever(-10.0,10.0);
             int b = randomIntUniform(-10,10);
             double ref = StrictMath.pow(a,b);
-            double res = FastMath.powFast(a,b);
+            double res = StrictFastMath.powFast(a,b);
             helper.process(
                     ref,
                     res,
@@ -1076,7 +1080,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             int value = randomIntWhatever();
             double ref = StrictMath.pow(2,value);
-            double res = FastMath.twoPow(value);
+            double res = StrictFastMath.twoPow(value);
             assertEquals(ref, res);
         }
     }
@@ -1085,7 +1089,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             int value = randomIntWhatever();
             int ref = value*value;
-            int res = FastMath.pow2(value);
+            int res = StrictFastMath.pow2(value);
             assertEquals(ref, res);
         }
     }
@@ -1094,7 +1098,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             long value = randomLongWhatever();
             long ref = value*value;
-            long res = FastMath.pow2(value);
+            long res = StrictFastMath.pow2(value);
             assertEquals(ref, res);
         }
     }
@@ -1104,7 +1108,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             float value = randomFloatWhatever();
             float ref = value*value;
-            float res = FastMath.pow2(value);
+            float res = StrictFastMath.pow2(value);
             helper.process(
                     ref,
                     res,
@@ -1121,7 +1125,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = randomDoubleWhatever();
             double ref = value*value;
-            double res = FastMath.pow2(value);
+            double res = StrictFastMath.pow2(value);
             helper.process(
                     ref,
                     res,
@@ -1137,7 +1141,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             int value = randomIntWhatever();
             int ref = value*value*value;
-            int res = FastMath.pow3(value);
+            int res = StrictFastMath.pow3(value);
             assertEquals(ref, res);
         }
     }
@@ -1146,7 +1150,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             long value = randomLongWhatever();
             long ref = value*value*value;
-            long res = FastMath.pow3(value);
+            long res = StrictFastMath.pow3(value);
             assertEquals(ref, res);
         }
     }
@@ -1156,7 +1160,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             float value = randomFloatWhatever();
             float ref = value*value*value;
-            float res = FastMath.pow3(value);
+            float res = StrictFastMath.pow3(value);
             helper.process(
                     ref,
                     res,
@@ -1173,7 +1177,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = randomDoubleWhatever();
             double ref = value*value*value;
-            double res = FastMath.pow3(value);
+            double res = StrictFastMath.pow3(value);
             helper.process(
                     ref,
                     res,
@@ -1190,15 +1194,15 @@ public class FastMathTest extends AbstractFastMathTezt {
      */
 
     public void test_sqrt_double() {
-        assertEquals(-0.0, FastMath.sqrt(-0.0));
-        assertEquals(0.0, FastMath.sqrt(0.0));
-        assertEquals(Double.NaN, FastMath.sqrt(Double.NaN));
+        assertEquals(-0.0, StrictFastMath.sqrt(-0.0));
+        assertEquals(0.0, StrictFastMath.sqrt(0.0));
+        assertEquals(Double.NaN, StrictFastMath.sqrt(Double.NaN));
         
         final MyDoubleResHelper helper = new MyDoubleResHelper();
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = randomDoubleWhatever();
             double ref = StrictMath.sqrt(value);
-            double res = FastMath.sqrt(value);
+            double res = StrictFastMath.sqrt(value);
             helper.process(
                     ref,
                     res,
@@ -1216,7 +1220,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             double value = randomDoubleWhatever(DOUBLE_MIN_NORMAL, Double.MAX_VALUE);
             value = knownBadValues_sqrtQuick_double(i, value);
             double ref = StrictMath.sqrt(value);
-            double res = FastMath.sqrtQuick(value);
+            double res = StrictFastMath.sqrtQuick(value);
             helper.process(
                     ref,
                     res,
@@ -1234,7 +1238,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             double value = randomDoubleWhatever(DOUBLE_MIN_NORMAL, Double.MAX_VALUE);
             value = knownBadValues_invSqrtQuick_double(i, value);
             double ref = 1/StrictMath.sqrt(value);
-            double res = FastMath.invSqrtQuick(value);
+            double res = StrictFastMath.invSqrtQuick(value);
             helper.process(
                     ref,
                     res,
@@ -1247,15 +1251,15 @@ public class FastMathTest extends AbstractFastMathTezt {
     }
 
     public void test_cbrt_double() {
-        assertEquals(-0.0, FastMath.cbrt(-0.0));
-        assertEquals(0.0, FastMath.cbrt(0.0));
-        assertEquals(Double.NaN, FastMath.cbrt(Double.NaN));
+        assertEquals(-0.0, StrictFastMath.cbrt(-0.0));
+        assertEquals(0.0, StrictFastMath.cbrt(0.0));
+        assertEquals(Double.NaN, StrictFastMath.cbrt(Double.NaN));
         
         final MyDoubleResHelper helper = new MyDoubleResHelper();
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = randomDoubleWhatever();
             double ref = StrictMath.cbrt(value);
-            double res = FastMath.cbrt(value);
+            double res = StrictFastMath.cbrt(value);
             helper.process(
                     ref,
                     res,
@@ -1273,7 +1277,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             double x = randomDoubleWhatever();
             double y = this.random.nextBoolean() ? x * randomDoubleUniform(1e-16, 1e16) : randomDoubleWhatever();
             double ref = StrictMath.hypot(x,y);
-            double res = FastMath.hypot(x,y);
+            double res = StrictFastMath.hypot(x,y);
             helper.process(
                     ref,
                     res,
@@ -1300,7 +1304,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             double yzx = StrictMath.hypot(yz,x);
             // max(+Infinity,NaN) = NaN
             double ref = Math.max(xyz, Math.max(xzy, yzx));
-            double res = FastMath.hypot(x,y,z);
+            double res = StrictFastMath.hypot(x,y,z);
             boolean log = helper.process(
                     ref,
                     res,
@@ -1330,7 +1334,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             int value = randomIntWhatever();
             int ref = Math.abs(value);
-            int res = FastMath.abs(value);
+            int res = StrictFastMath.abs(value);
             boolean ok = (ref == res);
             assertTrue(ok);
         }
@@ -1340,7 +1344,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             long value = randomLongWhatever();
             long ref = Math.abs(value);
-            long res = FastMath.abs(value);
+            long res = StrictFastMath.abs(value);
             boolean ok = (ref == res);
             assertTrue(ok);
         }
@@ -1355,9 +1359,9 @@ public class FastMathTest extends AbstractFastMathTezt {
          * quick test (delegates)
          */
 
-        assertEquals(Integer.MAX_VALUE, FastMath.toIntExact((long)Integer.MAX_VALUE));
+        assertEquals(Integer.MAX_VALUE, StrictFastMath.toIntExact((long)Integer.MAX_VALUE));
         try {
-            FastMath.toIntExact(((long)Integer.MAX_VALUE)+1L);
+            StrictFastMath.toIntExact(((long)Integer.MAX_VALUE)+1L);
             assertTrue(false);
         } catch (ArithmeticException e) {
             // ok
@@ -1369,15 +1373,15 @@ public class FastMathTest extends AbstractFastMathTezt {
          * quick test (delegates)
          */
 
-        assertEquals(Integer.MAX_VALUE, FastMath.toInt((long)Integer.MAX_VALUE));
-        assertEquals(Integer.MAX_VALUE, FastMath.toInt(Long.MAX_VALUE));
+        assertEquals(Integer.MAX_VALUE, StrictFastMath.toInt((long)Integer.MAX_VALUE));
+        assertEquals(Integer.MAX_VALUE, StrictFastMath.toInt(Long.MAX_VALUE));
     }
 
     public void test_floor_float() {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             float value = randomFloatWhatever();
             float ref = (float)Math.floor(value);
-            float res = FastMath.floor(value);
+            float res = StrictFastMath.floor(value);
             assertEquals(ref, res);
         }
     }
@@ -1386,7 +1390,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = randomDoubleWhatever();
             double ref = Math.floor(value);
-            double res = FastMath.floor(value);
+            double res = StrictFastMath.floor(value);
             assertEquals(ref, res);
         }
     }
@@ -1395,7 +1399,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             float value = randomFloatWhatever();
             float ref = (float)Math.ceil(value);
-            float res = FastMath.ceil(value);
+            float res = StrictFastMath.ceil(value);
             assertEquals(ref, res);
         }
     }
@@ -1404,7 +1408,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = randomDoubleWhatever();
             double ref = Math.ceil(value);
-            double res = FastMath.ceil(value);
+            double res = StrictFastMath.ceil(value);
             assertEquals(ref, res);
         }
     }
@@ -1425,7 +1429,7 @@ public class FastMathTest extends AbstractFastMathTezt {
                     ref = (postCommaPart < 0.5f) ? lowerMag : lowerMag+1;
                 }
             }
-            int res = FastMath.round(value);
+            int res = StrictFastMath.round(value);
             boolean ok = (ref == res);
             if (!ok) {
                 printCallerName();
@@ -1453,7 +1457,7 @@ public class FastMathTest extends AbstractFastMathTezt {
                     ref = (postCommaPart < 0.5) ? lowerMag : lowerMag+1;
                 }
             }
-            long res = FastMath.round(value);
+            long res = StrictFastMath.round(value);
             boolean ok = (ref == res);
             if (!ok) {
                 printCallerName();
@@ -1485,7 +1489,7 @@ public class FastMathTest extends AbstractFastMathTezt {
                     }
                 }
             }
-            int res = FastMath.roundEven(value);
+            int res = StrictFastMath.roundEven(value);
             boolean ok = (ref == res);
             if (!ok) {
                 printCallerName();
@@ -1517,7 +1521,7 @@ public class FastMathTest extends AbstractFastMathTezt {
                     }
                 }
             }
-            long res = FastMath.roundEven(value);
+            long res = StrictFastMath.roundEven(value);
             boolean ok = (ref == res);
             if (!ok) {
                 printCallerName();
@@ -1533,7 +1537,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             float value = randomFloatWhatever();
             float ref = (float)Math.rint((double)value);
-            float res = FastMath.rint(value);
+            float res = StrictFastMath.rint(value);
             boolean ok = equivalent(ref,res);
             if (!ok) {
                 printCallerName();
@@ -1549,7 +1553,7 @@ public class FastMathTest extends AbstractFastMathTezt {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = randomDoubleWhatever();
             double ref = Math.rint(value);
-            double res = FastMath.rint(value);
+            double res = StrictFastMath.rint(value);
             boolean ok = equivalent(ref,res);
             if (!ok) {
                 printCallerName();
@@ -1566,35 +1570,35 @@ public class FastMathTest extends AbstractFastMathTezt {
      */
     
     public void test_toRange_3int() {
-        assertEquals(0, FastMath.toRange(0, 2, -1));
-        assertEquals(0, FastMath.toRange(0, 2, 0));
-        assertEquals(1, FastMath.toRange(0, 2, 1));
-        assertEquals(2, FastMath.toRange(0, 2, 2));
-        assertEquals(2, FastMath.toRange(0, 2, 3));
+        assertEquals(0, StrictFastMath.toRange(0, 2, -1));
+        assertEquals(0, StrictFastMath.toRange(0, 2, 0));
+        assertEquals(1, StrictFastMath.toRange(0, 2, 1));
+        assertEquals(2, StrictFastMath.toRange(0, 2, 2));
+        assertEquals(2, StrictFastMath.toRange(0, 2, 3));
     }
 
     public void test_toRange_3long() {
-        assertEquals(0L, FastMath.toRange(0L, 2L, -1L));
-        assertEquals(0L, FastMath.toRange(0L, 2L, 0L));
-        assertEquals(1L, FastMath.toRange(0L, 2L, 1L));
-        assertEquals(2L, FastMath.toRange(0L, 2L, 2L));
-        assertEquals(2L, FastMath.toRange(0L, 2L, 3L));
+        assertEquals(0L, StrictFastMath.toRange(0L, 2L, -1L));
+        assertEquals(0L, StrictFastMath.toRange(0L, 2L, 0L));
+        assertEquals(1L, StrictFastMath.toRange(0L, 2L, 1L));
+        assertEquals(2L, StrictFastMath.toRange(0L, 2L, 2L));
+        assertEquals(2L, StrictFastMath.toRange(0L, 2L, 3L));
     }
 
     public void test_toRange_3float() {
-        assertEquals(0.0f, FastMath.toRange(0.0f, 2.0f, -1.0f));
-        assertEquals(0.0f, FastMath.toRange(0.0f, 2.0f, 0.0f));
-        assertEquals(1.0f, FastMath.toRange(0.0f, 2.0f, 1.0f));
-        assertEquals(2.0f, FastMath.toRange(0.0f, 2.0f, 2.0f));
-        assertEquals(2.0f, FastMath.toRange(0.0f, 2.0f, 3.0f));
+        assertEquals(0.0f, StrictFastMath.toRange(0.0f, 2.0f, -1.0f));
+        assertEquals(0.0f, StrictFastMath.toRange(0.0f, 2.0f, 0.0f));
+        assertEquals(1.0f, StrictFastMath.toRange(0.0f, 2.0f, 1.0f));
+        assertEquals(2.0f, StrictFastMath.toRange(0.0f, 2.0f, 2.0f));
+        assertEquals(2.0f, StrictFastMath.toRange(0.0f, 2.0f, 3.0f));
     }
 
     public void test_toRange_3double() {
-        assertEquals(0.0, FastMath.toRange(0.0, 2.0, -1.0));
-        assertEquals(0.0, FastMath.toRange(0.0, 2.0, 0.0));
-        assertEquals(1.0, FastMath.toRange(0.0, 2.0, 1.0));
-        assertEquals(2.0, FastMath.toRange(0.0, 2.0, 2.0));
-        assertEquals(2.0, FastMath.toRange(0.0, 2.0, 3.0));
+        assertEquals(0.0, StrictFastMath.toRange(0.0, 2.0, -1.0));
+        assertEquals(0.0, StrictFastMath.toRange(0.0, 2.0, 0.0));
+        assertEquals(1.0, StrictFastMath.toRange(0.0, 2.0, 1.0));
+        assertEquals(2.0, StrictFastMath.toRange(0.0, 2.0, 2.0));
+        assertEquals(2.0, StrictFastMath.toRange(0.0, 2.0, 3.0));
     }
 
     /*
@@ -1606,9 +1610,9 @@ public class FastMathTest extends AbstractFastMathTezt {
          * quick test (delegates)
          */
 
-        assertEquals(Integer.MAX_VALUE, FastMath.addExact(Integer.MAX_VALUE-1, 1));
+        assertEquals(Integer.MAX_VALUE, StrictFastMath.addExact(Integer.MAX_VALUE-1, 1));
         try {
-            FastMath.addExact(Integer.MAX_VALUE, 1);
+            StrictFastMath.addExact(Integer.MAX_VALUE, 1);
             assertTrue(false);
         } catch (ArithmeticException e) {
             // ok
@@ -1620,9 +1624,9 @@ public class FastMathTest extends AbstractFastMathTezt {
          * quick test (delegates)
          */
 
-        assertEquals(Long.MAX_VALUE, FastMath.addExact(Long.MAX_VALUE-1L, 1L));
+        assertEquals(Long.MAX_VALUE, StrictFastMath.addExact(Long.MAX_VALUE-1L, 1L));
         try {
-            FastMath.addExact(Long.MAX_VALUE, 1L);
+            StrictFastMath.addExact(Long.MAX_VALUE, 1L);
             assertTrue(false);
         } catch (ArithmeticException e) {
             // ok
@@ -1634,8 +1638,8 @@ public class FastMathTest extends AbstractFastMathTezt {
          * quick test (delegates)
          */
 
-        assertEquals(Integer.MAX_VALUE, FastMath.addBounded(Integer.MAX_VALUE-1, 1));
-        assertEquals(Integer.MAX_VALUE, FastMath.addBounded(Integer.MAX_VALUE, 1));
+        assertEquals(Integer.MAX_VALUE, StrictFastMath.addBounded(Integer.MAX_VALUE-1, 1));
+        assertEquals(Integer.MAX_VALUE, StrictFastMath.addBounded(Integer.MAX_VALUE, 1));
     }
 
     public void test_addBounded_2long() {
@@ -1643,8 +1647,8 @@ public class FastMathTest extends AbstractFastMathTezt {
          * quick test (delegates)
          */
 
-        assertEquals(Long.MAX_VALUE, FastMath.addBounded(Long.MAX_VALUE-1L, 1L));
-        assertEquals(Long.MAX_VALUE, FastMath.addBounded(Long.MAX_VALUE, 1L));
+        assertEquals(Long.MAX_VALUE, StrictFastMath.addBounded(Long.MAX_VALUE-1L, 1L));
+        assertEquals(Long.MAX_VALUE, StrictFastMath.addBounded(Long.MAX_VALUE, 1L));
     }
 
     public void test_subtractExact_2int() {
@@ -1652,9 +1656,9 @@ public class FastMathTest extends AbstractFastMathTezt {
          * quick test (delegates)
          */
 
-        assertEquals(Integer.MIN_VALUE, FastMath.subtractExact(Integer.MIN_VALUE+1, 1));
+        assertEquals(Integer.MIN_VALUE, StrictFastMath.subtractExact(Integer.MIN_VALUE+1, 1));
         try {
-            FastMath.subtractExact(Integer.MIN_VALUE, 1);
+            StrictFastMath.subtractExact(Integer.MIN_VALUE, 1);
             assertTrue(false);
         } catch (ArithmeticException e) {
             // ok
@@ -1666,9 +1670,9 @@ public class FastMathTest extends AbstractFastMathTezt {
          * quick test (delegates)
          */
 
-        assertEquals(Long.MIN_VALUE, FastMath.subtractExact(Long.MIN_VALUE+1L, 1L));
+        assertEquals(Long.MIN_VALUE, StrictFastMath.subtractExact(Long.MIN_VALUE+1L, 1L));
         try {
-            FastMath.subtractExact(Long.MIN_VALUE, 1L);
+            StrictFastMath.subtractExact(Long.MIN_VALUE, 1L);
             assertTrue(false);
         } catch (ArithmeticException e) {
             // ok
@@ -1680,8 +1684,8 @@ public class FastMathTest extends AbstractFastMathTezt {
          * quick test (delegates)
          */
 
-        assertEquals(Integer.MIN_VALUE, FastMath.subtractBounded(Integer.MIN_VALUE+1, 1));
-        assertEquals(Integer.MIN_VALUE, FastMath.subtractBounded(Integer.MIN_VALUE, 1));
+        assertEquals(Integer.MIN_VALUE, StrictFastMath.subtractBounded(Integer.MIN_VALUE+1, 1));
+        assertEquals(Integer.MIN_VALUE, StrictFastMath.subtractBounded(Integer.MIN_VALUE, 1));
     }
 
     public void test_subtractBounded_2long() {
@@ -1689,8 +1693,8 @@ public class FastMathTest extends AbstractFastMathTezt {
          * quick test (delegates)
          */
 
-        assertEquals(Long.MIN_VALUE, FastMath.subtractBounded(Long.MIN_VALUE+1L, 1L));
-        assertEquals(Long.MIN_VALUE, FastMath.subtractBounded(Long.MIN_VALUE, 1L));
+        assertEquals(Long.MIN_VALUE, StrictFastMath.subtractBounded(Long.MIN_VALUE+1L, 1L));
+        assertEquals(Long.MIN_VALUE, StrictFastMath.subtractBounded(Long.MIN_VALUE, 1L));
     }
 
     public void test_multiplyExact_2int() {
@@ -1698,9 +1702,9 @@ public class FastMathTest extends AbstractFastMathTezt {
          * quick test (delegates)
          */
 
-        assertEquals(Integer.MIN_VALUE, FastMath.multiplyExact(Integer.MIN_VALUE/2, 2));
+        assertEquals(Integer.MIN_VALUE, StrictFastMath.multiplyExact(Integer.MIN_VALUE/2, 2));
         try {
-            FastMath.multiplyExact(Integer.MIN_VALUE, 2);
+            StrictFastMath.multiplyExact(Integer.MIN_VALUE, 2);
             assertTrue(false);
         } catch (ArithmeticException e) {
             // ok
@@ -1712,9 +1716,9 @@ public class FastMathTest extends AbstractFastMathTezt {
          * quick test (delegates)
          */
 
-        assertEquals(Long.MIN_VALUE, FastMath.multiplyExact(Long.MIN_VALUE/2L, 2L));
+        assertEquals(Long.MIN_VALUE, StrictFastMath.multiplyExact(Long.MIN_VALUE/2L, 2L));
         try {
-            FastMath.multiplyExact(Long.MIN_VALUE, 2L);
+            StrictFastMath.multiplyExact(Long.MIN_VALUE, 2L);
             assertTrue(false);
         } catch (ArithmeticException e) {
             // ok
@@ -1726,8 +1730,8 @@ public class FastMathTest extends AbstractFastMathTezt {
          * quick test (delegates)
          */
 
-        assertEquals(Integer.MIN_VALUE, FastMath.multiplyBounded(Integer.MIN_VALUE/2, 2));
-        assertEquals(Integer.MIN_VALUE, FastMath.multiplyBounded(Integer.MIN_VALUE, 2));
+        assertEquals(Integer.MIN_VALUE, StrictFastMath.multiplyBounded(Integer.MIN_VALUE/2, 2));
+        assertEquals(Integer.MIN_VALUE, StrictFastMath.multiplyBounded(Integer.MIN_VALUE, 2));
     }
 
     public void test_multiplyBounded_2long() {
@@ -1735,8 +1739,8 @@ public class FastMathTest extends AbstractFastMathTezt {
          * quick test (delegates)
          */
 
-        assertEquals(Long.MIN_VALUE, FastMath.multiplyBounded(Long.MIN_VALUE/2L, 2L));
-        assertEquals(Long.MIN_VALUE, FastMath.multiplyBounded(Long.MIN_VALUE, 2L));
+        assertEquals(Long.MIN_VALUE, StrictFastMath.multiplyBounded(Long.MIN_VALUE/2L, 2L));
+        assertEquals(Long.MIN_VALUE, StrictFastMath.multiplyBounded(Long.MIN_VALUE, 2L));
     }
 
     /*
@@ -1749,7 +1753,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             int y = randomIntWhatever();
             if (y == 0) {
                 try {
-                    FastMath.floorDiv(x,y);
+                    StrictFastMath.floorDiv(x,y);
                     assertTrue(false);
                 } catch (ArithmeticException e) {
                     // ok
@@ -1764,7 +1768,7 @@ public class FastMathTest extends AbstractFastMathTezt {
                     // different signs and not exact
                     expected = x/y - 1;
                 }
-                final int actual = FastMath.floorDiv(x,y);
+                final int actual = StrictFastMath.floorDiv(x,y);
                 assertEquals(expected, actual);
             }
         }
@@ -1776,7 +1780,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             long y = randomLongWhatever();
             if (y == 0) {
                 try {
-                    FastMath.floorDiv(x,y);
+                    StrictFastMath.floorDiv(x,y);
                     assertTrue(false);
                 } catch (ArithmeticException e) {
                     // ok
@@ -1791,7 +1795,7 @@ public class FastMathTest extends AbstractFastMathTezt {
                     // different signs and not exact
                     expected = x/y - 1;
                 }
-                final long actual = FastMath.floorDiv(x,y);
+                final long actual = StrictFastMath.floorDiv(x,y);
                 assertEquals(expected, actual);
             }
         }
@@ -1803,7 +1807,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             int y = randomIntWhatever();
             if (y == 0) {
                 try {
-                    FastMath.floorMod(x,y);
+                    StrictFastMath.floorMod(x,y);
                     assertTrue(false);
                 } catch (ArithmeticException e) {
                     // ok
@@ -1818,11 +1822,11 @@ public class FastMathTest extends AbstractFastMathTezt {
                     // different signs and not exact
                     expected = x%y + y;
                 }
-                final int actual = FastMath.floorMod(x,y);
+                final int actual = StrictFastMath.floorMod(x,y);
                 assertEquals(expected, actual);
                 
                 // identity
-                assertEquals(x - FastMath.floorDiv(x, y) * y, FastMath.floorMod(x,y));
+                assertEquals(x - StrictFastMath.floorDiv(x, y) * y, StrictFastMath.floorMod(x,y));
             }
         }
     }
@@ -1833,7 +1837,7 @@ public class FastMathTest extends AbstractFastMathTezt {
             long y = randomIntWhatever();
             if (y == 0) {
                 try {
-                    FastMath.floorMod(x,y);
+                    StrictFastMath.floorMod(x,y);
                     assertTrue(false);
                 } catch (ArithmeticException e) {
                     // ok
@@ -1848,11 +1852,11 @@ public class FastMathTest extends AbstractFastMathTezt {
                     // different signs and not exact
                     expected = x%y + y;
                 }
-                long actual = FastMath.floorMod(x,y);
+                long actual = StrictFastMath.floorMod(x,y);
                 assertEquals(expected, actual);
                 
                 // identity
-                assertEquals(x - FastMath.floorDiv(x, y) * y, FastMath.floorMod(x,y));
+                assertEquals(x - StrictFastMath.floorDiv(x, y) * y, StrictFastMath.floorMod(x,y));
             }
         }
     }
@@ -1871,7 +1875,7 @@ IEEE = -4.55688172866467E-305
             double a = randomDoubleWhatever();
             double b = randomDoubleWhatever();
             double ref = getExpectedResult_remainder_2double(a,b);
-            double res = FastMath.remainder(a,b);
+            double res = StrictFastMath.remainder(a,b);
             boolean ok = equivalent(ref,res);
             if (!ok) {
                 printCallerName();
@@ -1892,7 +1896,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = randomDoubleWhateverOrPiIsh();
             value = knownBadValues_trigNorm(i, value);
-            double res = FastMath.normalizeMinusPiPi(value);
+            double res = StrictFastMath.normalizeMinusPiPi(value);
             if (NumbersUtils.isInRange(-Math.PI, Math.PI, value)) {
                 // Unchanged if already in range.
                 assertEquals(value, res);
@@ -1962,7 +1966,7 @@ IEEE = -4.55688172866467E-305
             if (Math.abs(value) > MAX_VALUE_FAST_TRIG_NORM) {
                 value = randomDoubleUniform(-MAX_VALUE_FAST_TRIG_NORM,MAX_VALUE_FAST_TRIG_NORM);
             }
-            double res = FastMath.normalizeMinusPiPiFast(value);
+            double res = StrictFastMath.normalizeMinusPiPiFast(value);
             if (NumbersUtils.isInRange(-Math.PI, Math.PI, value)) {
                 // Unchanged if already in range.
                 assertEquals(value, res);
@@ -2010,7 +2014,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = randomDoubleWhateverOrPiIsh();
             value = knownBadValues_trigNorm(i, value);
-            double res = FastMath.normalizeZeroTwoPi(value);
+            double res = StrictFastMath.normalizeZeroTwoPi(value);
             if (NumbersUtils.isInRange(0.0, 2*Math.PI, value)) {
                 // Unchanged if already in range.
                 assertEquals(value, res);
@@ -2083,7 +2087,7 @@ IEEE = -4.55688172866467E-305
             if (Math.abs(value) > MAX_VALUE_FAST_TRIG_NORM) {
                 value = randomDoubleUniform(-MAX_VALUE_FAST_TRIG_NORM,MAX_VALUE_FAST_TRIG_NORM);
             }
-            double res = FastMath.normalizeZeroTwoPiFast(value);
+            double res = StrictFastMath.normalizeZeroTwoPiFast(value);
             if (NumbersUtils.isInRange(0.0, 2*Math.PI, value)) {
                 // Unchanged if already in range.
                 assertEquals(value, res);
@@ -2131,7 +2135,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES;i++) {
             double value = randomDoubleWhateverOrPiIsh();
             value = knownBadValues_trigNorm(i, value);
-            double res = FastMath.normalizeMinusHalfPiHalfPi(value);
+            double res = StrictFastMath.normalizeMinusHalfPiHalfPi(value);
             if (NumbersUtils.isInRange(-Math.PI/2, Math.PI/2, value)) {
                 // Unchanged if already in range.
                 assertEquals(value, res);
@@ -2206,7 +2210,7 @@ IEEE = -4.55688172866467E-305
             if (Math.abs(value) > MAX_VALUE_FAST_TRIG_NORM) {
                 value = randomDoubleUniform(-MAX_VALUE_FAST_TRIG_NORM,MAX_VALUE_FAST_TRIG_NORM);
             }
-            double res = FastMath.normalizeMinusHalfPiHalfPiFast(value);
+            double res = StrictFastMath.normalizeMinusHalfPiHalfPiFast(value);
             if (NumbersUtils.isInRange(-Math.PI/2, Math.PI/2, value)) {
                 // Unchanged if already in range.
                 assertEquals(value, res);
@@ -2278,7 +2282,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             float value = randomFloatWhatever();
             boolean ref = Float.isNaN(value) || Float.isInfinite(value);
-            boolean res = FastMath.isNaNOrInfinite(value);
+            boolean res = StrictFastMath.isNaNOrInfinite(value);
             boolean ok = (ref == res);
             assertTrue(ok);
         }
@@ -2288,7 +2292,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = randomDoubleWhatever();
             boolean ref = Double.isNaN(value) || Double.isInfinite(value);
-            boolean res = FastMath.isNaNOrInfinite(value);
+            boolean res = StrictFastMath.isNaNOrInfinite(value);
             boolean ok = (ref == res);
             assertTrue(ok);
         }
@@ -2298,7 +2302,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             float value = randomFloatWhatever();
             int ref = Math.getExponent(value);
-            int res = FastMath.getExponent(value);
+            int res = StrictFastMath.getExponent(value);
             boolean ok = (ref == res);
             if (!ok) {
                 printCallerName();
@@ -2314,7 +2318,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = randomDoubleWhatever();
             int ref = Math.getExponent(value);
-            int res = FastMath.getExponent(value);
+            int res = StrictFastMath.getExponent(value);
             boolean ok = (ref == res);
             if (!ok) {
                 printCallerName();
@@ -2330,7 +2334,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             float value = randomFloatWhatever();
             float ref = Math.signum(value);
-            float res = FastMath.signum(value);
+            float res = StrictFastMath.signum(value);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2340,7 +2344,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = randomDoubleWhatever();
             double ref = Math.signum(value);
-            double res = FastMath.signum(value);
+            double res = StrictFastMath.signum(value);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2350,7 +2354,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             float value = randomFloatWhatever();
             int ref = (Float.floatToRawIntBits(value) < 0 ? -1 : 1);
-            int res = FastMath.signFromBit(value);
+            int res = StrictFastMath.signFromBit(value);
             boolean ok = (ref == res);
             assertTrue(ok);
         }
@@ -2360,7 +2364,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = randomDoubleWhatever();
             long ref = (Double.doubleToRawLongBits(value) < 0 ? -1L : 1L);
-            long res = FastMath.signFromBit(value);
+            long res = StrictFastMath.signFromBit(value);
             boolean ok = (ref == res);
             assertTrue(ok);
         }
@@ -2371,13 +2375,8 @@ IEEE = -4.55688172866467E-305
             float a = randomFloatWhatever();
             float b = randomFloatWhatever();
             float ref = StrictMath.copySign(a,b);
-            float res = FastMath.copySign(a,b);
-            if (Double.isNaN(b)) {
-                // We use Math.copySign(...) spec.
-                assertEquals(Math.abs(ref), Math.abs(res));
-            } else {
-                assertEquals(ref, res);
-            }
+            float res = StrictFastMath.copySign(a,b);
+            assertEquals(ref, res);
         }
     }
 
@@ -2386,13 +2385,8 @@ IEEE = -4.55688172866467E-305
             double a = randomDoubleWhatever();
             double b = randomDoubleWhatever();
             double ref = StrictMath.copySign(a,b);
-            double res = FastMath.copySign(a,b);
-            if (Double.isNaN(b)) {
-                // We use Math.copySign(...) spec.
-                assertEquals(Math.abs(ref), Math.abs(res));
-            } else {
-                assertEquals(ref, res);
-            }
+            double res = StrictFastMath.copySign(a,b);
+            assertEquals(ref, res);
         }
     }
 
@@ -2400,7 +2394,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             float value = randomFloatWhatever();
             float ref = Math.ulp(value);
-            float res = FastMath.ulp(value);
+            float res = StrictFastMath.ulp(value);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2410,7 +2404,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = randomDoubleWhatever();
             double ref = Math.ulp(value);
-            double res = FastMath.ulp(value);
+            double res = StrictFastMath.ulp(value);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2421,7 +2415,7 @@ IEEE = -4.55688172866467E-305
             float a = randomFloatWhatever();
             double b = randomDoubleWhatever();
             float ref = Math.nextAfter(a,b);
-            float res = FastMath.nextAfter(a,b);
+            float res = StrictFastMath.nextAfter(a,b);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2432,7 +2426,7 @@ IEEE = -4.55688172866467E-305
             double a = randomDoubleWhatever();
             double b = randomDoubleWhatever();
             double ref = Math.nextAfter(a,b);
-            double res = FastMath.nextAfter(a,b);
+            double res = StrictFastMath.nextAfter(a,b);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2442,7 +2436,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             float value = randomFloatWhatever();
             float ref = Math.nextAfter(value,Double.NEGATIVE_INFINITY);
-            float res = FastMath.nextDown(value);
+            float res = StrictFastMath.nextDown(value);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2452,7 +2446,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = randomDoubleWhatever();
             double ref = Math.nextAfter(value,Double.NEGATIVE_INFINITY);
-            double res = FastMath.nextDown(value);
+            double res = StrictFastMath.nextDown(value);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2462,7 +2456,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             float value = randomFloatWhatever();
             float ref = Math.nextAfter(value,Double.POSITIVE_INFINITY);
-            float res = FastMath.nextUp(value);
+            float res = StrictFastMath.nextUp(value);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2472,7 +2466,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = randomDoubleWhatever();
             double ref = Math.nextAfter(value,Double.POSITIVE_INFINITY);
-            double res = FastMath.nextUp(value);
+            double res = StrictFastMath.nextUp(value);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2483,7 +2477,7 @@ IEEE = -4.55688172866467E-305
             float a = randomFloatWhatever();
             int b = randomIntWhatever();
             float ref = Math.scalb(a,b);
-            float res = FastMath.scalb(a,b);
+            float res = StrictFastMath.scalb(a,b);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2494,7 +2488,7 @@ IEEE = -4.55688172866467E-305
             double a = randomDoubleWhatever();
             int b = randomIntWhatever();
             double ref = Math.scalb(a,b);
-            double res = FastMath.scalb(a,b);
+            double res = StrictFastMath.scalb(a,b);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2505,18 +2499,18 @@ IEEE = -4.55688172866467E-305
      */
 
     public void test_E() {
-        assertEquals(Math.E, FastMath.E);
+        assertEquals(Math.E, StrictFastMath.E);
     }
 
     public void test_PI() {
-        assertEquals(Math.PI, FastMath.PI);
+        assertEquals(Math.PI, StrictFastMath.PI);
     }
 
     public void test_abs_float() {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             float value = randomFloatWhatever();
             float ref = Math.abs(value);
-            float res = FastMath.abs(value);
+            float res = StrictFastMath.abs(value);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2526,7 +2520,7 @@ IEEE = -4.55688172866467E-305
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = randomDoubleWhatever();
             double ref = Math.abs(value);
-            double res = FastMath.abs(value);
+            double res = StrictFastMath.abs(value);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2537,7 +2531,7 @@ IEEE = -4.55688172866467E-305
             int a = randomIntWhatever();
             int b = randomIntWhatever();
             int ref = Math.min(a,b);
-            int res = FastMath.min(a,b);
+            int res = StrictFastMath.min(a,b);
             boolean ok = (ref == res);
             assertTrue(ok);
         }
@@ -2548,7 +2542,7 @@ IEEE = -4.55688172866467E-305
             long a = randomLongWhatever();
             long b = randomLongWhatever();
             long ref = Math.min(a,b);
-            long res = FastMath.min(a,b);
+            long res = StrictFastMath.min(a,b);
             boolean ok = (ref == res);
             assertTrue(ok);
         }
@@ -2559,7 +2553,7 @@ IEEE = -4.55688172866467E-305
             float a = randomFloatWhatever();
             float b = randomFloatWhatever();
             float ref = Math.min(a,b);
-            float res = FastMath.min(a,b);
+            float res = StrictFastMath.min(a,b);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2570,7 +2564,7 @@ IEEE = -4.55688172866467E-305
             double a = randomDoubleWhatever();
             double b = randomDoubleWhatever();
             double ref = Math.min(a,b);
-            double res = FastMath.min(a,b);
+            double res = StrictFastMath.min(a,b);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2581,7 +2575,7 @@ IEEE = -4.55688172866467E-305
             int a = randomIntWhatever();
             int b = randomIntWhatever();
             int ref = Math.max(a,b);
-            int res = FastMath.max(a,b);
+            int res = StrictFastMath.max(a,b);
             boolean ok = (ref == res);
             assertTrue(ok);
         }
@@ -2592,7 +2586,7 @@ IEEE = -4.55688172866467E-305
             long a = randomLongWhatever();
             long b = randomLongWhatever();
             long ref = Math.max(a,b);
-            long res = FastMath.max(a,b);
+            long res = StrictFastMath.max(a,b);
             boolean ok = (ref == res);
             assertTrue(ok);
         }
@@ -2603,7 +2597,7 @@ IEEE = -4.55688172866467E-305
             float a = randomFloatWhatever();
             float b = randomFloatWhatever();
             float ref = Math.max(a,b);
-            float res = FastMath.max(a,b);
+            float res = StrictFastMath.max(a,b);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2614,7 +2608,7 @@ IEEE = -4.55688172866467E-305
             double a = randomDoubleWhatever();
             double b = randomDoubleWhatever();
             double ref = Math.max(a,b);
-            double res = FastMath.max(a,b);
+            double res = StrictFastMath.max(a,b);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2625,7 +2619,7 @@ IEEE = -4.55688172866467E-305
             double a = randomDoubleWhatever();
             double b = randomDoubleWhatever();
             double ref = Math.IEEEremainder(a,b);
-            double res = FastMath.IEEEremainder(a,b);
+            double res = StrictFastMath.IEEEremainder(a,b);
             boolean ok = equivalent(ref,res);
             assertTrue(ok);
         }
@@ -2633,7 +2627,7 @@ IEEE = -4.55688172866467E-305
 
     public void test_random() {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            double res = FastMath.random();
+            double res = StrictFastMath.random();
             assertTrue((res >= 0.0) && (res < 1.0));
         }
     }
