@@ -994,7 +994,6 @@ abstract class CmnFastMath {
     
     /*
      * unary operators (increment,decrement,negate)
-     * TODO argh a testr
      */
 
     /**

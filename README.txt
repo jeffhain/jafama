@@ -1,8 +1,9 @@
 ################################################################################
-Jafama x.x, xxxx/xx/xx
+Jafama 2.2, 2015/12/13
 
 Changes since version 2.1:
 
+- Using a more standard layout for files.
 - Renamed AbstractFastMath into CmnFastMath, and factored non floating point
   methods common to FastMath and StrictFastMath here, as well as E and PI
   constants.
