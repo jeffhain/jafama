@@ -1,4 +1,68 @@
 ################################################################################
+Jafama x.x, xxxx/xx/xx
+
+Changes since version 2.1:
+
+- Renamed AbstractFastMath into CmnFastMath, and factored non floating point
+  methods common to FastMath and StrictFastMath here, as well as E and PI
+  constants.
+  Also factored out corresponding tests in a new test class.
+  As a result, abs(int) and abs(long) now delegate to Math (and not StrictMath,
+  which usually delegates to Math for non floating point methods) when EITHER
+  FastMath or StrictFastMath delegation options are activated.
+- (Strict)FastMath:
+  - Look-up tables are now (by default) lazily initialized, per method type
+    (i.e. calling sin(double) won't initialize look-up tables for exp(double)).
+    As a result, methods of (Strict)FastMath that don't use tables can now
+    safely be called from code that don't want to trigger tables initialization.
+  - Added a static initTables() method, which ensures their initialization to
+    avoid related slow-down later at runtime (one call from either FastMath or
+    StrictFastMath inits tables for both classes).
+  - Reordered "ifs" in nextAfter(float,double) and nextAfter(double,double),
+    for faster worse case (as I should already have done when submitting
+    JDK-8032016).
+  - In powFast(double,int), reworked "ifs" to reduce the amount of code
+    while preserving special cases for small powers. Is now also a tad faster.
+  - Added methods:
+    - From JDK-8023217:
+      - multiplyExact(long,int)
+      - floorDiv(long,int)
+      - floorMod(long,int)
+    - From JDK-5100935:
+      - multiplyFull(int,int)
+      - multiplyHigh(long,long)
+    - That were not added previously, for Math versions being preferable due to
+      eventual JVM intrinsics, but that I finally decided to add for the sake of
+      completeness:
+      - incrementExact(int)
+      - incrementExact(long)
+      - decrementExact(int)
+      - decrementExact(long)
+      - negateExact(int)
+      - negateExact(long)
+    - And finally, since we mirror each xxxExact method with a xxxBounded
+      version:
+      - multiplyBounded(long,int)
+      - incrementBounded(int)
+      - incrementBounded(long)
+      - decrementBounded(int)
+      - decrementBounded(long)
+      - negateBounded(int)
+      - negateBounded(long)
+- NumbersUtils:
+  - Added methods:
+    - From (Strict)FastMath, so that they can be used to depart +0.0(f)
+      from -0.0(f) (which is a quite low-level need) without having to depend
+      on (Strict)FastMath:
+      - signFromBit(float)
+      - signFromBit(double)
+    - Following request from P. Wendykier:
+      - twoPowAsIntExact(int)
+      - twoPowAsIntBounded(int)
+      - twoPowAsLongExact(int)
+      - twoPowAsLongBounded(int)
+
+################################################################################
 Jafama 2.1, 2014/04/30
 
 Changes since version 2.0:

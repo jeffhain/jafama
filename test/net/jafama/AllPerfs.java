@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Jeff Hain
+ * Copyright 2014-2015 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ public class AllPerfs {
     public static void main(String[] args) {
         System.out.println(TestUtils.getJVMInfo());
 
+        CmnFastMathPerf.newRun(args);
         FastMathPerf.newRun(args);
         NumbersUtilsPerf.newRun(args);
         StrictFastMathPerf.newRun(args);

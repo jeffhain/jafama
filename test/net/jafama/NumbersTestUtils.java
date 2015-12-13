@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Jeff Hain
+ * Copyright 2013-2015 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ public class NumbersTestUtils {
      * Similarly, if relative delta is infinite due to a value being +-Infinity
      * and the other being close to +-Double.MAX_VALUE (with the same sign),
      * we return relative delta between the finite value and +-Double.MAX_VALUE
-     * of ame sign.
+     * of same sign.
      * 
      * @return relDelta_raw(a,b), unless betterified due to above logic.
      */

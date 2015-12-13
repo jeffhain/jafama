@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Jeff Hain
+ * Copyright 2014-2015 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ public class AllTests {
     public static Test suite() {
         TestSuite suite = new TestSuite("Test suite for "+AllTests.class.getPackage());
 
+        suite.addTestSuite(CmnFastMathTest.class);
         suite.addTestSuite(FastMathTest.class);
         suite.addTestSuite(NumbersUtilsTest.class);
         suite.addTestSuite(StrictFastMathTest.class);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Jeff Hain
+ * Copyright 2014-2015 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -927,54 +927,6 @@ public class StrictFastMathTest extends AbstractFastMathTezt {
         }
         helper.finalLogIfNeeded();
     }
-
-    public void test_log2_int() {
-        for (int value : new int[]{Integer.MIN_VALUE,0}) {
-            try {
-                StrictFastMath.log2(value);
-                assertTrue(false);
-            } catch (IllegalArgumentException e) {
-                // ok
-            }
-        }
-
-        for (int p=0;p<=30;p++) {
-            int pot = (1<<p);
-
-            if (p != 0) {
-                assertEquals(p-1, StrictFastMath.log2(pot-1));
-            }
-            assertEquals(p, StrictFastMath.log2(pot));
-            assertEquals(p, StrictFastMath.log2(pot+pot-1));
-            if (p != 30) {
-                assertEquals(p+1, StrictFastMath.log2(pot+pot));
-            }
-        }
-    }
-
-    public void test_log2_long() {
-        for (long value : new long[]{Long.MIN_VALUE,0}) {
-            try {
-                StrictFastMath.log2(value);
-                assertTrue(false);
-            } catch (IllegalArgumentException e) {
-                // ok
-            }
-        }
-
-        for (int p=0;p<=62;p++) {
-            long pot = (1L<<p);
-
-            if (p != 0) {
-                assertEquals(p-1, StrictFastMath.log2(pot-1));
-            }
-            assertEquals(p, StrictFastMath.log2(pot));
-            assertEquals(p, StrictFastMath.log2(pot+pot-1));
-            if (p != 62) {
-                assertEquals(p+1, StrictFastMath.log2(pot+pot));
-            }
-        }
-    }
     
     /*
      * powers
@@ -1076,33 +1028,6 @@ public class StrictFastMathTest extends AbstractFastMathTezt {
         helper.finalLogIfNeeded();
     }
 
-    public void test_twoPow_int() {
-        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            int value = randomIntWhatever();
-            double ref = StrictMath.pow(2,value);
-            double res = StrictFastMath.twoPow(value);
-            assertEquals(ref, res);
-        }
-    }
-
-    public void test_pow2_int() {
-        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            int value = randomIntWhatever();
-            int ref = value*value;
-            int res = StrictFastMath.pow2(value);
-            assertEquals(ref, res);
-        }
-    }
-
-    public void test_pow2_long() {
-        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            long value = randomLongWhatever();
-            long ref = value*value;
-            long res = StrictFastMath.pow2(value);
-            assertEquals(ref, res);
-        }
-    }
-
     public void test_pow2_float() {
         final MyDoubleResHelper helper = new MyDoubleResHelper();
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
@@ -1135,24 +1060,6 @@ public class StrictFastMathTest extends AbstractFastMathTezt {
             assertTrue(helper.lastOK());
         }
         helper.finalLogIfNeeded();
-    }
-
-    public void test_pow3_int() {
-        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            int value = randomIntWhatever();
-            int ref = value*value*value;
-            int res = StrictFastMath.pow3(value);
-            assertEquals(ref, res);
-        }
-    }
-
-    public void test_pow3_long() {
-        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            long value = randomLongWhatever();
-            long ref = value*value*value;
-            long res = StrictFastMath.pow3(value);
-            assertEquals(ref, res);
-        }
     }
 
     public void test_pow3_float() {
@@ -1327,55 +1234,8 @@ public class StrictFastMathTest extends AbstractFastMathTezt {
     }
     
     /*
-     * absolute values
-     */
-
-    public void test_abs_int() {
-        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            int value = randomIntWhatever();
-            int ref = Math.abs(value);
-            int res = StrictFastMath.abs(value);
-            boolean ok = (ref == res);
-            assertTrue(ok);
-        }
-    }
-
-    public void test_abs_long() {
-        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            long value = randomLongWhatever();
-            long ref = Math.abs(value);
-            long res = StrictFastMath.abs(value);
-            boolean ok = (ref == res);
-            assertTrue(ok);
-        }
-    }
-
-    /*
      * close values
      */
-
-    public void test_toIntExact_long() {
-        /*
-         * quick test (delegates)
-         */
-
-        assertEquals(Integer.MAX_VALUE, StrictFastMath.toIntExact((long)Integer.MAX_VALUE));
-        try {
-            StrictFastMath.toIntExact(((long)Integer.MAX_VALUE)+1L);
-            assertTrue(false);
-        } catch (ArithmeticException e) {
-            // ok
-        }
-    }
-
-    public void test_toInt_long() {
-        /*
-         * quick test (delegates)
-         */
-
-        assertEquals(Integer.MAX_VALUE, StrictFastMath.toInt((long)Integer.MAX_VALUE));
-        assertEquals(Integer.MAX_VALUE, StrictFastMath.toInt(Long.MAX_VALUE));
-    }
 
     public void test_floor_float() {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
@@ -1569,22 +1429,6 @@ public class StrictFastMathTest extends AbstractFastMathTezt {
      * ranges
      */
     
-    public void test_toRange_3int() {
-        assertEquals(0, StrictFastMath.toRange(0, 2, -1));
-        assertEquals(0, StrictFastMath.toRange(0, 2, 0));
-        assertEquals(1, StrictFastMath.toRange(0, 2, 1));
-        assertEquals(2, StrictFastMath.toRange(0, 2, 2));
-        assertEquals(2, StrictFastMath.toRange(0, 2, 3));
-    }
-
-    public void test_toRange_3long() {
-        assertEquals(0L, StrictFastMath.toRange(0L, 2L, -1L));
-        assertEquals(0L, StrictFastMath.toRange(0L, 2L, 0L));
-        assertEquals(1L, StrictFastMath.toRange(0L, 2L, 1L));
-        assertEquals(2L, StrictFastMath.toRange(0L, 2L, 2L));
-        assertEquals(2L, StrictFastMath.toRange(0L, 2L, 3L));
-    }
-
     public void test_toRange_3float() {
         assertEquals(0.0f, StrictFastMath.toRange(0.0f, 2.0f, -1.0f));
         assertEquals(0.0f, StrictFastMath.toRange(0.0f, 2.0f, 0.0f));
@@ -1602,264 +1446,8 @@ public class StrictFastMathTest extends AbstractFastMathTezt {
     }
 
     /*
-     * binary operators (+,-,*)
-     */
-
-    public void test_addExact_2int() {
-        /*
-         * quick test (delegates)
-         */
-
-        assertEquals(Integer.MAX_VALUE, StrictFastMath.addExact(Integer.MAX_VALUE-1, 1));
-        try {
-            StrictFastMath.addExact(Integer.MAX_VALUE, 1);
-            assertTrue(false);
-        } catch (ArithmeticException e) {
-            // ok
-        }
-    }
-
-    public void test_addExact_2long() {
-        /*
-         * quick test (delegates)
-         */
-
-        assertEquals(Long.MAX_VALUE, StrictFastMath.addExact(Long.MAX_VALUE-1L, 1L));
-        try {
-            StrictFastMath.addExact(Long.MAX_VALUE, 1L);
-            assertTrue(false);
-        } catch (ArithmeticException e) {
-            // ok
-        }
-    }
-
-    public void test_addBounded_2int() {
-        /*
-         * quick test (delegates)
-         */
-
-        assertEquals(Integer.MAX_VALUE, StrictFastMath.addBounded(Integer.MAX_VALUE-1, 1));
-        assertEquals(Integer.MAX_VALUE, StrictFastMath.addBounded(Integer.MAX_VALUE, 1));
-    }
-
-    public void test_addBounded_2long() {
-        /*
-         * quick test (delegates)
-         */
-
-        assertEquals(Long.MAX_VALUE, StrictFastMath.addBounded(Long.MAX_VALUE-1L, 1L));
-        assertEquals(Long.MAX_VALUE, StrictFastMath.addBounded(Long.MAX_VALUE, 1L));
-    }
-
-    public void test_subtractExact_2int() {
-        /*
-         * quick test (delegates)
-         */
-
-        assertEquals(Integer.MIN_VALUE, StrictFastMath.subtractExact(Integer.MIN_VALUE+1, 1));
-        try {
-            StrictFastMath.subtractExact(Integer.MIN_VALUE, 1);
-            assertTrue(false);
-        } catch (ArithmeticException e) {
-            // ok
-        }
-    }
-
-    public void test_subtractExact_2long() {
-        /*
-         * quick test (delegates)
-         */
-
-        assertEquals(Long.MIN_VALUE, StrictFastMath.subtractExact(Long.MIN_VALUE+1L, 1L));
-        try {
-            StrictFastMath.subtractExact(Long.MIN_VALUE, 1L);
-            assertTrue(false);
-        } catch (ArithmeticException e) {
-            // ok
-        }
-    }
-
-    public void test_subtractBounded_2int() {
-        /*
-         * quick test (delegates)
-         */
-
-        assertEquals(Integer.MIN_VALUE, StrictFastMath.subtractBounded(Integer.MIN_VALUE+1, 1));
-        assertEquals(Integer.MIN_VALUE, StrictFastMath.subtractBounded(Integer.MIN_VALUE, 1));
-    }
-
-    public void test_subtractBounded_2long() {
-        /*
-         * quick test (delegates)
-         */
-
-        assertEquals(Long.MIN_VALUE, StrictFastMath.subtractBounded(Long.MIN_VALUE+1L, 1L));
-        assertEquals(Long.MIN_VALUE, StrictFastMath.subtractBounded(Long.MIN_VALUE, 1L));
-    }
-
-    public void test_multiplyExact_2int() {
-        /*
-         * quick test (delegates)
-         */
-
-        assertEquals(Integer.MIN_VALUE, StrictFastMath.multiplyExact(Integer.MIN_VALUE/2, 2));
-        try {
-            StrictFastMath.multiplyExact(Integer.MIN_VALUE, 2);
-            assertTrue(false);
-        } catch (ArithmeticException e) {
-            // ok
-        }
-    }
-
-    public void test_multiplyExact_2long() {
-        /*
-         * quick test (delegates)
-         */
-
-        assertEquals(Long.MIN_VALUE, StrictFastMath.multiplyExact(Long.MIN_VALUE/2L, 2L));
-        try {
-            StrictFastMath.multiplyExact(Long.MIN_VALUE, 2L);
-            assertTrue(false);
-        } catch (ArithmeticException e) {
-            // ok
-        }
-    }
-
-    public void test_multiplyBounded_2int() {
-        /*
-         * quick test (delegates)
-         */
-
-        assertEquals(Integer.MIN_VALUE, StrictFastMath.multiplyBounded(Integer.MIN_VALUE/2, 2));
-        assertEquals(Integer.MIN_VALUE, StrictFastMath.multiplyBounded(Integer.MIN_VALUE, 2));
-    }
-
-    public void test_multiplyBounded_2long() {
-        /*
-         * quick test (delegates)
-         */
-
-        assertEquals(Long.MIN_VALUE, StrictFastMath.multiplyBounded(Long.MIN_VALUE/2L, 2L));
-        assertEquals(Long.MIN_VALUE, StrictFastMath.multiplyBounded(Long.MIN_VALUE, 2L));
-    }
-
-    /*
      * binary operators (/,%)
      */
-
-    public void test_floorDiv_2int() {
-        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            final int x = randomIntWhatever();
-            int y = randomIntWhatever();
-            if (y == 0) {
-                try {
-                    StrictFastMath.floorDiv(x,y);
-                    assertTrue(false);
-                } catch (ArithmeticException e) {
-                    // ok
-                }
-            } else {
-                final int expected;
-                final boolean exact = ((x/y)*y == x);
-                if (exact || ((x^y) >= 0)) {
-                    // exact or same sign
-                    expected = x/y;
-                } else {
-                    // different signs and not exact
-                    expected = x/y - 1;
-                }
-                final int actual = StrictFastMath.floorDiv(x,y);
-                assertEquals(expected, actual);
-            }
-        }
-    }
-
-    public void test_floorDiv_2long() {
-        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            final long x = randomLongWhatever();
-            long y = randomLongWhatever();
-            if (y == 0) {
-                try {
-                    StrictFastMath.floorDiv(x,y);
-                    assertTrue(false);
-                } catch (ArithmeticException e) {
-                    // ok
-                }
-            } else {
-                final long expected;
-                final boolean exact = ((x/y)*y == x);
-                if (exact || ((x^y) >= 0)) {
-                    // exact or same sign
-                    expected = x/y;
-                } else {
-                    // different signs and not exact
-                    expected = x/y - 1;
-                }
-                final long actual = StrictFastMath.floorDiv(x,y);
-                assertEquals(expected, actual);
-            }
-        }
-    }
-
-    public void test_floorMod_2int() {
-        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            final int x = randomIntWhatever();
-            int y = randomIntWhatever();
-            if (y == 0) {
-                try {
-                    StrictFastMath.floorMod(x,y);
-                    assertTrue(false);
-                } catch (ArithmeticException e) {
-                    // ok
-                }
-            } else {
-                final int expected;
-                final boolean exact = ((x/y)*y == x);
-                if (exact || ((x^y) >= 0)) {
-                    // exact or same sign
-                    expected = x%y;
-                } else {
-                    // different signs and not exact
-                    expected = x%y + y;
-                }
-                final int actual = StrictFastMath.floorMod(x,y);
-                assertEquals(expected, actual);
-                
-                // identity
-                assertEquals(x - StrictFastMath.floorDiv(x, y) * y, StrictFastMath.floorMod(x,y));
-            }
-        }
-    }
-
-    public void test_floorMod_2long() {
-        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            long x = randomIntWhatever();
-            long y = randomIntWhatever();
-            if (y == 0) {
-                try {
-                    StrictFastMath.floorMod(x,y);
-                    assertTrue(false);
-                } catch (ArithmeticException e) {
-                    // ok
-                }
-            } else {
-                long expected;
-                boolean exact = ((x/y)*y == x);
-                if (exact || ((x^y) >= 0)) {
-                    // exact or same sign
-                    expected = x%y;
-                } else {
-                    // different signs and not exact
-                    expected = x%y + y;
-                }
-                long actual = StrictFastMath.floorMod(x,y);
-                assertEquals(expected, actual);
-                
-                // identity
-                assertEquals(x - StrictFastMath.floorDiv(x, y) * y, StrictFastMath.floorMod(x,y));
-            }
-        }
-    }
 
     public void test_remainder_2double() {
         /* Can have that kind of failure with Java 5 or 6,
@@ -2498,14 +2086,6 @@ IEEE = -4.55688172866467E-305
      * Non-redefined public values and treatments.
      */
 
-    public void test_E() {
-        assertEquals(Math.E, StrictFastMath.E);
-    }
-
-    public void test_PI() {
-        assertEquals(Math.PI, StrictFastMath.PI);
-    }
-
     public void test_abs_float() {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             float value = randomFloatWhatever();
@@ -2522,28 +2102,6 @@ IEEE = -4.55688172866467E-305
             double ref = Math.abs(value);
             double res = StrictFastMath.abs(value);
             boolean ok = equivalent(ref,res);
-            assertTrue(ok);
-        }
-    }
-
-    public void test_min_2int() {
-        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            int a = randomIntWhatever();
-            int b = randomIntWhatever();
-            int ref = Math.min(a,b);
-            int res = StrictFastMath.min(a,b);
-            boolean ok = (ref == res);
-            assertTrue(ok);
-        }
-    }
-
-    public void test_min_2long() {
-        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            long a = randomLongWhatever();
-            long b = randomLongWhatever();
-            long ref = Math.min(a,b);
-            long res = StrictFastMath.min(a,b);
-            boolean ok = (ref == res);
             assertTrue(ok);
         }
     }
@@ -2566,28 +2124,6 @@ IEEE = -4.55688172866467E-305
             double ref = Math.min(a,b);
             double res = StrictFastMath.min(a,b);
             boolean ok = equivalent(ref,res);
-            assertTrue(ok);
-        }
-    }
-
-    public void test_max_2int() {
-        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            int a = randomIntWhatever();
-            int b = randomIntWhatever();
-            int ref = Math.max(a,b);
-            int res = StrictFastMath.max(a,b);
-            boolean ok = (ref == res);
-            assertTrue(ok);
-        }
-    }
-
-    public void test_max_2long() {
-        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
-            long a = randomLongWhatever();
-            long b = randomLongWhatever();
-            long ref = Math.max(a,b);
-            long res = StrictFastMath.max(a,b);
-            boolean ok = (ref == res);
             assertTrue(ok);
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Jeff Hain
+ * Copyright 2014-2015 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class StrictFastMathPerf extends AbstractFastMathPerf {
 
         settle();
         testClassLoad();
-
+        
         /*
          * trigonometry
          */
@@ -142,11 +142,6 @@ public class StrictFastMathPerf extends AbstractFastMathPerf {
         settle();
         test_log1p_double();
 
-        settle();
-        test_log2_int();
-        settle();
-        test_log2_long();
-
         /*
          * powers
          */
@@ -157,9 +152,6 @@ public class StrictFastMathPerf extends AbstractFastMathPerf {
         test_powQuick_2double();
         settle();
         test_powFast_double_int();
-
-        settle();
-        test_twoPow_int();
 
         /*
          * roots
@@ -178,15 +170,6 @@ public class StrictFastMathPerf extends AbstractFastMathPerf {
         test_hypot_2double();
         settle();
         test_hypot_3double();
-
-        /*
-         * absolute values
-         */
-
-        settle();
-        test_abs_int();
-        settle();
-        test_abs_long();
 
         /*
          * close values
@@ -218,46 +201,8 @@ public class StrictFastMathPerf extends AbstractFastMathPerf {
         test_rint_double();
 
         /*
-         * binary operators (+,-,*)
-         */
-
-        settle();
-        test_addExact_2int();
-        settle();
-        test_addExact_2long();
-        settle();
-        test_addBounded_2int();
-        settle();
-        test_addBounded_2long();
-        settle();
-        test_subtractExact_2int();
-        settle();
-        test_subtractExact_2long();
-        settle();
-        test_subtractBounded_2int();
-        settle();
-        test_subtractBounded_2long();
-        settle();
-        test_multiplyExact_2int();
-        settle();
-        test_multiplyExact_2long();
-        settle();
-        test_multiplyBounded_2int();
-        settle();
-        test_multiplyBounded_2long();
-
-        /*
          * binary operators (/,%)
          */
-
-        settle();
-        test_floorDiv_2int();
-        settle();
-        test_floorDiv_2long();
-        settle();
-        test_floorMod_2int();
-        settle();
-        test_floorMod_2long();
 
         settle();
         test_remainder_2double();
@@ -330,7 +275,7 @@ public class StrictFastMathPerf extends AbstractFastMathPerf {
     private void testClassLoad() {
         int dummy = 0;
 
-        System.out.println("--- testing StrictFastMath class load (if tables not loaded already) ---");
+        System.out.println("--- testing StrictFastMath class load (if not loaded already) ---");
 
         // Making sure Math and StrictMath are loaded already.
         if (Math.sin(0.0) != StrictMath.sin(0.0)) {
@@ -338,8 +283,12 @@ public class StrictFastMathPerf extends AbstractFastMathPerf {
         }
 
         startTimer();
-        dummy += StrictFastMath.abs(0);
-        System.out.println("StrictFastMath class load took "+getElapsedSeconds()+" s");
+        dummy += StrictFastMath.abs(0); // Does not use tables.
+        System.out.println("StrictFastMath class load without tables init took "+getElapsedSeconds()+" s");
+
+        startTimer();
+        StrictFastMath.initTables();
+        System.out.println("StrictFastMath.initTables() took "+getElapsedSeconds()+" s");
 
         useDummy(dummy);
     }
@@ -1388,46 +1337,6 @@ public class StrictFastMathPerf extends AbstractFastMathPerf {
         useDummy(dummy);
     }
 
-    private void test_log2_int() {
-        double dummy = 0.0;
-
-        System.out.println("--- testing log2(int) ---");
-
-        for (int[] args : new int[][]{
-                new int[]{1,Integer.MAX_VALUE}}) {
-
-            final int[] values = randomIntTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.log2(values[j]);
-            }
-            System.out.println("Loop on StrictFastMath.log2(int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_log2_long() {
-        double dummy = 0.0;
-
-        System.out.println("--- testing log2(long) ---");
-
-        for (long[] args : new long[][]{
-                new long[]{1,Long.MAX_VALUE}}) {
-
-            final long[] values = randomLongTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.log2(values[j]);
-            }
-            System.out.println("Loop on StrictFastMath.log2(long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
     /*
      * powers
      */
@@ -1549,33 +1458,6 @@ public class StrictFastMathPerf extends AbstractFastMathPerf {
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
             dummy += StrictFastMath.powFast(values1[j],values2[j]);
             }
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_twoPow_int() {
-        double dummy = 0.0;
-
-        System.out.println("--- testing twoPow(int) ---");
-
-        for (int[] args : new int[][]{
-                new int[]{-1074,1023},
-                new int[]{0}}) {
-
-            final int[] values = randomIntTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictMath.pow(2.0,(double)values[j]);
-            }
-            System.out.println("Loop on Math.pow(2.0,double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.twoPow(values[j]);
-            }
-            System.out.println("Loop on StrictFastMath.twoPow(int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -1833,62 +1715,6 @@ public class StrictFastMathPerf extends AbstractFastMathPerf {
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
             dummy += StrictFastMath.hypot(values[j],values[MASK-j],values[MASK-(j/2)]);
             }
-        }
-
-        useDummy(dummy);
-    }
-
-    /*
-     * absolute values
-     */
-
-    private void test_abs_int() {
-        int dummy = 0;
-
-        System.out.println("--- testing abs(int) ---");
-
-        for (int[] args : new int[][]{
-                new int[]{0}}) {
-
-            final int[] values = randomIntTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictMath.abs(values[j]);
-            }
-            System.out.println("Loop on     StrictMath.abs(int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.abs(values[j]);
-            }
-            System.out.println("Loop on StrictFastMath.abs(int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_abs_long() {
-        long dummy = 0;
-
-        System.out.println("--- testing abs(long) ---");
-
-        for (long[] args : new long[][]{
-                new long[]{0}}) {
-
-            final long[] values = randomLongTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictMath.abs(values[j]);
-            }
-            System.out.println("Loop on     StrictMath.abs(long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.abs(values[j]);
-            }
-            System.out.println("Loop on StrictFastMath.abs(long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         useDummy(dummy);
@@ -2251,360 +2077,8 @@ public class StrictFastMathPerf extends AbstractFastMathPerf {
     }
 
     /*
-     * binary operators (+,-,*)
-     */
-
-    private void test_addExact_2int() {
-        int dummy = 0;
-
-        System.out.println("--- testing addExact(int,int) ---");
-
-        for (int[] args : new int[][]{
-                new int[]{Integer.MIN_VALUE/2,Integer.MAX_VALUE/2}}) {
-
-            final int[] values = randomIntTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.addExact(values[j],values[MASK-j]);
-            }
-            System.out.println("Loop on StrictFastMath.addExact(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_addExact_2long() {
-        long dummy = 0;
-
-        System.out.println("--- testing addExact(long,long) ---");
-
-        for (long[] args : new long[][]{
-                new long[]{Long.MIN_VALUE/2,Long.MAX_VALUE/2}}) {
-
-            final long[] values = randomLongTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.addExact(values[j],values[MASK-j]);
-            }
-            System.out.println("Loop on StrictFastMath.addExact(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_addBounded_2int() {
-        int dummy = 0;
-
-        System.out.println("--- testing addBounded(int,int) ---");
-
-        for (int[] args : new int[][]{
-                new int[]{Integer.MIN_VALUE/2,Integer.MAX_VALUE/2}}) {
-
-            final int[] values = randomIntTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.addBounded(values[j],values[MASK-j]);
-            }
-            System.out.println("Loop on StrictFastMath.addBounded(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_addBounded_2long() {
-        long dummy = 0;
-
-        System.out.println("--- testing addBounded(long,long) ---");
-
-        for (long[] args : new long[][]{
-                new long[]{Long.MIN_VALUE/2,Long.MAX_VALUE/2}}) {
-
-            final long[] values = randomLongTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.addBounded(values[j],values[MASK-j]);
-            }
-            System.out.println("Loop on StrictFastMath.addBounded(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_subtractExact_2int() {
-        int dummy = 0;
-
-        System.out.println("--- testing subtractExact(int,int) ---");
-
-        for (int[] args : new int[][]{
-                new int[]{Integer.MIN_VALUE/2,Integer.MAX_VALUE/2}}) {
-
-            final int[] values = randomIntTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.subtractExact(values[j],values[MASK-j]);
-            }
-            System.out.println("Loop on StrictFastMath.subtractExact(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_subtractExact_2long() {
-        long dummy = 0;
-
-        System.out.println("--- testing subtractExact(long,long) ---");
-
-        for (long[] args : new long[][]{
-                new long[]{Long.MIN_VALUE/2,Long.MAX_VALUE/2}}) {
-
-            final long[] values = randomLongTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.subtractExact(values[j],values[MASK-j]);
-            }
-            System.out.println("Loop on StrictFastMath.subtractExact(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_subtractBounded_2int() {
-        int dummy = 0;
-
-        System.out.println("--- testing subtractBounded(int,int) ---");
-
-        for (int[] args : new int[][]{
-                new int[]{Integer.MIN_VALUE/2,Integer.MAX_VALUE/2}}) {
-
-            final int[] values = randomIntTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.subtractBounded(values[j],values[MASK-j]);
-            }
-            System.out.println("Loop on StrictFastMath.subtractBounded(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_subtractBounded_2long() {
-        long dummy = 0;
-
-        System.out.println("--- testing subtractBounded(long,long) ---");
-
-        for (long[] args : new long[][]{
-                new long[]{Long.MIN_VALUE/2,Long.MAX_VALUE/2}}) {
-
-            final long[] values = randomLongTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.subtractBounded(values[j],values[MASK-j]);
-            }
-            System.out.println("Loop on StrictFastMath.subtractBounded(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_multiplyExact_2int() {
-        int dummy = 0;
-
-        System.out.println("--- testing multiplyExact(int,int) ---");
-
-        for (int[] args : new int[][]{
-                new int[]{-(int)Math.sqrt(Integer.MAX_VALUE),(int)Math.sqrt(Integer.MAX_VALUE)}}) {
-
-            final int[] values = randomIntTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.multiplyExact(values[j],values[MASK-j]);
-            }
-            System.out.println("Loop on StrictFastMath.multiplyExact(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_multiplyExact_2long() {
-        long dummy = 0;
-
-        System.out.println("--- testing multiplyExact(long,long) ---");
-
-        for (long[] args : new long[][]{
-                new long[]{-(long)Math.sqrt(Long.MAX_VALUE),(long)Math.sqrt(Long.MAX_VALUE)}}) {
-
-            final long[] values = randomLongTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.multiplyExact(values[j],values[MASK-j]);
-            }
-            System.out.println("Loop on StrictFastMath.multiplyExact(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_multiplyBounded_2int() {
-        int dummy = 0;
-
-        System.out.println("--- testing multiplyBounded(int,int) ---");
-
-        for (int[] args : new int[][]{
-                new int[]{-(int)Math.sqrt(Integer.MAX_VALUE),(int)Math.sqrt(Integer.MAX_VALUE)}}) {
-
-            final int[] values = randomIntTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.multiplyBounded(values[j],values[MASK-j]);
-            }
-            System.out.println("Loop on StrictFastMath.multiplyBounded(int,int), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_multiplyBounded_2long() {
-        long dummy = 0;
-
-        System.out.println("--- testing multiplyBounded(long,long) ---");
-
-        for (long[] args : new long[][]{
-                new long[]{-(long)Math.sqrt(Long.MAX_VALUE),(long)Math.sqrt(Long.MAX_VALUE)}}) {
-
-            final long[] values = randomLongTabSmart(args);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.multiplyBounded(values[j],values[MASK-j]);
-            }
-            System.out.println("Loop on StrictFastMath.multiplyBounded(long,long), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    /*
      * binary operators (/,%)
      */
-
-    public void test_floorDiv_2int() {
-        int dummy = 0;
-
-        System.out.println("--- testing floorDiv(int,int) ---");
-
-        for (int[][] args12 : new int[][][]{
-                new int[][]{new int[]{1},new int[]{2}},
-                new int[][]{new int[]{-1},new int[]{-2}},
-                new int[][]{new int[]{0},new int[]{2}},
-                new int[][]{new int[]{0},new int[]{-2}}}) {
-
-            final int[] args1 = args12[0];
-            final int[] args2 = args12[1];
-
-            final int[] values1 = randomIntTabSmart(args1);
-            final int[] values2 = randomIntTabSmart(args2);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.floorDiv(values1[j],values2[j]);
-            }
-            System.out.println("Loop on StrictFastMath.floorDiv(int,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_floorDiv_2long() {
-        int dummy = 0;
-
-        System.out.println("--- testing floorDiv(long,long) ---");
-
-        for (long[][] args12 : new long[][][]{
-                new long[][]{new long[]{1},new long[]{2}},
-                new long[][]{new long[]{-1},new long[]{-2}},
-                new long[][]{new long[]{0},new long[]{2}},
-                new long[][]{new long[]{0},new long[]{-2}}}) {
-
-            final long[] args1 = args12[0];
-            final long[] args2 = args12[1];
-
-            final long[] values1 = randomLongTabSmart(args1);
-            final long[] values2 = randomLongTabSmart(args2);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.floorDiv(values1[j],values2[j]);
-            }
-            System.out.println("Loop on StrictFastMath.floorDiv(long,long), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_floorMod_2int() {
-        int dummy = 0;
-
-        System.out.println("--- testing floorMod(int,int) ---");
-
-        for (int[][] args12 : new int[][][]{
-                new int[][]{new int[]{1},new int[]{2}},
-                new int[][]{new int[]{-1},new int[]{-2}},
-                new int[][]{new int[]{0},new int[]{2}},
-                new int[][]{new int[]{0},new int[]{-2}}}) {
-
-            final int[] args1 = args12[0];
-            final int[] args2 = args12[1];
-
-            final int[] values1 = randomIntTabSmart(args1);
-            final int[] values2 = randomIntTabSmart(args2);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.floorMod(values1[j],values2[j]);
-            }
-            System.out.println("Loop on StrictFastMath.floorMod(int,int), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
-
-    private void test_floorMod_2long() {
-        int dummy = 0;
-
-        System.out.println("--- testing floorMod(long,long) ---");
-
-        for (long[][] args12 : new long[][][]{
-                new long[][]{new long[]{1},new long[]{2}},
-                new long[][]{new long[]{-1},new long[]{-2}},
-                new long[][]{new long[]{0},new long[]{2}},
-                new long[][]{new long[]{0},new long[]{-2}}}) {
-
-            final long[] args1 = args12[0];
-            final long[] args2 = args12[1];
-
-            final long[] values1 = randomLongTabSmart(args1);
-            final long[] values2 = randomLongTabSmart(args2);
-
-            startTimer();
-            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += StrictFastMath.floorMod(values1[j],values2[j]);
-            }
-            System.out.println("Loop on StrictFastMath.floorMod(long,long), args in "+toStringSmart(args1,args2)+", took "+getElapsedSeconds()+" s");
-        }
-
-        useDummy(dummy);
-    }
 
     private void test_remainder_2double() {
         double dummy = 0.0;

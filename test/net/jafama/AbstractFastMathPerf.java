@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Jeff Hain
+ * Copyright 2014-2015 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,14 @@ abstract class AbstractFastMathPerf {
      * For double values near limit where they can't have digits after comma.
      */
     static final double DOUBLE_COMMA_LIMIT = 1e16; // > 2*Math.pow(2,52);
+
+    static final long[] LONG_ARGS_SQRT_NEG_POS = new long[]{
+        -(long)Math.sqrt(Long.MAX_VALUE),
+        (long)Math.sqrt(Long.MAX_VALUE)};
+    
+    static final int[] INT_ARGS_SQRT_NEG_POS = new int[]{
+        -(int)Math.sqrt(Integer.MAX_VALUE),
+        (int)Math.sqrt(Integer.MAX_VALUE)};
 
     final Random random = new Random(123456789L);
     
@@ -553,6 +561,10 @@ abstract class AbstractFastMathPerf {
      */
 
     static String toStringSmart(int[] args1, int[] args2) {
+        return "{"+toStringSmart(args1)+","+toStringSmart(args2)+"}";
+    }
+
+    static String toStringSmart(long[] args1, int[] args2) {
         return "{"+toStringSmart(args1)+","+toStringSmart(args2)+"}";
     }
 

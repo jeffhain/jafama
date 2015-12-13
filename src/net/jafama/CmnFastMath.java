@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Jeff Hain
+ * Copyright 2014-2015 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ package net.jafama;
 /**
  * Stuffs for FastMath and StrictFastMath.
  */
-abstract class AbstractFastMath {
+abstract class CmnFastMath {
 
     /*
      * For trigonometric functions, use of look-up tables and Taylor-Lagrange formula
@@ -62,6 +62,14 @@ abstract class AbstractFastMath {
      * Lengths of look-up tables are usually of the form 2^n+1, for their values to be
      * of the form (<a_constant> * k/2^n, k in 0 .. 2^n), so that particular values
      * (PI/2, etc.) are "exactly" computed, as well as for other reasons.
+     * 
+     * Tables are put in specific inner classes, to be lazily initialized.
+     * Always doing strict tables initialization, even if StrictFastMath delegates
+     * to StrictMath and doesn't use tables, which makes tables initialization a bit
+     * slower but code simpler.
+     * Using redefined pure Java treatments during tables initialization,
+     * instead of Math or StrictMath ones (even asin(double)), can be very slow,
+     * because class loading is likely not to be optimized.
      * 
      * Most math treatments I could find on the web, including "fast" ones,
      * usually take care of special cases (NaN, etc.) at the beginning, and
@@ -159,11 +167,23 @@ abstract class AbstractFastMath {
     //--------------------------------------------------------------------------
 
     /**
-     * High approximation of PI, which is further from PI
-     * than the low approximation Math.PI:
-     *              PI ~= 3.14159265358979323846...
-     *         Math.PI ~= 3.141592653589793
-     * FastMath.PI_SUP ~= 3.1415926535897936
+     * Closest double approximation of e.
+     */
+    public static final double E = Math.E;
+    
+    /**
+     * Closest double approximation of pi, which is inferior to mathematical pi:
+     * pi ~= 3.14159265358979323846...
+     * PI ~= 3.141592653589793
+     */
+    public static final double PI = Math.PI;
+    
+    /**
+     * High double approximation of pi, which is further from pi
+     * than the low approximation PI:
+     *     pi ~= 3.14159265358979323846...
+     *     PI ~= 3.141592653589793
+     * PI_SUP ~= 3.1415926535897936
      */
     public static final double PI_SUP = Double.longBitsToDouble(Double.doubleToRawLongBits(Math.PI)+1);
 
@@ -305,8 +325,42 @@ abstract class AbstractFastMath {
     static final double SIN_COS_DELTA_HI = TWOPI_HI/(SIN_COS_TABS_SIZE-1);
     static final double SIN_COS_DELTA_LO = TWOPI_LO/(SIN_COS_TABS_SIZE-1);
     static final double SIN_COS_INDEXER = 1/(SIN_COS_DELTA_HI+SIN_COS_DELTA_LO);
-    static final double[] sinTab = new double[SIN_COS_TABS_SIZE];
-    static final double[] cosTab = new double[SIN_COS_TABS_SIZE];
+    
+    static final class MyTSinCos {
+        static final double[] sinTab = new double[SIN_COS_TABS_SIZE];
+        static final double[] cosTab = new double[SIN_COS_TABS_SIZE];
+        static {
+            init();
+        }
+        private static strictfp void init() {
+            final int SIN_COS_PI_INDEX = (SIN_COS_TABS_SIZE-1)/2;
+            final int SIN_COS_PI_MUL_2_INDEX = 2*SIN_COS_PI_INDEX;
+            final int SIN_COS_PI_MUL_0_5_INDEX = SIN_COS_PI_INDEX/2;
+            final int SIN_COS_PI_MUL_1_5_INDEX = 3*SIN_COS_PI_INDEX/2;
+            for (int i=0;i<SIN_COS_TABS_SIZE;i++) {
+                // angle: in [0,2*PI] (doesn't seem to help to have it in [-PI,PI]).
+                double angle = i * SIN_COS_DELTA_HI + i * SIN_COS_DELTA_LO;
+                double sinAngle = StrictMath.sin(angle);
+                double cosAngle = StrictMath.cos(angle);
+                // For indexes corresponding to zero cosine or sine, we make sure
+                // the value is zero and not an epsilon, since each value
+                // corresponds to sin-or-cos(i*PI/n), where PI is a more accurate
+                // definition of PI than Math.PI.
+                // This allows for a much better accuracy for results close to zero.
+                if (i == SIN_COS_PI_INDEX) {
+                    sinAngle = 0.0;
+                } else if (i == SIN_COS_PI_MUL_2_INDEX) {
+                    sinAngle = 0.0;
+                } else if (i == SIN_COS_PI_MUL_0_5_INDEX) {
+                    cosAngle = 0.0;
+                } else if (i == SIN_COS_PI_MUL_1_5_INDEX) {
+                    cosAngle = 0.0;
+                }
+                sinTab[i] = sinAngle;
+                cosTab[i] = cosAngle;
+            }
+        }
+    }
 
     /**
      * Max abs value for index-based reduction, above which we use regular angle normalization.
@@ -345,11 +399,35 @@ abstract class AbstractFastMath {
     static final double TAN_DELTA_HI = PIO2_HI/(TAN_VIRTUAL_TABS_SIZE-1);
     static final double TAN_DELTA_LO = PIO2_LO/(TAN_VIRTUAL_TABS_SIZE-1);
     static final double TAN_INDEXER = 1/(TAN_DELTA_HI+TAN_DELTA_LO);
-    static final double[] tanTab = new double[TAN_TABS_SIZE];
-    static final double[] tanDer1DivF1Tab = new double[TAN_TABS_SIZE];
-    static final double[] tanDer2DivF2Tab = new double[TAN_TABS_SIZE];
-    static final double[] tanDer3DivF3Tab = new double[TAN_TABS_SIZE];
-    static final double[] tanDer4DivF4Tab = new double[TAN_TABS_SIZE];
+    
+    static final class MyTTan {
+        static final double[] tanTab = new double[TAN_TABS_SIZE];
+        static final double[] tanDer1DivF1Tab = new double[TAN_TABS_SIZE];
+        static final double[] tanDer2DivF2Tab = new double[TAN_TABS_SIZE];
+        static final double[] tanDer3DivF3Tab = new double[TAN_TABS_SIZE];
+        static final double[] tanDer4DivF4Tab = new double[TAN_TABS_SIZE];
+        static {
+            init();
+        }
+        private static strictfp void init() {
+            for (int i=0;i<TAN_TABS_SIZE;i++) {
+                // angle: in [0,TAN_MAX_VALUE_FOR_TABS].
+                double angle = i * TAN_DELTA_HI + i * TAN_DELTA_LO;
+                double sinAngle = StrictMath.sin(angle);
+                double cosAngle = StrictMath.cos(angle);
+                double cosAngleInv = 1/cosAngle;
+                double cosAngleInv2 = cosAngleInv*cosAngleInv;
+                double cosAngleInv3 = cosAngleInv2*cosAngleInv;
+                double cosAngleInv4 = cosAngleInv2*cosAngleInv2;
+                double cosAngleInv5 = cosAngleInv3*cosAngleInv2;
+                tanTab[i] = sinAngle * cosAngleInv;
+                tanDer1DivF1Tab[i] = cosAngleInv2;
+                tanDer2DivF2Tab[i] = ((2*sinAngle)*cosAngleInv3) * ONE_DIV_F2;
+                tanDer3DivF3Tab[i] = ((2*(1+2*sinAngle*sinAngle))*cosAngleInv4) * ONE_DIV_F3;
+                tanDer4DivF4Tab[i] = ((8*sinAngle*(2+sinAngle*sinAngle))*cosAngleInv5) * ONE_DIV_F4;
+            }
+        }
+    }
 
     /**
      * Max abs value for fast modulo, above which we use regular angle normalization.
@@ -382,11 +460,33 @@ abstract class AbstractFastMath {
     static final int ASIN_TABS_SIZE = (1<<getTabSizePower(13)) + 1;
     static final double ASIN_DELTA = ASIN_MAX_VALUE_FOR_TABS/(ASIN_TABS_SIZE - 1);
     static final double ASIN_INDEXER = 1/ASIN_DELTA;
-    static final double[] asinTab = new double[ASIN_TABS_SIZE];
-    static final double[] asinDer1DivF1Tab = new double[ASIN_TABS_SIZE];
-    static final double[] asinDer2DivF2Tab = new double[ASIN_TABS_SIZE];
-    static final double[] asinDer3DivF3Tab = new double[ASIN_TABS_SIZE];
-    static final double[] asinDer4DivF4Tab = new double[ASIN_TABS_SIZE];
+    
+    static final class MyTAsin {
+        static final double[] asinTab = new double[ASIN_TABS_SIZE];
+        static final double[] asinDer1DivF1Tab = new double[ASIN_TABS_SIZE];
+        static final double[] asinDer2DivF2Tab = new double[ASIN_TABS_SIZE];
+        static final double[] asinDer3DivF3Tab = new double[ASIN_TABS_SIZE];
+        static final double[] asinDer4DivF4Tab = new double[ASIN_TABS_SIZE];
+        static {
+            init();
+        }
+        private static strictfp void init() {
+            for (int i=0;i<ASIN_TABS_SIZE;i++) {
+                // x: in [0,ASIN_MAX_VALUE_FOR_TABS].
+                double x = i * ASIN_DELTA;
+                double oneMinusXSqInv = 1/(1-x*x);
+                double oneMinusXSqInv0_5 = StrictMath.sqrt(oneMinusXSqInv);
+                double oneMinusXSqInv1_5 = oneMinusXSqInv0_5*oneMinusXSqInv;
+                double oneMinusXSqInv2_5 = oneMinusXSqInv1_5*oneMinusXSqInv;
+                double oneMinusXSqInv3_5 = oneMinusXSqInv2_5*oneMinusXSqInv;
+                asinTab[i] = StrictMath.asin(x);
+                asinDer1DivF1Tab[i] = oneMinusXSqInv0_5;
+                asinDer2DivF2Tab[i] = (x*oneMinusXSqInv1_5) * ONE_DIV_F2;
+                asinDer3DivF3Tab[i] = ((1+2*x*x)*oneMinusXSqInv2_5) * ONE_DIV_F3;
+                asinDer4DivF4Tab[i] = ((5+2*x*(2+x*(5-2*x)))*oneMinusXSqInv3_5) * ONE_DIV_F4;
+            }
+        }
+    }
 
     static final double ASIN_MAX_VALUE_FOR_POWTABS = StrictMath.sin(StrictMath.toRadians(88.6));
     static final int ASIN_POWTABS_POWER = 84;
@@ -394,12 +494,37 @@ abstract class AbstractFastMath {
     static final double ASIN_POWTABS_ONE_DIV_MAX_VALUE = 1/ASIN_MAX_VALUE_FOR_POWTABS;
     static final int ASIN_POWTABS_SIZE = (FM_USE_POWTABS_FOR_ASIN || SFM_USE_POWTABS_FOR_ASIN) ? (1<<getTabSizePower(12)) + 1 : 0;
     static final int ASIN_POWTABS_SIZE_MINUS_ONE = ASIN_POWTABS_SIZE - 1;
-    static final double[] asinParamPowTab = new double[ASIN_POWTABS_SIZE];
-    static final double[] asinPowTab = new double[ASIN_POWTABS_SIZE];
-    static final double[] asinDer1DivF1PowTab = new double[ASIN_POWTABS_SIZE];
-    static final double[] asinDer2DivF2PowTab = new double[ASIN_POWTABS_SIZE];
-    static final double[] asinDer3DivF3PowTab = new double[ASIN_POWTABS_SIZE];
-    static final double[] asinDer4DivF4PowTab = new double[ASIN_POWTABS_SIZE];
+    
+    static final class MyTAsinPow {
+        static final double[] asinParamPowTab = new double[ASIN_POWTABS_SIZE];
+        static final double[] asinPowTab = new double[ASIN_POWTABS_SIZE];
+        static final double[] asinDer1DivF1PowTab = new double[ASIN_POWTABS_SIZE];
+        static final double[] asinDer2DivF2PowTab = new double[ASIN_POWTABS_SIZE];
+        static final double[] asinDer3DivF3PowTab = new double[ASIN_POWTABS_SIZE];
+        static final double[] asinDer4DivF4PowTab = new double[ASIN_POWTABS_SIZE];
+        static {
+            init();
+        }
+        private static strictfp void init() {
+            if (FM_USE_POWTABS_FOR_ASIN || SFM_USE_POWTABS_FOR_ASIN) {
+                for (int i=0;i<ASIN_POWTABS_SIZE;i++) {
+                    // x: in [0,ASIN_MAX_VALUE_FOR_POWTABS].
+                    double x = StrictMath.pow(i*(1.0/ASIN_POWTABS_SIZE_MINUS_ONE), 1.0/ASIN_POWTABS_POWER) * ASIN_MAX_VALUE_FOR_POWTABS;
+                    double oneMinusXSqInv = 1/(1-x*x);
+                    double oneMinusXSqInv0_5 = StrictMath.sqrt(oneMinusXSqInv);
+                    double oneMinusXSqInv1_5 = oneMinusXSqInv0_5*oneMinusXSqInv;
+                    double oneMinusXSqInv2_5 = oneMinusXSqInv1_5*oneMinusXSqInv;
+                    double oneMinusXSqInv3_5 = oneMinusXSqInv2_5*oneMinusXSqInv;
+                    asinParamPowTab[i] = x;
+                    asinPowTab[i] = StrictMath.asin(x);
+                    asinDer1DivF1PowTab[i] = oneMinusXSqInv0_5;
+                    asinDer2DivF2PowTab[i] = (x*oneMinusXSqInv1_5) * ONE_DIV_F2;
+                    asinDer3DivF3PowTab[i] = ((1+2*x*x)*oneMinusXSqInv2_5) * ONE_DIV_F3;
+                    asinDer4DivF4PowTab[i] = ((5+2*x*(2+x*(5-2*x)))*oneMinusXSqInv3_5) * ONE_DIV_F4;
+                }
+            }
+        }
+    }
 
     static final double ASIN_PIO2_HI = Double.longBitsToDouble(0x3FF921FB54442D18L); // 1.57079632679489655800e+00
     static final double ASIN_PIO2_LO = Double.longBitsToDouble(0x3C91A62633145C07L); // 6.12323399573676603587e-17
@@ -431,11 +556,32 @@ abstract class AbstractFastMath {
     static final int ATAN_TABS_SIZE = (1<<getTabSizePower(12)) + 1;
     static final double ATAN_DELTA = ATAN_MAX_VALUE_FOR_TABS/(ATAN_TABS_SIZE - 1);
     static final double ATAN_INDEXER = 1/ATAN_DELTA;
-    static final double[] atanTab = new double[ATAN_TABS_SIZE];
-    static final double[] atanDer1DivF1Tab = new double[ATAN_TABS_SIZE];
-    static final double[] atanDer2DivF2Tab = new double[ATAN_TABS_SIZE];
-    static final double[] atanDer3DivF3Tab = new double[ATAN_TABS_SIZE];
-    static final double[] atanDer4DivF4Tab = new double[ATAN_TABS_SIZE];
+    
+    static final class MyTAtan {
+        static final double[] atanTab = new double[ATAN_TABS_SIZE];
+        static final double[] atanDer1DivF1Tab = new double[ATAN_TABS_SIZE];
+        static final double[] atanDer2DivF2Tab = new double[ATAN_TABS_SIZE];
+        static final double[] atanDer3DivF3Tab = new double[ATAN_TABS_SIZE];
+        static final double[] atanDer4DivF4Tab = new double[ATAN_TABS_SIZE];
+        static {
+            init();
+        }
+        private static strictfp void init() {
+            for (int i=0;i<ATAN_TABS_SIZE;i++) {
+                // x: in [0,ATAN_MAX_VALUE_FOR_TABS].
+                double x = i * ATAN_DELTA;
+                double onePlusXSqInv = 1/(1+x*x);
+                double onePlusXSqInv2 = onePlusXSqInv*onePlusXSqInv;
+                double onePlusXSqInv3 = onePlusXSqInv2*onePlusXSqInv;
+                double onePlusXSqInv4 = onePlusXSqInv2*onePlusXSqInv2;
+                atanTab[i] = StrictMath.atan(x);
+                atanDer1DivF1Tab[i] = onePlusXSqInv;
+                atanDer2DivF2Tab[i] = (-2*x*onePlusXSqInv2) * ONE_DIV_F2;
+                atanDer3DivF3Tab[i] = ((-2+6*x*x)*onePlusXSqInv3) * ONE_DIV_F3;
+                atanDer4DivF4Tab[i] = ((24*x*(1-x*x))*onePlusXSqInv4) * ONE_DIV_F4;
+            }
+        }
+    }
 
     static final double ATAN_HI3 = Double.longBitsToDouble(0x3ff921fb54442d18L); // 1.57079632679489655800e+00 atan(inf)hi
     static final double ATAN_LO3 = Double.longBitsToDouble(0x3c91a62633145c07L); // 6.12323399573676603587e-17 atan(inf)lo
@@ -487,9 +633,28 @@ abstract class AbstractFastMath {
     static final int EXP_LO_TAB_MID_INDEX = ((EXP_LO_TAB_SIZE-1)/2);
     static final int EXP_LO_INDEXING = EXP_LO_TAB_MID_INDEX/EXP_LO_DISTANCE_TO_ZERO;
     static final int EXP_LO_INDEXING_DIV_SHIFT = EXP_LO_TAB_SIZE_POT-1-EXP_LO_DISTANCE_TO_ZERO_POT;
-    static final double[] expHiTab = new double[1+(int)EXP_OVERFLOW_LIMIT-(int)EXP_UNDERFLOW_LIMIT];
-    static final double[] expLoPosTab = new double[EXP_LO_TAB_SIZE];
-    static final double[] expLoNegTab = new double[EXP_LO_TAB_SIZE];
+    
+    static final class MyTExp {
+        static final double[] expHiTab = new double[1+(int)EXP_OVERFLOW_LIMIT-(int)EXP_UNDERFLOW_LIMIT];
+        static final double[] expLoPosTab = new double[EXP_LO_TAB_SIZE];
+        static final double[] expLoNegTab = new double[EXP_LO_TAB_SIZE];
+        static {
+            init();
+        }
+        private static strictfp void init() {
+            for (int i=(int)EXP_UNDERFLOW_LIMIT;i<=(int)EXP_OVERFLOW_LIMIT;i++) {
+                expHiTab[i-(int)EXP_UNDERFLOW_LIMIT] = StrictMath.exp(i);
+            }
+            for (int i=0;i<EXP_LO_TAB_SIZE;i++) {
+                // x: in [-EXPM1_DISTANCE_TO_ZERO,EXPM1_DISTANCE_TO_ZERO].
+                double x = -EXP_LO_DISTANCE_TO_ZERO + i/(double)EXP_LO_INDEXING;
+                // exp(x)
+                expLoPosTab[i] = StrictMath.exp(x);
+                // 1-exp(-x), accurately computed
+                expLoNegTab[i] = -StrictMath.expm1(-x);
+            }
+        }
+    }
 
     //--------------------------------------------------------------------------
     // CONSTANTS AND TABLES FOR LOG AND LOG1P
@@ -497,15 +662,44 @@ abstract class AbstractFastMath {
 
     static final int LOG_BITS = getTabSizePower(12);
     static final int LOG_TAB_SIZE = (1<<LOG_BITS);
-    static final double[] logXLogTab = new double[LOG_TAB_SIZE];
-    static final double[] logXTab = new double[LOG_TAB_SIZE];
-    static final double[] logXInvTab = new double[LOG_TAB_SIZE];
+    
+    static final class MyTLog {
+        static final double[] logXLogTab = new double[LOG_TAB_SIZE];
+        static final double[] logXTab = new double[LOG_TAB_SIZE];
+        static final double[] logXInvTab = new double[LOG_TAB_SIZE];
+        static {
+            init();
+        }
+        private static strictfp void init() {
+            for (int i=0;i<LOG_TAB_SIZE;i++) {
+                // Exact to use inverse of tab size, since it is a power of two.
+                double x = 1+i*(1.0/LOG_TAB_SIZE);
+                logXLogTab[i] = StrictMath.log(x);
+                logXTab[i] = x;
+                logXInvTab[i] = 1/x;
+            }
+        }
+    }
 
     //--------------------------------------------------------------------------
     // TABLE FOR POWERS OF TWO
     //--------------------------------------------------------------------------
 
-    static final double[] twoPowTab = (USE_TWO_POW_TAB ? new double[(MAX_DOUBLE_EXPONENT-MIN_DOUBLE_EXPONENT)+1] : null);
+    static final int TWO_POW_TAB_SIZE = USE_TWO_POW_TAB ? (MAX_DOUBLE_EXPONENT-MIN_DOUBLE_EXPONENT)+1 : 0;
+    
+    static final class MyTTwoPow {
+        static final double[] twoPowTab = new double[TWO_POW_TAB_SIZE];
+        static {
+            init();
+        }
+        private static strictfp void init() {
+            if (USE_TWO_POW_TAB) {
+                for (int i=MIN_DOUBLE_EXPONENT;i<=MAX_DOUBLE_EXPONENT;i++) {
+                    twoPowTab[i-MIN_DOUBLE_EXPONENT] = NumbersUtils.twoPow(i);
+                }
+            }
+        }
+    }
 
     //--------------------------------------------------------------------------
     // CONSTANTS AND TABLES FOR SQRT
@@ -513,10 +707,32 @@ abstract class AbstractFastMath {
 
     static final int SQRT_LO_BITS = getTabSizePower(12);
     static final int SQRT_LO_TAB_SIZE = (1<<SQRT_LO_BITS);
-    static final double[] sqrtXSqrtHiTab = new double[MAX_DOUBLE_EXPONENT-MIN_DOUBLE_EXPONENT+1];
-    static final double[] sqrtXSqrtLoTab = new double[SQRT_LO_TAB_SIZE];
-    static final double[] sqrtSlopeHiTab = new double[MAX_DOUBLE_EXPONENT-MIN_DOUBLE_EXPONENT+1];
-    static final double[] sqrtSlopeLoTab = new double[SQRT_LO_TAB_SIZE];
+    
+    static final class MyTSqrt {
+        static final double[] sqrtXSqrtHiTab = new double[MAX_DOUBLE_EXPONENT-MIN_DOUBLE_EXPONENT+1];
+        static final double[] sqrtXSqrtLoTab = new double[SQRT_LO_TAB_SIZE];
+        static final double[] sqrtSlopeHiTab = new double[MAX_DOUBLE_EXPONENT-MIN_DOUBLE_EXPONENT+1];
+        static final double[] sqrtSlopeLoTab = new double[SQRT_LO_TAB_SIZE];
+        static {
+            init();
+        }
+        private static strictfp void init() {
+            for (int i=MIN_DOUBLE_EXPONENT;i<=MAX_DOUBLE_EXPONENT;i++) {
+                double twoPowExpDiv2 = StrictMath.pow(2.0,i*0.5);
+                sqrtXSqrtHiTab[i-MIN_DOUBLE_EXPONENT] = twoPowExpDiv2 * 0.5; // Half sqrt, to avoid overflows.
+                sqrtSlopeHiTab[i-MIN_DOUBLE_EXPONENT] = 1/twoPowExpDiv2;
+            }
+            sqrtXSqrtLoTab[0] = 1.0;
+            sqrtSlopeLoTab[0] = 1.0;
+            final long SQRT_LO_MASK = (0x3FF0000000000000L | (0x000FFFFFFFFFFFFFL>>SQRT_LO_BITS));
+            for (int i=1;i<SQRT_LO_TAB_SIZE;i++) {
+                long xBits = SQRT_LO_MASK | (((long)(i-1))<<(52-SQRT_LO_BITS));
+                double sqrtX = StrictMath.sqrt(Double.longBitsToDouble(xBits));
+                sqrtXSqrtLoTab[i] = sqrtX;
+                sqrtSlopeLoTab[i] = 1/sqrtX;
+            }
+        }
+    }
 
     //--------------------------------------------------------------------------
     // CONSTANTS AND TABLES FOR CBRT
@@ -524,6 +740,7 @@ abstract class AbstractFastMath {
 
     static final int CBRT_LO_BITS = getTabSizePower(12);
     static final int CBRT_LO_TAB_SIZE = (1<<CBRT_LO_BITS);
+    
     // For CBRT_LO_BITS = 12:
     // cbrtXCbrtLoTab[0] = 1.0.
     // cbrtXCbrtLoTab[1] = cbrt(1. 000000000000 1111111111111111111111111111111111111111b)
@@ -531,13 +748,34 @@ abstract class AbstractFastMath {
     // cbrtXCbrtLoTab[3] = cbrt(1. 000000000010 1111111111111111111111111111111111111111b)
     // cbrtXCbrtLoTab[4] = cbrt(1. 000000000011 1111111111111111111111111111111111111111b)
     // etc.
-    static final double[] cbrtXCbrtHiTab = new double[MAX_DOUBLE_EXPONENT-MIN_DOUBLE_EXPONENT+1];
-    static final double[] cbrtXCbrtLoTab = new double[CBRT_LO_TAB_SIZE];
-    static final double[] cbrtSlopeHiTab = new double[MAX_DOUBLE_EXPONENT-MIN_DOUBLE_EXPONENT+1];
-    static final double[] cbrtSlopeLoTab = new double[CBRT_LO_TAB_SIZE];
+    static final class MyTCbrt {
+        static final double[] cbrtXCbrtHiTab = new double[MAX_DOUBLE_EXPONENT-MIN_DOUBLE_EXPONENT+1];
+        static final double[] cbrtXCbrtLoTab = new double[CBRT_LO_TAB_SIZE];
+        static final double[] cbrtSlopeHiTab = new double[MAX_DOUBLE_EXPONENT-MIN_DOUBLE_EXPONENT+1];
+        static final double[] cbrtSlopeLoTab = new double[CBRT_LO_TAB_SIZE];
+        static {
+            init();
+        }
+        private static strictfp void init() {
+            for (int i=MIN_DOUBLE_EXPONENT;i<=MAX_DOUBLE_EXPONENT;i++) {
+                double twoPowExpDiv3 = StrictMath.pow(2.0,i*(1.0/3));
+                cbrtXCbrtHiTab[i-MIN_DOUBLE_EXPONENT] = twoPowExpDiv3 * 0.5; // Half cbrt, to avoid overflows.
+                cbrtSlopeHiTab[i-MIN_DOUBLE_EXPONENT] = (4.0/3)/(twoPowExpDiv3*twoPowExpDiv3);
+            }
+            cbrtXCbrtLoTab[0] = 1.0;
+            cbrtSlopeLoTab[0] = 1.0;
+            final long CBRT_LO_MASK = (0x3FF0000000000000L | (0x000FFFFFFFFFFFFFL>>CBRT_LO_BITS));
+            for (int i=1;i<CBRT_LO_TAB_SIZE;i++) {
+                long xBits = CBRT_LO_MASK | (((long)(i-1))<<(52-CBRT_LO_BITS));
+                double cbrtX = StrictMath.cbrt(Double.longBitsToDouble(xBits));
+                cbrtXCbrtLoTab[i] = cbrtX;
+                cbrtSlopeLoTab[i] = 1/(cbrtX*cbrtX);
+            }
+        }
+    }
 
     //--------------------------------------------------------------------------
-    // CONSTANTS FOR_HYPOT
+    // CONSTANTS FOR HYPOT
     //--------------------------------------------------------------------------
 
     /**
@@ -564,7 +802,668 @@ abstract class AbstractFastMath {
     static final double HYPOT_FACTOR = NumbersUtils.twoPow(750);
 
     //--------------------------------------------------------------------------
-    // PACKAGE-PRIVATE TREATMENTS
+    // PUBLIC METHODS
+    //--------------------------------------------------------------------------
+    
+    /**
+     * Ensures that all look-up tables are initialized - otherwise they are
+     * initialized lazily.
+     */
+    public static void initTables() {
+        /*
+         * Taking care not to call init methods here, which would
+         * recompute tables each time (even though the computations
+         * should be identical, since done with strictfp and StrictMath).
+         */
+        int antiOptim = 0;
+        antiOptim += MyTSinCos.sinTab.length;
+        antiOptim += MyTTan.tanTab.length;
+        antiOptim += MyTAsin.asinTab.length;
+        antiOptim += MyTAsinPow.asinPowTab.length;
+        antiOptim += MyTAtan.atanTab.length;
+        antiOptim += MyTExp.expHiTab.length;
+        antiOptim += MyTLog.logXTab.length;
+        antiOptim += MyTTwoPow.twoPowTab.length;
+        antiOptim += MyTSqrt.sqrtXSqrtHiTab.length;
+        antiOptim += MyTCbrt.cbrtXCbrtHiTab.length;
+        if (StrictMath.cos((double)antiOptim) == 0.0) {
+            // Can't happen, cos is never +-0.0.
+            throw new AssertionError();
+        }
+    }
+
+    /*
+     * logarithms
+     */
+    
+    /**
+     * @param value An integer value in [1,Integer.MAX_VALUE].
+     * @return The integer part of the logarithm, in base 2, of the specified value,
+     *         i.e. a result in [0,30]
+     * @throws IllegalArgumentException if the specified value is <= 0.
+     */
+    public static int log2(int value) {
+        return NumbersUtils.log2(value);
+    }
+
+    /**
+     * @param value An integer value in [1,Long.MAX_VALUE].
+     * @return The integer part of the logarithm, in base 2, of the specified value,
+     *         i.e. a result in [0,62]
+     * @throws IllegalArgumentException if the specified value is <= 0.
+     */
+    public static int log2(long value) {
+        return NumbersUtils.log2(value);
+    }
+
+    /*
+     * powers
+     */
+    
+    /**
+     * Returns the exact result, provided it's in double range,
+     * i.e. if power is in [-1074,1023].
+     * 
+     * @param power An int power.
+     * @return 2^power as a double, or +-Infinity in case of overflow.
+     */
+    public static double twoPow(int power) {
+        /*
+         * OK to have this method factored here even though it returns
+         * a floating point value, because it only does integer operations
+         * and only takes integer arguments, so should behave the same
+         * even if inlined into FP-wide context. 
+         */
+        if (USE_TWO_POW_TAB) {
+            if (power >= MIN_DOUBLE_EXPONENT) {
+                if (power <= MAX_DOUBLE_EXPONENT) { // Normal or subnormal.
+                    return MyTTwoPow.twoPowTab[power-MIN_DOUBLE_EXPONENT];
+                } else { // Overflow.
+                    return Double.POSITIVE_INFINITY;
+                }
+            } else { // Underflow.
+                return 0.0;
+            }
+        } else {
+            return NumbersUtils.twoPow(power);
+        }
+    }
+
+    /**
+     * @param value An int value.
+     * @return value*value.
+     */
+    public static int pow2(int value) {
+        return value*value;
+    }
+
+    /**
+     * @param value A long value.
+     * @return value*value.
+     */
+    public static long pow2(long value) {
+        return value*value;
+    }
+
+    /**
+     * @param value An int value.
+     * @return value*value*value.
+     */
+    public static int pow3(int value) {
+        return value*value*value;
+    }
+
+    /**
+     * @param value A long value.
+     * @return value*value*value.
+     */
+    public static long pow3(long value) {
+        return value*value*value;
+    }
+    
+    /*
+     * absolute values
+     */
+
+    /**
+     * @param value An int value.
+     * @return The absolute value, except if value is Integer.MIN_VALUE, for which it returns Integer.MIN_VALUE.
+     */
+    public static int abs(int value) {
+        if (FM_USE_JDK_MATH || SFM_USE_JDK_MATH) {
+            return Math.abs(value);
+        }
+        return NumbersUtils.abs(value);
+    }
+
+    /**
+     * @param value A long value.
+     * @return The absolute value, except if value is Long.MIN_VALUE, for which it returns Long.MIN_VALUE.
+     */
+    public static long abs(long value) {
+        if (FM_USE_JDK_MATH || SFM_USE_JDK_MATH) {
+            return Math.abs(value);
+        }
+        return NumbersUtils.abs(value);
+    }
+
+    /*
+     * close values
+     */
+
+    /**
+     * @param value A long value.
+     * @return The specified value as int.
+     * @throws ArithmeticException if the specified value is not in [Integer.MIN_VALUE,Integer.MAX_VALUE] range.
+     */
+    public static int toIntExact(long value) {
+        return NumbersUtils.asInt(value);
+    }
+
+    /**
+     * @param value A long value.
+     * @return The closest int value in [Integer.MIN_VALUE,Integer.MAX_VALUE] range.
+     */
+    public static int toInt(long value) {
+        return NumbersUtils.toInt(value);
+    }
+
+    /*
+     * ranges
+     */
+
+    /**
+     * @param min An int value.
+     * @param max An int value.
+     * @param value An int value.
+     * @return minValue if value < minValue, maxValue if value > maxValue, value otherwise.
+     */
+    public static int toRange(int min, int max, int value) {
+        return NumbersUtils.toRange(min, max, value);
+    }
+
+    /**
+     * @param min A long value.
+     * @param max A long value.
+     * @param value A long value.
+     * @return min if value < min, max if value > max, value otherwise.
+     */
+    public static long toRange(long min, long max, long value) {
+        return NumbersUtils.toRange(min, max, value);
+    }
+    
+    /*
+     * unary operators (increment,decrement,negate)
+     * TODO argh a testr
+     */
+
+    /**
+     * @param value An int value.
+     * @return The argument incremented by one.
+     * @throws ArithmeticException if the mathematical result
+     *         is not in int range.
+     */
+    public static int incrementExact(int value) {
+        if (value == Integer.MAX_VALUE) {
+            throw new ArithmeticException("integer overflow");
+        }
+        return value + 1;
+    }
+
+    /**
+     * @param value A long value.
+     * @return The argument incremented by one.
+     * @throws ArithmeticException if the mathematical result
+     *         is not in long range.
+     */
+    public static long incrementExact(long value) {
+        if (value == Long.MAX_VALUE) {
+            throw new ArithmeticException("long overflow");
+        }
+        return value + 1L;
+    }
+
+    /**
+     * @param value An int value.
+     * @return The argument incremented by one, or the argument
+     *         if the mathematical result is not in int range.
+     */
+    public static int incrementBounded(int value) {
+        if (value == Integer.MAX_VALUE) {
+            return value;
+        }
+        return value + 1;
+    }
+
+    /**
+     * @param value A long value.
+     * @return The argument incremented by one, or the argument
+     *         if the mathematical result is not in long range.
+     */
+    public static long incrementBounded(long value) {
+        if (value == Long.MAX_VALUE) {
+            return value;
+        }
+        return value + 1L;
+    }
+
+    /**
+     * @param value An int value.
+     * @return The argument decremented by one.
+     * @throws ArithmeticException if the mathematical result
+     *         is not in int range.
+     */
+    public static int decrementExact(int value) {
+        if (value == Integer.MIN_VALUE) {
+            throw new ArithmeticException("integer overflow");
+        }
+        return value - 1;
+    }
+
+    /**
+     * @param value A long value.
+     * @return The argument decremented by one.
+     * @throws ArithmeticException if the mathematical result
+     *         is not in long range.
+     */
+    public static long decrementExact(long value) {
+        if (value == Long.MIN_VALUE) {
+            throw new ArithmeticException("long overflow");
+        }
+        return value - 1L;
+    }
+
+    /**
+     * @param value An int value.
+     * @return The argument decremented by one, or the argument
+     *         if the mathematical result is not in int range.
+     */
+    public static int decrementBounded(int value) {
+        if (value == Integer.MIN_VALUE) {
+            return value;
+        }
+        return value - 1;
+    }
+
+    /**
+     * @param value A long value.
+     * @return The argument decremented by one, or the argument
+     *         if the mathematical result is not in long range.
+     */
+    public static long decrementBounded(long value) {
+        if (value == Long.MIN_VALUE) {
+            return value;
+        }
+        return value - 1L;
+    }
+
+    /**
+     * @param value An int value.
+     * @return The argument negated.
+     * @throws ArithmeticException if the mathematical result
+     *         is not in int range.
+     */
+    public static int negateExact(int value) {
+        if (value == Integer.MIN_VALUE) {
+            throw new ArithmeticException("integer overflow");
+        }
+        return -value;
+    }
+
+    /**
+     * @param value A long value.
+     * @return The argument negated.
+     * @throws ArithmeticException if the mathematical result
+     *         is not in long range.
+     */
+    public static long negateExact(long value) {
+        if (value == Long.MIN_VALUE) {
+            throw new ArithmeticException("long overflow");
+        }
+        return -value;
+    }
+
+    /**
+     * @param value An int value.
+     * @return The argument negated, or Integer.MAX_VALUE
+     *         if the argument is Integer.MIN_VALUE.
+     */
+    public static int negateBounded(int value) {
+        if (value == Integer.MIN_VALUE) {
+            return Integer.MAX_VALUE;
+        }
+        return -value;
+    }
+
+    /**
+     * @param value A long value.
+     * @return The argument negated, or Long.MAX_VALUE
+     *         if the argument is Long.MIN_VALUE.
+     */
+    public static long negateBounded(long value) {
+        if (value == Long.MIN_VALUE) {
+            return Long.MAX_VALUE;
+        }
+        return -value;
+    }
+
+    /*
+     * binary operators (+,-,*)
+     */
+
+    /**
+     * @param a An int value.
+     * @param b An int value.
+     * @return The mathematical result of a+b.
+     * @throws ArithmeticException if the mathematical result of a+b is not in [Integer.MIN_VALUE,Integer.MAX_VALUE] range.
+     */
+    public static int addExact(int a, int b) {
+        return NumbersUtils.plusExact(a, b);
+    }
+
+    /**
+     * @param a A long value.
+     * @param b A long value.
+     * @return The mathematical result of a+b.
+     * @throws ArithmeticException if the mathematical result of a+b is not in [Long.MIN_VALUE,Long.MAX_VALUE] range.
+     */
+    public static long addExact(long a, long b) {
+        return NumbersUtils.plusExact(a, b);
+    }
+
+    /**
+     * @param a An int value.
+     * @param b An int value.
+     * @return The int value of [Integer.MIN_VALUE,Integer.MAX_VALUE] range which is the closest to mathematical result of a+b.
+     */
+    public static int addBounded(int a, int b) {
+        return NumbersUtils.plusBounded(a, b);
+    }
+
+    /**
+     * @param a A long value.
+     * @param b A long value.
+     * @return The long value of [Long.MIN_VALUE,Long.MAX_VALUE] range which is the closest to mathematical result of a+b.
+     */
+    public static long addBounded(long a, long b) {
+        return NumbersUtils.plusBounded(a, b);
+    }
+
+    /**
+     * @param a An int value.
+     * @param b An int value.
+     * @return The mathematical result of a-b.
+     * @throws ArithmeticException if the mathematical result of a-b is not in [Integer.MIN_VALUE,Integer.MAX_VALUE] range.
+     */
+    public static int subtractExact(int a, int b) {
+        return NumbersUtils.minusExact(a, b);
+    }
+
+    /**
+     * @param a A long value.
+     * @param b A long value.
+     * @return The mathematical result of a-b.
+     * @throws ArithmeticException if the mathematical result of a-b is not in [Long.MIN_VALUE,Long.MAX_VALUE] range.
+     */
+    public static long subtractExact(long a, long b) {
+        return NumbersUtils.minusExact(a, b);
+    }
+
+    /**
+     * @param a An int value.
+     * @param b An int value.
+     * @return The int value of [Integer.MIN_VALUE,Integer.MAX_VALUE] range which is the closest to mathematical result of a-b.
+     */
+    public static int subtractBounded(int a, int b) {
+        return NumbersUtils.minusBounded(a, b);
+    }
+
+    /**
+     * @param a A long value.
+     * @param b A long value.
+     * @return The long value of [Long.MIN_VALUE,Long.MAX_VALUE] range which is the closest to mathematical result of a-b.
+     */
+    public static long subtractBounded(long a, long b) {
+        return NumbersUtils.minusBounded(a, b);
+    }
+
+    /**
+     * @param a An int value.
+     * @param b An int value.
+     * @return The mathematical result of a*b.
+     * @throws ArithmeticException if the mathematical result of a*b is not in [Integer.MIN_VALUE,Integer.MAX_VALUE] range.
+     */
+    public static int multiplyExact(int a, int b) {
+        return NumbersUtils.timesExact(a, b);
+    }
+
+    /**
+     * @param a A long value.
+     * @param b An int value.
+     * @return The mathematical result of a*b.
+     * @throws ArithmeticException if the mathematical result of a*b is not in [Long.MIN_VALUE,Long.MAX_VALUE] range.
+     */
+    public static long multiplyExact(long a, int b) {
+        return NumbersUtils.timesExact(a, (long) b);
+    }
+
+    /**
+     * @param a A long value.
+     * @param b A long value.
+     * @return The mathematical result of a*b.
+     * @throws ArithmeticException if the mathematical result of a*b is not in [Long.MIN_VALUE,Long.MAX_VALUE] range.
+     */
+    public static long multiplyExact(long a, long b) {
+        return NumbersUtils.timesExact(a, b);
+    }
+
+    /**
+     * @param a An int value.
+     * @param b An int value.
+     * @return The int value of [Integer.MIN_VALUE,Integer.MAX_VALUE] range which is the closest to mathematical result of a*b.
+     */
+    public static int multiplyBounded(int a, int b) {
+        return NumbersUtils.timesBounded(a, b);
+    }
+
+    /**
+     * @param a A long value.
+     * @param b An int value.
+     * @return The long value of [Long.MIN_VALUE,Long.MAX_VALUE] range which is the closest to mathematical result of a*b.
+     */
+    public static long multiplyBounded(long a, int b) {
+        return NumbersUtils.timesBounded(a, (long) b);
+    }
+
+    /**
+     * @param a A long value.
+     * @param b A long value.
+     * @return The long value of [Long.MIN_VALUE,Long.MAX_VALUE] range which is the closest to mathematical result of a*b.
+     */
+    public static long multiplyBounded(long a, long b) {
+        return NumbersUtils.timesBounded(a, b);
+    }
+
+    /**
+     * @param x An int value.
+     * @param y An int value.
+     * @return The mathematical product as a long.
+     */
+    public static long multiplyFull(int x, int y) {
+        return ((long) x) * ((long) y);
+    }
+
+    /**
+     * @param x A long value.
+     * @param y A long value.
+     * @return The most significant 64 bits of the 128-bit product of two 64-bit factors.
+     */
+    public static long multiplyHigh(long x, long y) {
+        if ((x|y) < 0) {
+            // Use technique from section 8-2 of Henry S. Warren, Jr.,
+            // Hacker's Delight (2nd ed.) (Addison Wesley, 2013), 173-174.
+            long x1 = (x >> 32);
+            long y1 = (y >> 32);
+            long x2 = (x & 0xFFFFFFFFL);
+            long y2 = (y & 0xFFFFFFFFL);
+            long z2 = x2 * y2;
+            long t = x1 * y2 + (z2 >>> 32);
+            long z1 = (t & 0xFFFFFFFFL) + x2 * y1;
+            long z0 = (t >> 32);
+            return x1 * y1 + z0 + (z1 >> 32);
+        } else {
+            // Use Karatsuba technique with two base 2^32 digits.
+            long x1 = (x >>> 32);
+            long y1 = (y >>> 32);
+            long x2 = (x & 0xFFFFFFFFL);
+            long y2 = (y & 0xFFFFFFFFL);
+            long A = x1 * y1;
+            long B = x2 * y2;
+            long C = (x1 + x2) * (y1 + y2);
+            long K = C - A - B;
+            return (((B >>> 32) + K) >>> 32) + A;
+        }
+    }
+    
+    /*
+     * binary operators (/,%)
+     */
+
+    /**
+     * Returns the largest int <= dividend/divisor.
+     * 
+     * Unlike "/" operator, which rounds towards 0, this division
+     * rounds towards -Infinity (which give different result
+     * when the exact result is negative).
+     * 
+     * @param x The dividend.
+     * @param y The divisor.
+     * @return The largest int <= dividend/divisor, unless dividend is
+     *         Integer.MIN_VALUE and divisor is -1, in which case
+     *         Integer.MIN_VALUE is returned.
+     * @throws ArithmeticException if the divisor is zero.
+     */
+    public static int floorDiv(int x, int y) {
+        int r = x / y;
+        // If the signs are different and modulo not zero, rounding down.
+        if (((x ^ y) < 0) && ((r * y) != x)) {
+            r--;
+        }
+        return r;
+    }
+
+    /**
+     * Returns the largest long <= dividend/divisor.
+     * 
+     * Unlike "/" operator, which rounds towards 0, this division
+     * rounds towards -Infinity (which give different result
+     * when the exact result is negative).
+     * 
+     * @param x The dividend.
+     * @param y The divisor.
+     * @return The largest long <= dividend/divisor, unless dividend is
+     *         Long.MIN_VALUE and divisor is -1, in which case
+     *         Long.MIN_VALUE is returned.
+     * @throws ArithmeticException if the divisor is zero.
+     */
+    public static long floorDiv(long x, int y) {
+        return floorDiv(x, (long) y);
+    }
+
+    /**
+     * Returns the largest long <= dividend/divisor.
+     * 
+     * Unlike "/" operator, which rounds towards 0, this division
+     * rounds towards -Infinity (which give different result
+     * when the exact result is negative).
+     * 
+     * @param x The dividend.
+     * @param y The divisor.
+     * @return The largest long <= dividend/divisor, unless dividend is
+     *         Long.MIN_VALUE and divisor is -1, in which case
+     *         Long.MIN_VALUE is returned.
+     * @throws ArithmeticException if the divisor is zero.
+     */
+    public static long floorDiv(long x, long y) {
+        long r = x / y;
+        // If the signs are different and modulo not zero, rounding down.
+        if (((x ^ y) < 0) && ((r * y) != x)) {
+            r--;
+        }
+        return r;
+    }
+
+    /**
+     * Returns the floor modulus, which is "x - floorDiv(x,y) * y",
+     * has the same sign as y, and is in ]-abs(y),abs(y)[.
+     *
+     * The relationship between floorMod and floorDiv is the same
+     * than between "%" and "/".
+     * 
+     * @param x The dividend.
+     * @param y The divisor.
+     * @return The floor modulus, i.e. "x - (floorDiv(x, y) * y)".
+     * @throws ArithmeticException if the divisor is zero.
+     */
+    public static int floorMod(int x, int y) {
+        return x - floorDiv(x, y) * y;
+    }
+
+    /**
+     * Returns the floor modulus, which is "x - floorDiv(x,y) * y",
+     * has the same sign as y, and is in ]-abs(y),abs(y)[.
+     *
+     * The relationship between floorMod and floorDiv is the same
+     * than between "%" and "/".
+     * 
+     * @param x The dividend.
+     * @param y The divisor.
+     * @return The floor modulus, i.e. "x - (floorDiv(x, y) * y)".
+     * @throws ArithmeticException if the divisor is zero.
+     */
+    public static int floorMod(long x, int y) {
+        // No overflow so can cast.
+        return (int) (x - floorDiv(x,y) * y);
+    }
+
+    /**
+     * Returns the floor modulus, which is "x - floorDiv(x,y) * y",
+     * has the same sign as y, and is in ]-abs(y),abs(y)[.
+     *
+     * The relationship between floorMod and floorDiv is the same
+     * than between "%" and "/".
+     * 
+     * @param x The dividend.
+     * @param y The divisor.
+     * @return The floor modulus, i.e. "x - (floorDiv(x, y) * y)".
+     * @throws ArithmeticException if the divisor is zero.
+     */
+    public static long floorMod(long x, long y) {
+        return x - floorDiv(x, y) * y;
+    }
+
+    /*
+     * Non-redefined Math public values and treatments.
+     */
+    
+    public static int min(int a, int b) {
+        return Math.min(a,b);
+    }
+    
+    public static long min(long a, long b) {
+        return Math.min(a,b);
+    }
+    
+    public static int max(int a, int b) {
+        return Math.max(a,b);
+    }
+    
+    public static long max(long a, long b) {
+        return Math.max(a,b);
+    }
+    
+    //--------------------------------------------------------------------------
+    // PACKAGE-PRIVATE METHODS
     //--------------------------------------------------------------------------
 
     /**
@@ -572,7 +1471,7 @@ abstract class AbstractFastMath {
      */
     static double twoPowNormal(int power) {
         if (USE_TWO_POW_TAB) {
-            return twoPowTab[power-MIN_DOUBLE_EXPONENT];
+            return MyTTwoPow.twoPowTab[power-MIN_DOUBLE_EXPONENT];
         } else {
             return Double.longBitsToDouble(((long)(power+MAX_DOUBLE_EXPONENT))<<52);
         }
@@ -583,7 +1482,7 @@ abstract class AbstractFastMath {
      */
     static double twoPowNormalOrSubnormal(int power) {
         if (USE_TWO_POW_TAB) {
-            return twoPowTab[power-MIN_DOUBLE_EXPONENT];
+            return MyTTwoPow.twoPowTab[power-MIN_DOUBLE_EXPONENT];
         } else {
             if (power <= -MAX_DOUBLE_EXPONENT) { // Not normal.
                 return Double.longBitsToDouble(0x0008000000000000L>>(-(power+MAX_DOUBLE_EXPONENT)));
@@ -1200,14 +2099,14 @@ abstract class AbstractFastMath {
     }
 
     //--------------------------------------------------------------------------
-    // PRIVATE TREATMENTS
+    // PRIVATE METHODS
     //--------------------------------------------------------------------------
 
     /**
      * Redefined here, to avoid cyclic dependency with (Strict)FastMath.
      * 
      * @param value A double value.
-     * @return -1 if sign bit if 1, 1 if sign bit if 0.
+     * @return -1 if sign bit is 1, 1 if sign bit is 0.
      */
     private static long signFromBit_antiCyclic(double value) {
         // Returning a long, to avoid useless cast into int.
@@ -1232,209 +2131,5 @@ abstract class AbstractFastMath {
      */
     private static int getTabSizePower(int tabSizePower) {
         return (FM_USE_JDK_MATH && SFM_USE_JDK_MATH) ? Math.min(2, tabSizePower) : tabSizePower;
-    }
-
-    /**
-     * Initializes look-up tables.
-     * 
-     * Doing strict initialization, even if StrictFastMath delegates to StrictMath
-     * and doesn't use tables, which makes class load a bit slower but code simpler.
-     * 
-     * Using redefined pure Java treatments in this method, instead of Math
-     * or StrictMath ones (even asin(double)), can make this class load much
-     * slower, because class loading is likely not to be optimized.
-     */
-    private static strictfp void init() {
-
-        /*
-         * sin and cos
-         */
-
-        final int SIN_COS_PI_INDEX = (SIN_COS_TABS_SIZE-1)/2;
-        final int SIN_COS_PI_MUL_2_INDEX = 2*SIN_COS_PI_INDEX;
-        final int SIN_COS_PI_MUL_0_5_INDEX = SIN_COS_PI_INDEX/2;
-        final int SIN_COS_PI_MUL_1_5_INDEX = 3*SIN_COS_PI_INDEX/2;
-        for (int i=0;i<SIN_COS_TABS_SIZE;i++) {
-            // angle: in [0,2*PI] (doesn't seem to help to have it in [-PI,PI]).
-            double angle = i * SIN_COS_DELTA_HI + i * SIN_COS_DELTA_LO;
-            double sinAngle = StrictMath.sin(angle);
-            double cosAngle = StrictMath.cos(angle);
-            // For indexes corresponding to zero cosine or sine, we make sure
-            // the value is zero and not an epsilon, since each value
-            // corresponds to sin-or-cos(i*PI/n), where PI is a more accurate
-            // definition of PI than Math.PI.
-            // This allows for a much better accuracy for results close to zero.
-            if (i == SIN_COS_PI_INDEX) {
-                sinAngle = 0.0;
-            } else if (i == SIN_COS_PI_MUL_2_INDEX) {
-                sinAngle = 0.0;
-            } else if (i == SIN_COS_PI_MUL_0_5_INDEX) {
-                cosAngle = 0.0;
-            } else if (i == SIN_COS_PI_MUL_1_5_INDEX) {
-                cosAngle = 0.0;
-            }
-            sinTab[i] = sinAngle;
-            cosTab[i] = cosAngle;
-        }
-
-        /*
-         * tan
-         */
-
-        for (int i=0;i<TAN_TABS_SIZE;i++) {
-            // angle: in [0,TAN_MAX_VALUE_FOR_TABS].
-            double angle = i * TAN_DELTA_HI + i * TAN_DELTA_LO;
-            double sinAngle = StrictMath.sin(angle);
-            double cosAngle = StrictMath.cos(angle);
-            double cosAngleInv = 1/cosAngle;
-            double cosAngleInv2 = cosAngleInv*cosAngleInv;
-            double cosAngleInv3 = cosAngleInv2*cosAngleInv;
-            double cosAngleInv4 = cosAngleInv2*cosAngleInv2;
-            double cosAngleInv5 = cosAngleInv3*cosAngleInv2;
-            tanTab[i] = sinAngle * cosAngleInv;
-            tanDer1DivF1Tab[i] = cosAngleInv2;
-            tanDer2DivF2Tab[i] = ((2*sinAngle)*cosAngleInv3) * ONE_DIV_F2;
-            tanDer3DivF3Tab[i] = ((2*(1+2*sinAngle*sinAngle))*cosAngleInv4) * ONE_DIV_F3;
-            tanDer4DivF4Tab[i] = ((8*sinAngle*(2+sinAngle*sinAngle))*cosAngleInv5) * ONE_DIV_F4;
-        }
-
-        /*
-         * asin
-         */
-
-        for (int i=0;i<ASIN_TABS_SIZE;i++) {
-            // x: in [0,ASIN_MAX_VALUE_FOR_TABS].
-            double x = i * ASIN_DELTA;
-            double oneMinusXSqInv = 1/(1-x*x);
-            double oneMinusXSqInv0_5 = StrictMath.sqrt(oneMinusXSqInv);
-            double oneMinusXSqInv1_5 = oneMinusXSqInv0_5*oneMinusXSqInv;
-            double oneMinusXSqInv2_5 = oneMinusXSqInv1_5*oneMinusXSqInv;
-            double oneMinusXSqInv3_5 = oneMinusXSqInv2_5*oneMinusXSqInv;
-            asinTab[i] = StrictMath.asin(x);
-            asinDer1DivF1Tab[i] = oneMinusXSqInv0_5;
-            asinDer2DivF2Tab[i] = (x*oneMinusXSqInv1_5) * ONE_DIV_F2;
-            asinDer3DivF3Tab[i] = ((1+2*x*x)*oneMinusXSqInv2_5) * ONE_DIV_F3;
-            asinDer4DivF4Tab[i] = ((5+2*x*(2+x*(5-2*x)))*oneMinusXSqInv3_5) * ONE_DIV_F4;
-        }
-
-        if (FM_USE_POWTABS_FOR_ASIN || SFM_USE_POWTABS_FOR_ASIN) {
-            for (int i=0;i<ASIN_POWTABS_SIZE;i++) {
-                // x: in [0,ASIN_MAX_VALUE_FOR_POWTABS].
-                double x = StrictMath.pow(i*(1.0/ASIN_POWTABS_SIZE_MINUS_ONE), 1.0/ASIN_POWTABS_POWER) * ASIN_MAX_VALUE_FOR_POWTABS;
-                double oneMinusXSqInv = 1/(1-x*x);
-                double oneMinusXSqInv0_5 = StrictMath.sqrt(oneMinusXSqInv);
-                double oneMinusXSqInv1_5 = oneMinusXSqInv0_5*oneMinusXSqInv;
-                double oneMinusXSqInv2_5 = oneMinusXSqInv1_5*oneMinusXSqInv;
-                double oneMinusXSqInv3_5 = oneMinusXSqInv2_5*oneMinusXSqInv;
-                asinParamPowTab[i] = x;
-                asinPowTab[i] = StrictMath.asin(x);
-                asinDer1DivF1PowTab[i] = oneMinusXSqInv0_5;
-                asinDer2DivF2PowTab[i] = (x*oneMinusXSqInv1_5) * ONE_DIV_F2;
-                asinDer3DivF3PowTab[i] = ((1+2*x*x)*oneMinusXSqInv2_5) * ONE_DIV_F3;
-                asinDer4DivF4PowTab[i] = ((5+2*x*(2+x*(5-2*x)))*oneMinusXSqInv3_5) * ONE_DIV_F4;
-            }
-        }
-
-        /*
-         * atan
-         */
-
-        for (int i=0;i<ATAN_TABS_SIZE;i++) {
-            // x: in [0,ATAN_MAX_VALUE_FOR_TABS].
-            double x = i * ATAN_DELTA;
-            double onePlusXSqInv = 1/(1+x*x);
-            double onePlusXSqInv2 = onePlusXSqInv*onePlusXSqInv;
-            double onePlusXSqInv3 = onePlusXSqInv2*onePlusXSqInv;
-            double onePlusXSqInv4 = onePlusXSqInv2*onePlusXSqInv2;
-            atanTab[i] = StrictMath.atan(x);
-            atanDer1DivF1Tab[i] = onePlusXSqInv;
-            atanDer2DivF2Tab[i] = (-2*x*onePlusXSqInv2) * ONE_DIV_F2;
-            atanDer3DivF3Tab[i] = ((-2+6*x*x)*onePlusXSqInv3) * ONE_DIV_F3;
-            atanDer4DivF4Tab[i] = ((24*x*(1-x*x))*onePlusXSqInv4) * ONE_DIV_F4;
-        }
-
-        /*
-         * exp
-         */
-
-        for (int i=(int)EXP_UNDERFLOW_LIMIT;i<=(int)EXP_OVERFLOW_LIMIT;i++) {
-            expHiTab[i-(int)EXP_UNDERFLOW_LIMIT] = StrictMath.exp(i);
-        }
-        for (int i=0;i<EXP_LO_TAB_SIZE;i++) {
-            // x: in [-EXPM1_DISTANCE_TO_ZERO,EXPM1_DISTANCE_TO_ZERO].
-            double x = -EXP_LO_DISTANCE_TO_ZERO + i/(double)EXP_LO_INDEXING;
-            // exp(x)
-            expLoPosTab[i] = StrictMath.exp(x);
-            // 1-exp(-x), accurately computed
-            expLoNegTab[i] = -StrictMath.expm1(-x);
-        }
-
-        /*
-         * log
-         */
-
-        for (int i=0;i<LOG_TAB_SIZE;i++) {
-            // Exact to use inverse of tab size, since it is a power of two.
-            double x = 1+i*(1.0/LOG_TAB_SIZE);
-            logXLogTab[i] = StrictMath.log(x);
-            logXTab[i] = x;
-            logXInvTab[i] = 1/x;
-        }
-
-        /*
-         * twoPowTab
-         */
-
-        if (USE_TWO_POW_TAB) {
-            for (int i=MIN_DOUBLE_EXPONENT;i<=MAX_DOUBLE_EXPONENT;i++) {
-                twoPowTab[i-MIN_DOUBLE_EXPONENT] = NumbersUtils.twoPow(i);
-            }
-        }
-
-        /*
-         * sqrt
-         */
-
-        for (int i=MIN_DOUBLE_EXPONENT;i<=MAX_DOUBLE_EXPONENT;i++) {
-            double twoPowExpDiv2 = StrictMath.pow(2.0,i*0.5);
-            sqrtXSqrtHiTab[i-MIN_DOUBLE_EXPONENT] = twoPowExpDiv2 * 0.5; // Half sqrt, to avoid overflows.
-            sqrtSlopeHiTab[i-MIN_DOUBLE_EXPONENT] = 1/twoPowExpDiv2;
-        }
-        sqrtXSqrtLoTab[0] = 1.0;
-        sqrtSlopeLoTab[0] = 1.0;
-        final long SQRT_LO_MASK = (0x3FF0000000000000L | (0x000FFFFFFFFFFFFFL>>SQRT_LO_BITS));
-        for (int i=1;i<SQRT_LO_TAB_SIZE;i++) {
-            long xBits = SQRT_LO_MASK | (((long)(i-1))<<(52-SQRT_LO_BITS));
-            double sqrtX = StrictMath.sqrt(Double.longBitsToDouble(xBits));
-            sqrtXSqrtLoTab[i] = sqrtX;
-            sqrtSlopeLoTab[i] = 1/sqrtX;
-        }
-
-        /*
-         * cbrt
-         */
-
-        for (int i=MIN_DOUBLE_EXPONENT;i<=MAX_DOUBLE_EXPONENT;i++) {
-            double twoPowExpDiv3 = StrictMath.pow(2.0,i*(1.0/3));
-            cbrtXCbrtHiTab[i-MIN_DOUBLE_EXPONENT] = twoPowExpDiv3 * 0.5; // Half cbrt, to avoid overflows.
-            cbrtSlopeHiTab[i-MIN_DOUBLE_EXPONENT] = (4.0/3)/(twoPowExpDiv3*twoPowExpDiv3);
-        }
-        cbrtXCbrtLoTab[0] = 1.0;
-        cbrtSlopeLoTab[0] = 1.0;
-        final long CBRT_LO_MASK = (0x3FF0000000000000L | (0x000FFFFFFFFFFFFFL>>CBRT_LO_BITS));
-        for (int i=1;i<CBRT_LO_TAB_SIZE;i++) {
-            long xBits = CBRT_LO_MASK | (((long)(i-1))<<(52-CBRT_LO_BITS));
-            double cbrtX = StrictMath.cbrt(Double.longBitsToDouble(xBits));
-            cbrtXCbrtLoTab[i] = cbrtX;
-            cbrtSlopeLoTab[i] = 1/(cbrtX*cbrtX);
-        }
-    }
-
-    //--------------------------------------------------------------------------
-    // STATIC INITIALIZATIONS
-    //--------------------------------------------------------------------------
-
-    static {
-        init();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Jeff Hain
+ * Copyright 2012-2015 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -298,6 +298,26 @@ public class NumbersUtilsTest extends TestCase {
         assertFalse(NumbersUtils.isNaNOrInfinite(1.1));
     }
 
+    public void test_signFromBit_float() {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            float value = this.utils.randomFloatWhatever();
+            int ref = (Float.floatToRawIntBits(value) < 0 ? -1 : 1);
+            int res = FastMath.signFromBit(value);
+            boolean ok = (ref == res);
+            assertTrue(ok);
+        }
+    }
+
+    public void test_signFromBit_double() {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            double value = this.utils.randomDoubleWhatever();
+            long ref = (Double.doubleToRawLongBits(value) < 0 ? -1L : 1L);
+            long res = FastMath.signFromBit(value);
+            boolean ok = (ref == res);
+            assertTrue(ok);
+        }
+    }
+    
     /*
      * 
      */
@@ -2145,14 +2165,6 @@ public class NumbersUtilsTest extends TestCase {
         }
     }
 
-    public void test_twoPow(int power) {
-        for (int p=-1074;p<=1023;p++) {
-            assertEquals(Math.pow(2.0,p), NumbersUtils.twoPow(p));
-        }
-        assertEquals(Double.NEGATIVE_INFINITY, NumbersUtils.twoPow(-1075));
-        assertEquals(Double.POSITIVE_INFINITY, NumbersUtils.twoPow(1024));
-    }
-
     public void test_intHash_long() {
         
         /*
@@ -2635,6 +2647,72 @@ public class NumbersUtilsTest extends TestCase {
      * 
      */
     
+    public void test_twoPow(int power) {
+        for (int p=-1074;p<=1023;p++) {
+            assertEquals(Math.pow(2.0,p), NumbersUtils.twoPow(p));
+        }
+        assertEquals(Double.NEGATIVE_INFINITY, NumbersUtils.twoPow(-1075));
+        assertEquals(Double.POSITIVE_INFINITY, NumbersUtils.twoPow(1024));
+    }
+    
+    public void test_twoPowAsIntExact_int() {
+        for (int power : new int[]{Integer.MIN_VALUE, -1, 31, Integer.MAX_VALUE}) {
+            try {
+                NumbersUtils.twoPowAsIntExact(power);
+                assertTrue(false);
+            } catch (ArithmeticException e) {
+                // ok
+            }
+        }
+        
+        for (int power = 0; power <= 30; power++) {
+            assertEquals((int)StrictMath.pow(2.0, power), NumbersUtils.twoPowAsIntExact(power));
+        }
+    }
+
+    public void test_twoPowAsIntBounded_int() {
+        for (int power : new int[]{Integer.MIN_VALUE, -1, 31, Integer.MAX_VALUE}) {
+            if (power < 0) {
+                assertEquals(1, NumbersUtils.twoPowAsIntBounded(power));
+            } else {
+                assertEquals((1<<30), NumbersUtils.twoPowAsIntBounded(power));
+            }
+        }
+        
+        for (int power = 0; power <= 30; power++) {
+            assertEquals((int)StrictMath.pow(2.0, power), NumbersUtils.twoPowAsIntBounded(power));
+        }
+    }
+
+    public void test_twoPowAsLongExact_int() {
+        for (int power : new int[]{Integer.MIN_VALUE, -1, 63, Integer.MAX_VALUE}) {
+            try {
+                NumbersUtils.twoPowAsLongExact(power);
+                assertTrue(false);
+            } catch (ArithmeticException e) {
+                // ok
+            }
+        }
+        
+        for (int power = 0; power <= 62; power++) {
+            assertEquals((long)StrictMath.pow(2.0, power), NumbersUtils.twoPowAsLongExact(power));
+        }
+    }
+
+    public void test_twoPowAsLongBounded_int() {
+        for (int power : new int[]{Integer.MIN_VALUE, -1, 63, Integer.MAX_VALUE}) {
+            if (power < 0) {
+                assertEquals(1L, NumbersUtils.twoPowAsLongBounded(power));
+            } else {
+                assertEquals((1L<<62), NumbersUtils.twoPowAsLongBounded(power));
+            }
+        }
+        
+        for (int power = 0; power <= 62; power++) {
+            assertEquals((long)StrictMath.pow(2.0, power), NumbersUtils.twoPowAsLongBounded(power));
+        }
+    }
+        
     public void test_pow2_int() {
         ArrayList<Integer> values = new ArrayList<Integer>();
         values.add(0);

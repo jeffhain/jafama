@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 Jeff Hain
+ * Copyright 2012-2015 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -238,6 +238,23 @@ public final class NumbersUtils {
     public static boolean isNaNOrInfinite(double a) {
         // a-a is not equal to 0.0 (and is NaN) <-> a is NaN or +-Infinity
         return !(a-a == 0.0);
+    }
+    
+    /**
+     * @param value A float value.
+     * @return -1 if sign bit is 1, 1 if sign bit is 0.
+     */
+    public static int signFromBit(float value) {
+        return ((Float.floatToRawIntBits(value)>>30)|1);
+    }
+
+    /**
+     * @param value A double value.
+     * @return -1 if sign bit is 1, 1 if sign bit is 0.
+     */
+    public static long signFromBit(double value) {
+        // Returning a long, to avoid useless cast into int.
+        return ((Double.doubleToRawLongBits(value)>>62)|1);
     }
 
     /*
@@ -1183,27 +1200,6 @@ public final class NumbersUtils {
     }
 
     /**
-     * Returns the exact result, provided it's in double range,
-     * i.e. if power is in [-1074,1023].
-     * 
-     * @param power A power.
-     * @return 2^power.
-     */
-    public static double twoPow(int power) {
-        if (power <= -MAX_DOUBLE_EXPONENT) { // Not normal.
-            if (power >= MIN_DOUBLE_EXPONENT) { // Subnormal.
-                return Double.longBitsToDouble(0x0008000000000000L>>(-(power+MAX_DOUBLE_EXPONENT)));
-            } else { // Underflow.
-                return 0.0;
-            }
-        } else if (power > MAX_DOUBLE_EXPONENT) { // Overflow.
-            return Double.POSITIVE_INFINITY;
-        } else { // Normal.
-            return Double.longBitsToDouble(((long)(power+MAX_DOUBLE_EXPONENT))<<52);
-        }
-    }
-    
-    /**
      * If the specified value is in int range, the returned value is identical.
      * 
      * @return An int hash of the specified value.
@@ -1436,8 +1432,75 @@ public final class NumbersUtils {
     }
 
     /*
-     * pow
+     * powers
      */
+
+    /**
+     * Returns the exact result, provided it's in double range,
+     * i.e. if power is in [-1074,1023].
+     * 
+     * @param power An int power.
+     * @return 2^power as a double, or +-Infinity in case of overflow.
+     */
+    public static double twoPow(int power) {
+        if (power <= -MAX_DOUBLE_EXPONENT) { // Not normal.
+            if (power >= MIN_DOUBLE_EXPONENT) { // Subnormal.
+                return Double.longBitsToDouble(0x0008000000000000L>>(-(power+MAX_DOUBLE_EXPONENT)));
+            } else { // Underflow.
+                return 0.0;
+            }
+        } else if (power > MAX_DOUBLE_EXPONENT) { // Overflow.
+            return Double.POSITIVE_INFINITY;
+        } else { // Normal.
+            return Double.longBitsToDouble(((long)(power+MAX_DOUBLE_EXPONENT))<<52);
+        }
+    }
+
+    /**
+     * @param power An int power.
+     * @return 2^power as an int.
+     * @throws ArithmeticException if the mathematical result
+     *         is not in int range, i.e. if power is not in [0,30].
+     */
+    public static int twoPowAsIntExact(int power) {
+        if ((power < 0) || (power > 30)) {
+            throw new ArithmeticException("integer overflow");
+        }
+        return 1 << power;
+    }
+
+    /**
+     * @param power An int power.
+     * @return 2^power as an int, or the closest power of two in int range
+     *         in case of overflow, i.e. if power is not in [0,30].
+     */
+    public static int twoPowAsIntBounded(int power) {
+        power = toRange(0, 30, power);
+        return 1 << power;
+    }
+
+    /**
+     * @param power An int power.
+     * @return 2^power as a long.
+     * @throws ArithmeticException if the mathematical result
+     *         is not in long range, i.e. if power is not in [0,62].
+     */
+    public static long twoPowAsLongExact(int power) {
+        if ((power < 0) || (power > 62)) {
+            throw new ArithmeticException("long overflow");
+        }
+        return 1L << power;
+    }
+
+    /**
+     * @param power An int power.
+     * @return 2^power as a long, or the closest power of two in long range
+     *         in case of overflow, i.e. if power is not in [0,62].
+     */
+    public static long twoPowAsLongBounded(int power) {
+        power = toRange(0, 62, power);
+        return 1L << power;
+    }
 
     /**
      * @param a A value.
