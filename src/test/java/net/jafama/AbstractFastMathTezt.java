@@ -272,7 +272,7 @@ abstract class AbstractFastMathTezt extends TestCase {
     
     /**
      * Beware that depending on whether methods are private, etc.,
-     * intermediary method calls such as to "access§0" might be done
+     * intermediary method calls such as to "access$0" might be done
      * in-between method calls that are explicit in the code.
      * 
      * Not private, to avoid accessor call.

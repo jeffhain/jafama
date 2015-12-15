@@ -1,4 +1,20 @@
 ################################################################################
+Current dependencies:
+- src/main:
+  - Java 5+
+- src/test:
+  - Java 6+
+  - JUnit 3.8.1
+################################################################################
+Jafama x.x, xxxx/xx/xx
+
+Changes since version 2.2:
+
+- Replaced incorrect section sign (0xA7) in comment, with proper dollar sign
+  (found out while looking at
+  https://github.com/Trugath/Jafama/commit/746ad1e87aca273ae5fe558a846b6edc8a8634aa).
+
+################################################################################
 Jafama 2.2, 2015/12/13
 
 Changes since version 2.1:
