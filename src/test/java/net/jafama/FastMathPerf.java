@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Jeff Hain
+ * Copyright 2012-2017 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
         settle();
         testClassLoad();
-
+        
         /*
          * trigonometry
          */
@@ -199,6 +199,22 @@ public class FastMathPerf extends AbstractFastMathPerf {
         test_rint_float();
         settle();
         test_rint_double();
+
+        /*
+         * close int values
+         */
+
+        settle();
+        test_floorToInt_double();
+        
+        settle();
+        test_ceilToInt_double();
+
+        settle();
+        test_roundToInt_double();
+
+        settle();
+        test_roundEvenToInt_double();
 
         /*
          * binary operators (/,%)
@@ -1729,11 +1745,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
         System.out.println("--- testing floor(float) ---");
 
-        for (float[] args : new float[][]{
-                new float[]{-10,10},
-                new float[]{-(float)DOUBLE_1E6,(float)DOUBLE_1E6},
-                new float[]{-FLOAT_COMMA_LIMIT,FLOAT_COMMA_LIMIT},
-                new float[]{0}}) {
+        for (float[] args : FLOAT_FLOOR_CEIL_ROUND_ARGS_ARR) {
 
             final float[] values = randomFloatTabSmart(args);
 
@@ -1760,11 +1772,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
         System.out.println("--- testing floor(double) ---");
 
-        for (double[] args : new double[][]{
-                new double[]{-10,10},
-                new double[]{-DOUBLE_1E6,DOUBLE_1E6},
-                new double[]{-DOUBLE_COMMA_LIMIT,DOUBLE_COMMA_LIMIT},
-                new double[]{0}}) {
+        for (double[] args : DOUBLE_FLOOR_CEIL_ROUND_ARGS_ARR) {
 
             final double[] values = randomDoubleTabSmart(args);
 
@@ -1797,11 +1805,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
         System.out.println("--- testing ceil(float) ---");
 
-        for (float[] args : new float[][]{
-                new float[]{-10,10},
-                new float[]{-(float)DOUBLE_1E6,(float)DOUBLE_1E6},
-                new float[]{-FLOAT_COMMA_LIMIT,FLOAT_COMMA_LIMIT},
-                new float[]{0}}) {
+        for (float[] args : FLOAT_FLOOR_CEIL_ROUND_ARGS_ARR) {
 
             final float[] values = randomFloatTabSmart(args);
 
@@ -1828,11 +1832,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
         System.out.println("--- testing ceil(double) ---");
 
-        for (double[] args : new double[][]{
-                new double[]{-10,10},
-                new double[]{-DOUBLE_1E6,DOUBLE_1E6},
-                new double[]{-DOUBLE_COMMA_LIMIT,DOUBLE_COMMA_LIMIT},
-                new double[]{0}}) {
+        for (double[] args : DOUBLE_FLOOR_CEIL_ROUND_ARGS_ARR) {
 
             final double[] values = randomDoubleTabSmart(args);
 
@@ -1865,11 +1865,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
         System.out.println("--- testing round(float) ---");
 
-        for (float[] args : new float[][]{
-                new float[]{-10,10},
-                new float[]{-(float)DOUBLE_1E6,(float)DOUBLE_1E6},
-                new float[]{-FLOAT_COMMA_LIMIT,FLOAT_COMMA_LIMIT},
-                new float[]{0}}) {
+        for (float[] args : FLOAT_FLOOR_CEIL_ROUND_ARGS_ARR) {
 
             final float[] values = randomFloatTabSmart(args);
 
@@ -1902,11 +1898,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
         System.out.println("--- testing round(double) ---");
 
-        for (double[] args : new double[][]{
-                new double[]{-10,10},
-                new double[]{-DOUBLE_1E6,DOUBLE_1E6},
-                new double[]{-DOUBLE_COMMA_LIMIT,DOUBLE_COMMA_LIMIT},
-                new double[]{0}}) {
+        for (double[] args : DOUBLE_FLOOR_CEIL_ROUND_ARGS_ARR) {
 
             final double[] values = randomDoubleTabSmart(args);
 
@@ -1939,19 +1931,15 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
         System.out.println("--- testing roundEven(float) ---");
 
-        for (float[] args : new float[][]{
-                new float[]{-10,10},
-                new float[]{-(float)DOUBLE_1E6,(float)DOUBLE_1E6},
-                new float[]{-FLOAT_COMMA_LIMIT,FLOAT_COMMA_LIMIT},
-                new float[]{0}}) {
+        for (float[] args : FLOAT_FLOOR_CEIL_ROUND_ARGS_ARR) {
 
             final float[] values = randomFloatTabSmart(args);
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.round(values[j]);
+            dummy += (int)Math.rint(values[j]);
             }
-            System.out.println("Loop on         Math.round(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on    (int)Math.rint(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
@@ -1976,19 +1964,15 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
         System.out.println("--- testing roundEven(double) ---");
 
-        for (double[] args : new double[][]{
-                new double[]{-10,10},
-                new double[]{-DOUBLE_1E6,DOUBLE_1E6},
-                new double[]{-DOUBLE_COMMA_LIMIT,DOUBLE_COMMA_LIMIT},
-                new double[]{0}}) {
+        for (double[] args : DOUBLE_FLOOR_CEIL_ROUND_ARGS_ARR) {
 
             final double[] values = randomDoubleTabSmart(args);
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
-            dummy += Math.round(values[j]);
+            dummy += (long)Math.rint(values[j]);
             }
-            System.out.println("Loop on         Math.round(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on    (long)Math.rint(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
@@ -2013,19 +1997,21 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
         System.out.println("--- testing rint(float) ---");
 
-        for (float[] args : new float[][]{
-                new float[]{-10,10},
-                new float[]{-(float)DOUBLE_1E6,(float)DOUBLE_1E6},
-                new float[]{-FLOAT_COMMA_LIMIT,FLOAT_COMMA_LIMIT},
-                new float[]{0}}) {
+        for (float[] args : FLOAT_FLOOR_CEIL_ROUND_ARGS_ARR) {
 
             final float[] values = randomFloatTabSmart(args);
+            
+            startTimer();
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += (float)Math.rint((double)values[j]);
+            }
+            System.out.println("Loop on (float)Math.rint((double)float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
 
             startTimer();
             for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
             dummy += FastMath.rint(values[j]);
             }
-            System.out.println("Loop on FastMath.rint(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            System.out.println("Loop on            FastMath.rint(float), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
         }
 
         // NaN-crash test.
@@ -2044,11 +2030,7 @@ public class FastMathPerf extends AbstractFastMathPerf {
 
         System.out.println("--- testing rint(double) ---");
 
-        for (double[] args : new double[][]{
-                new double[]{-10,10},
-                new double[]{-DOUBLE_1E6,DOUBLE_1E6},
-                new double[]{-DOUBLE_COMMA_LIMIT,DOUBLE_COMMA_LIMIT},
-                new double[]{0}}) {
+        for (double[] args : DOUBLE_FLOOR_CEIL_ROUND_ARGS_ARR) {
 
             final double[] values = randomDoubleTabSmart(args);
 
@@ -2076,6 +2058,178 @@ public class FastMathPerf extends AbstractFastMathPerf {
         useDummy(dummy);
     }
 
+    /*
+     * close int values
+     */
+
+    private void test_floorToInt_double() {
+        int dummy = 0;
+
+        System.out.println("--- testing floorToInt(double) ---");
+
+        for (double[] args : DOUBLE_FLOOR_CEIL_ROUND_ARGS_ARR) {
+
+            final double[] values = randomDoubleTabSmart(args);
+
+            startTimer();
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += (int)Math.floor(values[j]);
+            }
+            System.out.println("Loop on     (int)Math.floor(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+
+            startTimer();
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += (int)FastMath.floor(values[j]);
+            }
+            System.out.println("Loop on (int)FastMath.floor(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+
+            startTimer();
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += FastMath.floorToInt(values[j]);
+            }
+            System.out.println("Loop on FastMath.floorToInt(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+        }
+
+        // NaN-crash test.
+        {
+            final double[] values = randomDoubleTabSmart(new double[]{});
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += FastMath.floorToInt(values[j]);
+            }
+        }
+
+        useDummy(dummy);
+    }
+
+    private void test_ceilToInt_double() {
+        int dummy = 0;
+
+        System.out.println("--- testing ceilToInt(double) ---");
+
+        for (double[] args : DOUBLE_FLOOR_CEIL_ROUND_ARGS_ARR) {
+
+            final double[] values = randomDoubleTabSmart(args);
+
+            startTimer();
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += (int)Math.ceil(values[j]);
+            }
+            System.out.println("Loop on     (int)Math.ceil(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+
+            startTimer();
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += (int)FastMath.ceil(values[j]);
+            }
+            System.out.println("Loop on (int)FastMath.ceil(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+
+            startTimer();
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += FastMath.ceilToInt(values[j]);
+            }
+            System.out.println("Loop on FastMath.ceilToInt(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+        }
+
+        // NaN-crash test.
+        {
+            final double[] values = randomDoubleTabSmart(new double[]{});
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += FastMath.ceilToInt(values[j]);
+            }
+        }
+
+        useDummy(dummy);
+    }
+
+    private void test_roundToInt_double() {
+        int dummy = 0;
+
+        System.out.println("--- testing roundToInt(double) ---");
+
+        for (double[] args : DOUBLE_FLOOR_CEIL_ROUND_ARGS_ARR) {
+
+            final double[] values = randomDoubleTabSmart(args);
+
+            startTimer();
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += (int)(double)Math.round(values[j]);
+            }
+            System.out.println("Loop on            (int)(double)Math.round(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+
+            startTimer();
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += NumbersUtils.toInt(Math.round(values[j]));
+            }
+            System.out.println("Loop on     NumbersUtils.toInt(Math.round(double)), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+
+            startTimer();
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += (int)(double)FastMath.round(values[j]);
+            }
+            System.out.println("Loop on        (int)(double)FastMath.round(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+
+            startTimer();
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += NumbersUtils.toInt(FastMath.round(values[j]));
+            }
+            System.out.println("Loop on NumbersUtils.toInt(FastMath.round(double)), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+            
+            startTimer();
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += FastMath.roundToInt(values[j]);
+            }
+            System.out.println("Loop on                FastMath.roundToInt(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+        }
+
+        // NaN-crash test.
+        {
+            final double[] values = randomDoubleTabSmart(new double[]{});
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += FastMath.roundToInt(values[j]);
+            }
+        }
+
+        useDummy(dummy);
+    }
+
+    private void test_roundEvenToInt_double() {
+        int dummy = 0;
+
+        System.out.println("--- testing roundEvenToInt(double) ---");
+
+        for (double[] args : DOUBLE_FLOOR_CEIL_ROUND_ARGS_ARR) {
+
+            final double[] values = randomDoubleTabSmart(args);
+
+            startTimer();
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += (int)Math.rint(values[j]);
+            }
+            System.out.println("Loop on          (int)Math.rint(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+
+            startTimer();
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += (int)FastMath.rint(values[j]);
+            }
+            System.out.println("Loop on      (int)FastMath.rint(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+
+            startTimer();
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += FastMath.roundEvenToInt(values[j]);
+            }
+            System.out.println("Loop on FastMath.roundEvenToInt(double), args in "+toStringSmart(args)+", took "+getElapsedSeconds()+" s");
+        }
+
+        // NaN-crash test.
+        {
+            final double[] values = randomDoubleTabSmart(new double[]{});
+            for (int i=0;i<NBR_OF_CALLS;i++) { int j=(i&MASK);
+            dummy += FastMath.roundEvenToInt(values[j]);
+            }
+        }
+
+        useDummy(dummy);
+    }
+    
     /*
      * binary operators (/,%)
      */

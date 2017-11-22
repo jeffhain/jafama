@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Jeff Hain
+ * Copyright 2012-2017 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1411,6 +1411,63 @@ public class FastMathTest extends AbstractFastMathTezt {
             double ref = Math.rint(value);
             double res = FastMath.rint(value);
             boolean ok = equivalent(ref,res);
+            if (!ok) {
+                printCallerName();
+                System.out.println("value = "+value);
+                System.out.println("ref = "+ref);
+                System.out.println("res = "+res);
+            }
+            assertTrue(ok);
+        }
+    }
+    
+    /*
+     * close int values
+     */
+    
+    public void test_floorToInt_double() {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            double value = randomDoubleWhatever();
+            int ref = (int) Math.floor(value);
+            int res = FastMath.floorToInt(value);
+            assertEquals(ref, res);
+        }
+    }
+    
+    public void test_ceilToInt_double() {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            double value = randomDoubleWhatever();
+            int ref = (int) Math.ceil(value);
+            int res = FastMath.ceilToInt(value);
+            assertEquals(ref, res);
+        }
+    }
+
+    public void test_roundToInt_double() {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            double value = randomDoubleWhatever();
+            // Assuming our round(double) rounds correctly
+            // (for Math one it depends on the JDK version).
+            int ref = (int)(double)FastMath.round(value);
+            int res = FastMath.roundToInt(value);
+            boolean ok = (ref == res);
+            if (!ok) {
+                printCallerName();
+                System.out.println("value = "+value);
+                System.out.println("ref = "+ref);
+                System.out.println("res = "+res);
+            }
+            assertTrue(ok);
+        }
+    }
+
+    public void test_roundEvenToInt_double() {
+        for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
+            double value = randomDoubleWhatever();
+            // Assuming our roundEven(double) rounds correctly.
+            int ref = NumbersUtils.toInt(FastMath.roundEven(value));
+            int res = FastMath.roundEvenToInt(value);
+            boolean ok = (ref == res);
             if (!ok) {
                 printCallerName();
                 System.out.println("value = "+value);

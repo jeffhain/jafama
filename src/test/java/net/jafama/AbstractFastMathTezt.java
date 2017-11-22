@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Jeff Hain
+ * Copyright 2014-2017 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,6 @@ import junit.framework.TestCase;
 
 /**
  * Stuffs to test FastMath and StrictFastMath.
- * 
- * TODO Run tests:
- * - while using redefined logs and sqrt, for worse case.
- * - with different seeds, and better or various Randoms,
- *   for better chance to trigger some bad cases.
  */
 abstract class AbstractFastMathTezt extends TestCase {
 

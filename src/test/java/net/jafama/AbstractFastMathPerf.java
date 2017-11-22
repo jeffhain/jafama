@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Jeff Hain
+ * Copyright 2014-2017 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,20 @@ abstract class AbstractFastMathPerf {
     static final int[] INT_ARGS_SQRT_NEG_POS = new int[]{
         -(int)Math.sqrt(Integer.MAX_VALUE),
         (int)Math.sqrt(Integer.MAX_VALUE)};
+
+    static final double[][] DOUBLE_FLOOR_CEIL_ROUND_ARGS_ARR = new double[][]{
+        new double[]{0.0,1000.0},
+        new double[]{-1000.0,0.0},
+        new double[]{-DOUBLE_1E6,DOUBLE_1E6},
+        new double[]{-DOUBLE_COMMA_LIMIT,DOUBLE_COMMA_LIMIT},
+        new double[]{0}};
+
+    static final float[][] FLOAT_FLOOR_CEIL_ROUND_ARGS_ARR = new float[][]{
+        new float[]{0.0f,1000.0f},
+        new float[]{-1000.0f,0.0f},
+        new float[]{-(float)DOUBLE_1E6,(float)DOUBLE_1E6},
+        new float[]{-FLOAT_COMMA_LIMIT,FLOAT_COMMA_LIMIT},
+        new float[]{0}};
 
     final Random random = new Random(123456789L);
     

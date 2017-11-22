@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Jeff Hain
+ * Copyright 2012-2017 Jeff Hain
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,63 +28,8 @@
 package net.jafama;
 
 /**
- * Class providing math treatments that:
- * - are meant to be faster than java.lang.Math class equivalents (if any),
- * - are still somehow accurate and robust (handling of NaN and such),
- * - do not (or not directly) generate objects at run time (no "new").
- * 
- * Other than optimized treatments, a valuable feature of this class is the
- * presence of angles normalization methods, derived from those used in
- * java.lang.Math (for which, sadly, no API is provided, letting everyone
- * with the terrible responsibility of writing their own ones).
- * 
- * Non-redefined methods Math methods are also available, for easy replacement,
- * even though for some of them, such as for incrementExact, you might want to
- * stick to Math versions to benefit from eventual JVM intrinsics.
- * 
- * Use of look-up tables: around 1 Mo total, and initialized lazily or on first
- * call to initTables().
- * 
- * Depending on JVM, or JVM options, these treatments can actually be slower
- * than Math ones.
- * In particular, they can be slower if not optimized by the JIT, which you
- * can see with -Xint JVM option.
- * Another cause of slowness can be cache-misses on look-up tables.
- * Also, look-up tables initialization typically takes multiple hundreds of
- * milliseconds (and is about twice slower in J6 than in J5, and in J7 than in
- * J6, possibly due to intrinsifications preventing optimizations such as use
- * of hardware sqrt, and Math delegating to StrictMath with JIT optimizations
- * not yet up during class load).
- * As a result, you might want to make these treatments not use tables,
- * and delegate to corresponding Math methods, when they are available in the
- * lowest supported Java version, by using the appropriate property (see below).
- * 
- * Methods with same signature than Math ones, are meant to return
- * "good" approximations on all range.
- * Methods terminating with "Fast" are meant to return "good" approximation
- * on a reduced range only.
- * Methods terminating with "Quick" are meant to be quick, but do not
- * return a good approximation, and might only work on a reduced range.
- * 
- * Properties:
- * 
- * - jafama.usejdk (boolean, default is false):
- *   If true, for redefined methods, as well as their "Fast" or "Quick"
- *   terminated counterparts, instead of using redefined computations,
- *   delegating to Math, when available in required Java version.
- * 
- * - jafama.fastlog (boolean, default is false):
- *   If true, using redefined computations for log(double) and
- *   log10(double), else they delegate to Math.log(double) and
- *   Math.log10(double).
- *   False by default because Math.log(double) and Math.log10(double)
- *   seem usually fast (redefined log(double) might be even faster,
- *   but is less accurate).
- * 
- * - jafama.fastsqrt (boolean, default is false):
- *   If true, using redefined computation for sqrt(double),
- *   else it delegates to Math.sqrt(double).
- *   False by default because Math.sqrt(double) seems usually fast.
+ * Faster (hopefully) versions of java.lang.Math methods, plus additional ones.
+ * Cf. README.txt for more info.
  */
 public final class FastMath extends CmnFastMath {
 
@@ -2001,7 +1946,12 @@ public final class FastMath extends CmnFastMath {
      *         are equally close (i.e. rounding-up).
      */
     public static int round(float value) {
-        // Algorithm by Dmitry Nadezhin
+        /*
+         * Not delegating to JDK, because we want delegation to provide
+         * at least as good results, and some supported JDK versions
+         * have bugged round() methods.
+         */
+        // Algorithm by Dmitry Nadezhin (but replaced an if by a multiply)
         // (http://mail.openjdk.java.net/pipermail/core-libs-dev/2013-August/020247.html).
         final int bits = Float.floatToRawIntBits(value);
         final int biasedExp = ((bits>>23)&0xFF);
@@ -2009,17 +1959,15 @@ public final class FastMath extends CmnFastMath {
         // 1-shift to the right to end up with correct magnitude.
         final int shift = (23 - 1 + MAX_FLOAT_EXPONENT) - biasedExp;
         if ((shift & -32) == 0) {
+            int bitsSignum = (((bits >> 31) << 1) + 1);
             // shift in [0,31], so unbiased exp in [-9,22].
-            int extendedMantissa = (0x00800000 | (bits & 0x007FFFFF));
-            if (bits < 0) {
-                extendedMantissa = -extendedMantissa;
-            }
+            int extendedMantissa = (0x00800000 | (bits & 0x007FFFFF)) * bitsSignum;
             // If value is positive and first bit past comma is 0, rounding
             // to lower integer, else to upper one, which is what "+1" and
             // then ">>1" do.
             return ((extendedMantissa >> shift) + 1) >> 1;
         } else {
-            // +-Infinity, NaN, or a mathematical integer.
+            // +-Infinity, NaN, or a mathematical integer, or tiny.
             if (false && ANTI_SLOW_CASTS) { // not worth it
                 if (Math.abs(value) >= -(float)Integer.MIN_VALUE) {
                     // +-Infinity or a mathematical integer (mostly) out of int range.
@@ -2040,23 +1988,26 @@ public final class FastMath extends CmnFastMath {
      *         are equally close (i.e. rounding-up).
      */
     public static long round(double value) {
+        /*
+         * Not delegating to JDK, because we want delegation to provide
+         * at least as good results, and some supported JDK versions
+         * have bugged round() methods.
+         */
         final long bits = Double.doubleToRawLongBits(value);
         final int biasedExp = (((int)(bits>>52))&0x7FF);
         // Shift to get rid of bits past comma except first one: will need to
         // 1-shift to the right to end up with correct magnitude.
         final int shift = (52 - 1 + MAX_DOUBLE_EXPONENT) - biasedExp;
         if ((shift & -64) == 0) {
+            long bitsSignum = (((bits >> 63) << 1) + 1);
             // shift in [0,63], so unbiased exp in [-12,51].
-            long extendedMantissa = (0x0010000000000000L | (bits & 0x000FFFFFFFFFFFFFL));
-            if (bits < 0) {
-                extendedMantissa = -extendedMantissa;
-            }
+            long extendedMantissa = (0x0010000000000000L | (bits & 0x000FFFFFFFFFFFFFL)) * bitsSignum;
             // If value is positive and first bit past comma is 0, rounding
             // to lower integer, else to upper one, which is what "+1" and
             // then ">>1" do.
             return ((extendedMantissa >> shift) + 1L) >> 1;
         } else {
-            // +-Infinity, NaN, or a mathematical integer.
+            // +-Infinity, NaN, or a mathematical integer, or tiny.
             if (ANTI_SLOW_CASTS) {
                 if (Math.abs(value) >= -(double)Long.MIN_VALUE) {
                     // +-Infinity or a mathematical integer (mostly) out of long range.
@@ -2081,7 +2032,7 @@ public final class FastMath extends CmnFastMath {
                 // Getting rid of post-comma bits.
                 value = ((value + TWO_POW_23_F) - TWO_POW_23_F);
                 return sign * (int)value;
-            } else if (value < (float)Integer.MAX_VALUE) { // <= doesn't work because of float precision
+            } else if (value < (float)Integer.MAX_VALUE) { // "<=" doesn't work, because of float precision
                 // value is in [-Integer.MAX_VALUE,Integer.MAX_VALUE]
                 return sign * (int)value;
             }
@@ -2152,6 +2103,88 @@ public final class FastMath extends CmnFastMath {
         return sign * value;
     }
 
+    /*
+     * close int values
+     * 
+     * Never delegating to JDK for these methods, for we should always
+     * be faster and exact, and JDK doesn't exactly have such methods.
+     */
+
+    /**
+     * @param value A double value.
+     * @return Floor of value as int, or closest int if floor is out
+     *         of int range, or 0 if value is NaN.
+     */
+    public static int floorToInt(double value) {
+        int valueInt = (int) value;
+        if (value < 0.0) {
+            if (value == (double) valueInt) {
+                return valueInt;
+            } else {
+                if (valueInt == Integer.MIN_VALUE) {
+                    return valueInt;
+                } else {
+                    return valueInt - 1;
+                }
+            }
+        } else { // >= 0 or NaN.
+            return valueInt;
+        }
+    }
+    
+    /**
+     * @param value A double value.
+     * @return Ceiling of value as int, or closest int if ceiling is out
+     *         of int range, or 0 if value is NaN.
+     */
+    public static int ceilToInt(double value) {
+        int valueInt = (int) value;
+        if (value > 0.0) {
+            if (value == (double) valueInt) {
+                return valueInt;
+            } else {
+                if (valueInt == Integer.MAX_VALUE) {
+                    return valueInt;
+                } else {
+                    return valueInt + 1;
+                }
+            }
+        } else { // <= 0 or NaN.
+            return valueInt;
+        }
+    }
+    
+    /**
+     * @param value A double value.
+     * @return Value rounded to nearest int, choosing superior int in case two
+     *         are equally close (i.e. rounding-up).
+     */
+    public static int roundToInt(double value) {
+        /*
+         * We don't gain much by reimplementing rounding, except for
+         * pathologically large values, which should not be a common case
+         * when dealing with ints, so we just use round(double).
+         */
+        return NumbersUtils.toInt(round(value));
+    }
+    
+    /**
+     * @param value A double value.
+     * @return Value rounded to nearest int, choosing even int in case two
+     *         are equally close.
+     */
+    public static int roundEvenToInt(double value) {
+        final int sign = (int)signFromBit(value);
+        value = Math.abs(value);
+        /*
+         * Applying the post-comma bits removal logic even if value is out
+         * of int range, to avoid a test, for it doesn't mess up the result,
+         * and we want to optimize for the case of values in int range.
+         */
+        value = ((value + TWO_POW_52) - TWO_POW_52);
+        return (int)(sign * value);
+    }
+    
     /*
      * ranges
      */

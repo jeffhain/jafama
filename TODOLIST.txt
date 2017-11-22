@@ -1,0 +1,27 @@
+################################################################################
+# To do, or not to do, list.
+################################################################################
+
+- For each version:
+  - Check headers dates.
+  - Run tests:
+    - Against generated jar file, by adding it in classpath
+      and temporarily renaming main sources directory.
+    - Configured to use redefined logs and sqrt.
+    - Configured to delegate to JDK.
+
+- Could rename {CHANGELOG,README,TODOLIST} into {PAST,PRESENT,FUTURE}.
+
+- Formatting with more spaces? (by hand, not automatic, for sometimes the rule
+  would have to be broken for readability?).
+
+- Markdown README?
+
+- JDK9 goodies:
+  - Modularization.
+  - fma(double a, double b, double c).
+  - fma(float a, float b, float c).
+  - multiplyFull(int x, int y).
+  - multiplyHigh(long x, long y).
+
+################################################################################
