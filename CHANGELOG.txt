@@ -1,4 +1,13 @@
 ################################################################################
+Jafama 2.3.1, 2017/12/09
+
+- Removed empty-name entry from jar generation, which was taking the name of
+  the jar (jafama) in the result, and was causing issues with some software,
+  cf. JDK 8182377.
+
+- Refactored build code, creating a new JfmJavacHelper class.
+
+################################################################################
 Jafama 2.3, 2017/11/22
 
 - Moved change log from README.txt to the new CHANGELOG.txt file

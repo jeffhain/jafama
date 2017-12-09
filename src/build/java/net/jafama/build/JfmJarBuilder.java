@@ -38,6 +38,12 @@ public class JfmJarBuilder {
     
     private static final int BUFFER_SIZE = 4096;
 
+    /**
+     * We want not to do it, because software often have issues
+     * with empty stuffs, cf. JDK 8182377.
+     */
+    private static final boolean MUST_ADD_EMPTY_DIRECTORIES = false;
+
     //--------------------------------------------------------------------------
     // PUBLIC METHODS
     //--------------------------------------------------------------------------
@@ -110,21 +116,25 @@ public class JfmJarBuilder {
             int rootDirPathLengthToIgnore,
             JarOutputStream jos,
             byte[] tmpBuff) {
-        String dirEntryName = dir.getPath().replace("\\", "/");
-        if (!dirEntryName.isEmpty()) {
+        if (MUST_ADD_EMPTY_DIRECTORIES) {
+            String dirEntryName = dir.getPath().replace("\\", "/");
             if (!dirEntryName.endsWith("/")) {
                 dirEntryName += "/";
             }
             dirEntryName = dirEntryName.substring(rootDirPathLengthToIgnore);
-            
-            final JarEntry dirEntry = new JarEntry(dirEntryName);
-            dirEntry.setTime(dir.lastModified());
-            try {
-                jos.putNextEntry(dirEntry);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            // For some reason, when adding an entry with empty name,
+            // it gets renamed as the jar name minus the extension,
+            // but we don't want to add this entry anyway.
+            if (!dirEntryName.isEmpty()) {
+                final JarEntry dirEntry = new JarEntry(dirEntryName);
+                dirEntry.setTime(dir.lastModified());
+                try {
+                    jos.putNextEntry(dirEntry);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                closeEntryQuietly(jos);
             }
-            closeEntryQuietly(jos);
         }
         final File[] fileArr = dir.listFiles();
         if (fileArr != null) {
