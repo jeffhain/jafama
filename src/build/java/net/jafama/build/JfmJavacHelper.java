@@ -60,6 +60,22 @@ public class JfmJavacHelper {
     private static final String CHARSET_NAME = "UTF-8";
     private static final Charset CHARSET = Charset.forName(CHARSET_NAME);
 
+    /**
+     * Separator for classpath entries.
+     */
+    private static final String CP_SEP;
+    static {
+        final String osName = System.getProperty("os.name");
+        final boolean isWindows =
+                (osName != null)
+                && osName.startsWith("Windows");
+        /*
+         * Like its command line flavor,
+         * JavaCompiler is not fully platform-agnostic.
+         */
+        CP_SEP = (isWindows ? ";" : ":");
+    }
+    
     private final List<String> optionList;
     
     private final List<String> classpathElementList;
@@ -197,7 +213,7 @@ public class JfmJavacHelper {
                 sb.append(compDirPath);
                 
                 for (String classpathElement : this.classpathElementList) {
-                    sb.append(";");
+                    sb.append(CP_SEP);
                     sb.append(classpathElement);
                 }
                 
