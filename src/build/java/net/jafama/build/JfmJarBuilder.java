@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.jar.Attributes;
+import java.util.jar.Attributes.Name;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -35,6 +36,8 @@ public class JfmJarBuilder {
     //--------------------------------------------------------------------------
     // CONFIGURATION
     //--------------------------------------------------------------------------
+    
+    private static final String MODULE_NAME = "net.jafama";
     
     private static final int BUFFER_SIZE = 4096;
 
@@ -59,6 +62,8 @@ public class JfmJarBuilder {
             attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
             
             attributes.put(Attributes.Name.IMPLEMENTATION_VERSION, implementationVersion);
+            
+            attributes.put(new Name("Automatic-Module-Name"), MODULE_NAME);
             
             /*
              * We don't add "X-Compile-Source-JDK" and "X-Compile-Target-JDK"
