@@ -302,7 +302,7 @@ public class NumbersUtilsTest extends TestCase {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             float value = this.utils.randomFloatWhatever();
             int ref = (Float.floatToRawIntBits(value) < 0 ? -1 : 1);
-            int res = FastMath.signFromBit(value);
+            int res = NumbersUtils.signFromBit(value);
             boolean ok = (ref == res);
             assertTrue(ok);
         }
@@ -312,7 +312,7 @@ public class NumbersUtilsTest extends TestCase {
         for (int i=0;i<NBR_OF_VALUES_SMALL;i++) {
             double value = this.utils.randomDoubleWhatever();
             long ref = (Double.doubleToRawLongBits(value) < 0 ? -1L : 1L);
-            long res = FastMath.signFromBit(value);
+            long res = NumbersUtils.signFromBit(value);
             boolean ok = (ref == res);
             assertTrue(ok);
         }

@@ -226,18 +226,18 @@ public final class NumbersUtils {
      * @param value A float value.
      * @return True if the specified value is NaN or +-Infinity, false otherwise.
      */
-    public static boolean isNaNOrInfinite(float a) {
-        // a-a is not equal to 0.0f (and is NaN) <-> a is NaN or +-Infinity
-        return !(a-a == 0.0f);
+    public static boolean isNaNOrInfinite(float value) {
+        // value-value is not equal to 0.0f (and is NaN) <-> value is NaN or +-Infinity
+        return !(value-value == 0.0f);
     }
 
     /**
      * @param value A double value.
      * @return True if the specified value is NaN or +-Infinity, false otherwise.
      */
-    public static boolean isNaNOrInfinite(double a) {
-        // a-a is not equal to 0.0 (and is NaN) <-> a is NaN or +-Infinity
-        return !(a-a == 0.0);
+    public static boolean isNaNOrInfinite(double value) {
+        // value-value is not equal to 0.0 (and is NaN) <-> value is NaN or +-Infinity
+        return !(value-value == 0.0);
     }
     
     /**
@@ -1221,8 +1221,6 @@ public final class NumbersUtils {
     }
 
     /**
-     * Not defining an asByte(long) method, since asByte((int)aLong) works.
-     * 
      * @param a An int value.
      * @return The specified value as byte.
      * @throws ArithmeticException if the specified value is not in [Byte.MIN_VALUE,Byte.MAX_VALUE] range.

@@ -275,8 +275,8 @@ abstract class AbstractFastMathTezt extends TestCase {
      * @param depth 0 for caller method name, 1 for caller's caller name, etc.
      */
     static void printCallerMethodName(int depth, String suffix) {
-        StackTraceElement[] ste = Thread.currentThread().getStackTrace();
-        String callerName = ste[2+depth].getMethodName();
+        final StackTraceElement[] ste = Thread.currentThread().getStackTrace();
+        final String callerName = ste[2+depth].getMethodName();
         System.out.println();
         System.out.println(callerName+"()"+((suffix == null) ? "" : " "+suffix));
     }
