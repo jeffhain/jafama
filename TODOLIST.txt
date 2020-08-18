@@ -15,8 +15,6 @@
 - Formatting with more spaces? (by hand, not automatic, for sometimes the rule
   would have to be broken for readability?).
 
-- Markdown README?
-
 - JDK9 goodies:
   - Modularization.
   - fma(double a, double b, double c).

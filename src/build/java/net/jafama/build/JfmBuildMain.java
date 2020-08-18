@@ -27,7 +27,7 @@ public class JfmBuildMain {
     // CONFIGURATION
     //--------------------------------------------------------------------------
     
-    private static final String JAR_VERSION = "2.3.1";
+    private static final String JAR_VERSION = "2.3.2";
     private static final String JAR_FILE_NAME = "jafama.jar";
     
     private static final String SOURCE_VERSION = "1.5";

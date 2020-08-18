@@ -1,4 +1,19 @@
 ################################################################################
+Jafama 2.3.2, 2020/08/18
+
+- Added Automatic-Module-Name attribute to the manifest,
+  for Java Platform Module System (request from AndreasWBartels).
+
+- Build: corrected an issue in JfmJavacHelper, which was always using ';'
+  as classpath separator, instead of ':' by default and ';' only on Windows.
+
+- Little code cleanups.
+
+- Removed AllTests class (instead just launch tests from the IDE project).
+
+- Changed README to use Markdown.
+
+################################################################################
 Jafama 2.3.1, 2017/12/09
 
 - Removed empty-name entry from jar generation, which was taking the name of
